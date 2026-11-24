@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "StatusBar.h"
 #include "../Common/DebugDef.h"
@@ -667,7 +667,7 @@ namespace TSTaskCentre
 						i=-1;
 					if (i!=m_HotItem)
 						SetHotItem(i);
-					// WM_MOUSELEAVE ‚ª‘—‚ç‚ê‚È‚­‚Ä‚à–³Œø‚É‚³‚ê‚é–‚ª‚ ‚é‚æ‚¤‚¾
+					// WM_MOUSELEAVE ãŒé€ã‚‰ã‚Œãªãã¦ã‚‚ç„¡åŠ¹ã«ã•ã‚Œã‚‹äº‹ãŒã‚ã‚‹ã‚ˆã†ã 
 					/*if (!m_fTrackMouseEvent)*/ {
 						TRACKMOUSEEVENT tme;
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "SettingsDialog.h"
 #include "resource.h"
@@ -294,7 +294,7 @@ namespace TSTaskCentre
 		HWND hwnd=::GetParent(m_hDlg);
 
 		::SendMessage(hwnd,WM_APP_SET_PAGE,m_PageID,0);
-		::MessageBox(hwnd,pszMessage,L"�ݒ�",MB_OK | MB_ICONINFORMATION);
+		::MessageBox(hwnd,pszMessage,L"設定",MB_OK | MB_ICONINFORMATION);
 		if (ID>0)
 			::SetFocus(::GetDlgItem(m_hDlg,ID));
 	}

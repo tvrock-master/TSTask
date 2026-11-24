@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "Module.h"
 #include "DebugDef.h"
@@ -25,16 +25,16 @@ namespace TSTask
 		if (m_hModule!=nullptr)
 			return false;
 
-		OutLog(LOG_VERBOSE,L"ƒ‚ƒWƒ…[ƒ‹(%s)‚ğƒ[ƒh‚µ‚Ü‚·B",pszFileName);
+		OutLog(LOG_VERBOSE,L"ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«(%s)ã‚’ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚",pszFileName);
 
 		m_hModule=::LoadLibrary(pszFileName);
 		if (m_hModule==nullptr) {
-			OutSystemErrorLog(::GetLastError(),L"ƒ‚ƒWƒ…[ƒ‹(%s)‚ğƒ[ƒh‚Å‚«‚Ü‚¹‚ñB",
+			OutSystemErrorLog(::GetLastError(),L"ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«(%s)ã‚’ãƒ­ãƒ¼ãƒ‰ã§ãã¾ã›ã‚“ã€‚",
 							  pszFileName);
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒ‚ƒWƒ…[ƒ‹(%s)‚ğƒ[ƒh‚µ‚Ü‚µ‚½B(%p)",pszFileName,m_hModule);
+		OutLog(LOG_VERBOSE,L"ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«(%s)ã‚’ãƒ­ãƒ¼ãƒ‰ã—ã¾ã—ãŸã€‚(%p)",pszFileName,m_hModule);
 
 		return true;
 	}
@@ -42,9 +42,9 @@ namespace TSTask
 	void CModule::Unload()
 	{
 		if (m_hModule!=nullptr) {
-			OutLog(LOG_VERBOSE,L"ƒ‚ƒWƒ…[ƒ‹(%p)‚ğ‰ğ•ú‚µ‚Ü‚·B",m_hModule);
+			OutLog(LOG_VERBOSE,L"ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«(%p)ã‚’è§£æ”¾ã—ã¾ã™ã€‚",m_hModule);
 			::FreeLibrary(m_hModule);
-			OutLog(LOG_VERBOSE,L"ƒ‚ƒWƒ…[ƒ‹(%p)‚ğ‰ğ•ú‚µ‚Ü‚µ‚½B",m_hModule);
+			OutLog(LOG_VERBOSE,L"ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«(%p)ã‚’è§£æ”¾ã—ã¾ã—ãŸã€‚",m_hModule);
 			m_hModule=nullptr;
 		}
 	}

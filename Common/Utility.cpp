@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "DebugDef.h"
 
@@ -713,15 +713,15 @@ namespace TSTask
 					WCHAR From;
 					WCHAR To;
 				} CharMap[] = {
-					{L'\\',	L'Åè'},
-					{L'/',	L'Å^'},
-					{L':',	L'ÅF'},
-					{L'*',	L'Åñ'},
-					{L'?',	L'ÅH'},
-					{L'"',	L'Åh'},
-					{L'<',	L'ÅÉ'},
-					{L'>',	L'ÅÑ'},
-					{L'|',	L'Åb'},
+					{L'\\',	L'Ôø•'},
+					{L'/',	L'Ôºè'},
+					{L':',	L'Ôºö'},
+					{L'*',	L'Ôºä'},
+					{L'?',	L'Ôºü'},
+					{L'"',	L'‚Äù'},
+					{L'<',	L'Ôºú'},
+					{L'>',	L'Ôºû'},
+					{L'|',	L'ÔΩú'},
 				};
 
 				for (int j=0;j<_countof(CharMap);j++) {

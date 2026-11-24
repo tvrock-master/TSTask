@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskBase.h"
 #include "MessageClient.h"
@@ -21,18 +22,18 @@ namespace TSTask
 		if (pSendMessage==nullptr)
 			return false;
 
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒW(%s)‚ğ‘—M‚µ‚Ü‚·B",pSendMessage->GetName());
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸(%s)ã‚’é€ä¿¡ã—ã¾ã™ã€‚",pSendMessage->GetName());
 
 		CMessageTranslator Translator;
 		CDataBlock SendData,ReceiveData;
 
 		if (!Translator.Format(pSendMessage,&SendData)) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚ğ•ÏŠ·‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å¤‰æ›ã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
 		if (SendData.GetSize()==0) {
-			OutLog(LOG_ERROR,L"‘—M‚·‚éƒf[ƒ^‚ª‹ó‚Å‚·B");
+			OutLog(LOG_ERROR,L"é€ä¿¡ã™ã‚‹ãƒ‡ãƒ¼ã‚¿ãŒç©ºã§ã™ã€‚");
 			return false;
 		}
 
@@ -42,7 +43,7 @@ namespace TSTask
 		if (pReceiveMessage!=nullptr) {
 			if (ReceiveData.GetSize()>0) {
 				if (!Translator.Parse(pReceiveMessage,ReceiveData.GetBuffer(),ReceiveData.GetSize())) {
-					OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚ÌƒŒƒXƒ|ƒ“ƒX‚Ì‰ğÍ‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B");
+					OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ¬ã‚¹ãƒãƒ³ã‚¹ã®è§£æã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚");
 				}
 			} else {
 				pReceiveMessage->Clear();
@@ -68,9 +69,10 @@ namespace TSTask
 	{
 	}
 
-	bool CLocalMessageClient::SetServer(const String &ServerName)
+	bool CLocalMessageClient::SetServer(const String &ServerName,std::function<bool()> IsServerEnding)
 	{
 		m_ServerName=ServerName;
+		m_IsServerEnding=std::move(IsServerEnding);
 
 		return true;
 	}
@@ -78,12 +80,12 @@ namespace TSTask
 	bool CLocalMessageClient::Send(const void *pSendData,size_t SendSize,CDataBlock *pReceiveData)
 	{
 		if (m_ServerName.empty()) {
-			OutLog(LOG_ERROR,L"‘—MæƒT[ƒo[‚ªw’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"é€ä¿¡å…ˆã‚µãƒ¼ãƒãƒ¼ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
 		if (SendSize>MESSAGE_PIPE_MAX_SEND_SIZE) {
-			OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚Ö‘—M‚·‚éƒTƒCƒY(%Iu bytes)‚ª‘å‚«‚·‚¬‚Ü‚·B",
+			OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸é€ä¿¡ã™ã‚‹ã‚µã‚¤ã‚º(%Iu bytes)ãŒå¤§ãã™ãã¾ã™ã€‚",
 				   m_ServerName.c_str(),SendSize);
 			return false;
 		}
@@ -96,22 +98,27 @@ namespace TSTask
 		const DWORD StartTime=::GetTickCount();
 
 		do {
-			OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚ÖÚ‘±‰Â”\‚É‚È‚é‚Ü‚ÅÅ‘å %u ms ‘Ò‹@‚µ‚Ü‚·B",
+			if (m_IsServerEnding && m_IsServerEnding())
+				return false;
+
+			OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸æ¥ç¶šå¯èƒ½ã«ãªã‚‹ã¾ã§æœ€å¤§ %u ms å¾…æ©Ÿã—ã¾ã™ã€‚",
 				   m_ServerName.c_str(),m_Timeout);
 
 			if (!::WaitNamedPipe(m_ServerName.c_str(),m_Timeout)) {
 				DWORD Error=::GetLastError();
+				if (Error==ERROR_FILE_NOT_FOUND && m_IsServerEnding && m_IsServerEnding())
+					return false;
 				if (Error==ERROR_SEM_TIMEOUT) {
-					OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚ª‘Ò‹@ŠÔ(%u ms)“à‚ÉÚ‘±‰Â”\‚É‚È‚è‚Ü‚¹‚ñB",
+					OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ãŒå¾…æ©Ÿæ™‚é–“(%u ms)å†…ã«æ¥ç¶šå¯èƒ½ã«ãªã‚Šã¾ã›ã‚“ã€‚",
 						   m_ServerName.c_str(),m_Timeout);
 				} else {
-					OutSystemErrorLog(Error,L"ƒpƒCƒv(%s)‚ÌÚ‘±‘Ò‹@‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B",
+					OutSystemErrorLog(Error,L"ãƒ‘ã‚¤ãƒ—(%s)ã®æ¥ç¶šå¾…æ©Ÿã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚",
 									  m_ServerName.c_str());
 				}
 				return false;
 			}
 
-			OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚ğŠJ‚«‚Ü‚·B",m_ServerName.c_str());
+			OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã‚’é–‹ãã¾ã™ã€‚",m_ServerName.c_str());
 
 			hPipe=::CreateFile(m_ServerName.c_str(),
 							   GENERIC_READ | GENERIC_WRITE,
@@ -121,19 +128,21 @@ namespace TSTask
 							   FILE_FLAG_OVERLAPPED,
 							   nullptr);
 			if (hPipe!=INVALID_HANDLE_VALUE) {
-				OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚ğŠJ‚«‚Ü‚µ‚½B(%p)",m_ServerName.c_str(),hPipe);
+				OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã‚’é–‹ãã¾ã—ãŸã€‚(%p)",m_ServerName.c_str(),hPipe);
 				break;
 			}
 
 			DWORD Error=::GetLastError();
 			if (Error!=ERROR_PIPE_BUSY) {
-				OutSystemErrorLog(Error,L"ƒpƒCƒv(%s)‚ğŠJ‚¯‚Ü‚¹‚ñB",m_ServerName.c_str());
+				if (Error==ERROR_FILE_NOT_FOUND && m_IsServerEnding && m_IsServerEnding())
+					return false;
+				OutSystemErrorLog(Error,L"ãƒ‘ã‚¤ãƒ—(%s)ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 				return false;
 			}
 		} while (::GetTickCount()-StartTime<m_Timeout);
 
 		if (hPipe==INVALID_HANDLE_VALUE) {
-			OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚ª—˜—p‰Â”\‚É‚È‚è‚Ü‚¹‚ñB",m_ServerName.c_str());
+			OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ãŒåˆ©ç”¨å¯èƒ½ã«ãªã‚Šã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 			return false;
 		}
 
@@ -144,31 +153,31 @@ namespace TSTask
 		try {
 			DWORD Size=(DWORD)SendSize;
 			if (!WritePipe(hPipe,&Size,sizeof(DWORD),&Overlapped)) {
-				//OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‚ª‚Å‚«‚Ü‚¹‚ñB",m_ServerName.c_str());
+				//OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—ãŒã§ãã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 				throw __LINE__;
 			}
 			if (!WritePipe(hPipe,pSendData,Size,&Overlapped)) {
-				//OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‚ª‚Å‚«‚Ü‚¹‚ñB",m_ServerName.c_str());
+				//OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—ãŒã§ãã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 				throw __LINE__;
 			}
 
 			DWORD ReceiveSize=0;
 			if (!ReadPipe(hPipe,&ReceiveSize,sizeof(DWORD),&Overlapped)) {
-				//OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì“Ç‚İ‚İ‚ª‚Å‚«‚Ü‚¹‚ñB",m_ServerName.c_str());
+				//OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®èª­ã¿è¾¼ã¿ãŒã§ãã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 				throw __LINE__;
 			}
 			if (ReceiveSize>MESSAGE_PIPE_MAX_SEND_SIZE) {
-				OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“šƒTƒCƒY(%lu bytes)‚ª‘å‚«‚·‚¬‚Ü‚·B",
+				OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã‚µã‚¤ã‚º(%lu bytes)ãŒå¤§ãã™ãã¾ã™ã€‚",
 					   m_ServerName.c_str(),(unsigned long)ReceiveSize);
 				throw __LINE__;
 			}
 			if (!pReceiveData->SetSize(ReceiveSize)) {
-				OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“šóM—p‚Ìƒƒ‚ƒŠ(%lu bytes)‚ğŠm•Û‚Å‚«‚Ü‚¹‚ñB",
+				OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”å—ä¿¡ç”¨ã®ãƒ¡ãƒ¢ãƒª(%lu bytes)ã‚’ç¢ºä¿ã§ãã¾ã›ã‚“ã€‚",
 					   m_ServerName.c_str(),(unsigned long)ReceiveSize);
 				throw __LINE__;
 			}
 			if (!ReadPipe(hPipe,pReceiveData->GetBuffer(),ReceiveSize,&Overlapped)) {
-				//OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İ‚ª‚Å‚«‚Ü‚¹‚ñB",m_ServerName.c_str());
+				//OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿ãŒã§ãã¾ã›ã‚“ã€‚",m_ServerName.c_str());
 				throw __LINE__;
 			}
 		} catch (...) {
@@ -180,7 +189,7 @@ namespace TSTask
 		::CloseHandle(hPipe);
 		::CloseHandle(Overlapped.hEvent);
 
-		OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚ğ•Â‚¶‚Ü‚µ‚½B(%p)",m_ServerName.c_str(),hPipe);
+		OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã‚’é–‰ã˜ã¾ã—ãŸã€‚(%p)",m_ServerName.c_str(),hPipe);
 
 		return true;
 	}
@@ -194,7 +203,7 @@ namespace TSTask
 		} else {
 			DWORD Result=::GetLastError();
 			if (Result!=ERROR_IO_PENDING) {
-				OutSystemErrorLog(Result,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İ‚ª‚Å‚«‚Ü‚¹‚ñB",
+				OutSystemErrorLog(Result,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿ãŒã§ãã¾ã›ã‚“ã€‚",
 								  m_ServerName.c_str());
 				return false;
 			}
@@ -202,24 +211,24 @@ namespace TSTask
 			Result=::WaitForSingleObject(pOverlapped->hEvent,m_Timeout);
 			if (Result!=WAIT_OBJECT_0) {
 				if (Result==WAIT_TIMEOUT) {
-					OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İ‘Ò‚¿‚ªƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B(%u ms)",
+					OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿å¾…ã¡ãŒã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚(%u ms)",
 						   m_ServerName.c_str(),m_Timeout);
 				} else {
-					OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İ‘Ò‚¿‚Å—\Šú‚µ‚È‚¢Œ‹‰Ê‚ª•Ô‚³‚ê‚Ü‚µ‚½B(0x%x)",
+					OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿å¾…ã¡ã§äºˆæœŸã—ãªã„çµæœãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚(0x%x)",
 						   m_ServerName.c_str(),Result);
 				}
 
-				OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İ‚ğƒLƒƒƒ“ƒZƒ‹‚µ‚Ü‚·B",
+				OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã™ã€‚",
 					   m_ServerName.c_str());
 				::CancelIo(hPipe);
-				OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İƒLƒƒƒ“ƒZƒ‹‚ÌŠ®—¹‚ğ‘Ò‹@‚µ‚Ü‚·B",
+				OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã®å®Œäº†ã‚’å¾…æ©Ÿã—ã¾ã™ã€‚",
 					   m_ServerName.c_str());
 				::GetOverlappedResult(hPipe,pOverlapped,&Read,TRUE);
 				return false;
 			}
 
 			if (!::GetOverlappedResult(hPipe,pOverlapped,&Read,FALSE)) {
-				OutSystemErrorLog(::GetLastError(),L"ƒpƒCƒv(%s)‚©‚ç‚Ì‰“š‚Ì“Ç‚İ‚İŒ‹‰Ê‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB",
+				OutSystemErrorLog(::GetLastError(),L"ãƒ‘ã‚¤ãƒ—(%s)ã‹ã‚‰ã®å¿œç­”ã®èª­ã¿è¾¼ã¿çµæœã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚",
 								  m_ServerName.c_str());
 				return false;
 			}
@@ -259,7 +268,7 @@ namespace TSTask
 		} else {
 			DWORD Result=::GetLastError();
 			if (Result!=ERROR_IO_PENDING) {
-				OutSystemErrorLog(Result,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‚ª‚Å‚«‚Ü‚¹‚ñB",
+				OutSystemErrorLog(Result,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—ãŒã§ãã¾ã›ã‚“ã€‚",
 								  m_ServerName.c_str());
 				return false;
 			}
@@ -267,24 +276,24 @@ namespace TSTask
 			Result=::WaitForSingleObject(pOverlapped->hEvent,m_Timeout);
 			if (Result!=WAIT_OBJECT_0) {
 				if (Result==WAIT_TIMEOUT) {
-					OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‘Ò‚¿‚ªƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B(%u ms)",
+					OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—å¾…ã¡ãŒã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚(%u ms)",
 						   m_ServerName.c_str(),m_Timeout);
 				} else {
-					OutLog(LOG_ERROR,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‘Ò‚¿‚Å—\Šú‚µ‚È‚¢Œ‹‰Ê‚ª•Ô‚³‚ê‚Ü‚µ‚½B(0x%x)",
+					OutLog(LOG_ERROR,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—å¾…ã¡ã§äºˆæœŸã—ãªã„çµæœãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚(0x%x)",
 						   m_ServerName.c_str(),Result);
 				}
 
-				OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µ‚ğƒLƒƒƒ“ƒZƒ‹‚µ‚Ü‚·B",
+				OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã™ã€‚",
 					   m_ServerName.c_str());
 				::CancelIo(hPipe);
-				OutLog(LOG_VERBOSE,L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µƒLƒƒƒ“ƒZƒ‹‚ÌŠ®—¹‚ğ‘Ò‹@‚µ‚Ü‚·B",
+				OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã®å®Œäº†ã‚’å¾…æ©Ÿã—ã¾ã™ã€‚",
 					   m_ServerName.c_str());
 				::GetOverlappedResult(hPipe,pOverlapped,&Write,TRUE);
 				return false;
 			}
 
 			if (!::GetOverlappedResult(hPipe,pOverlapped,&Write,FALSE)) {
-				OutSystemErrorLog(::GetLastError(),L"ƒpƒCƒv(%s)‚Ö‚Ì‘‚«o‚µŒ‹‰Ê‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB",
+				OutSystemErrorLog(::GetLastError(),L"ãƒ‘ã‚¤ãƒ—(%s)ã¸ã®æ›¸ãå‡ºã—çµæœã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚",
 								  m_ServerName.c_str());
 				return false;
 			}

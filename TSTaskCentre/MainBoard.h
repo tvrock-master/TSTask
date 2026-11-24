@@ -1,8 +1,12 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASKCENTRE_MAIN_BOARD_H
 #define TSTASKCENTRE_MAIN_BOARD_H
 
 
+#include <atomic>
+#include <future>
 #include <map>
+#include <memory>
 #include "TSTaskCentreCore.h"
 #include "TSTaskBar.h"
 #include "InformationBar.h"
@@ -48,6 +52,7 @@ namespace TSTaskCentre
 		CTSTaskBar *GetTSTaskBar(TSTask::TaskID ID);
 		TSTask::TaskID GetTaskID(int Index) const;
 		int CalcHeight() const;
+		int CalcHeight(int Width) const;
 		void SetEventHandler(CEventHandler *pEventHandler);
 		bool SetFont(const LOGFONT &StatusFont,const LOGFONT &CaptionFont);
 		bool SetTheme(const Theme::ItemStyle &Style);
@@ -117,10 +122,9 @@ namespace TSTaskCentre
 		bool Create(HWND hwndParent=nullptr,int ID=0) override;
 		bool Show(int CmdShow);
 
-		bool CreateTSTaskBar(TSTask::TaskID ID);
-		bool RemoveTSTaskBar(TSTask::TaskID ID);
-		bool SendCreateTSTaskBar(TSTask::TaskID ID);
-		bool SendRemoveTSTaskBar(TSTask::TaskID ID);
+		bool NotifyTaskStarted(TSTask::TaskID ID);
+		bool NotifyTaskEnded(TSTask::TaskID ID);
+		void StopTaskStartup();
 		bool AdjustSize();
 
 		bool SetTheme(const ThemeInfo &Theme);
@@ -179,11 +183,40 @@ namespace TSTaskCentre
 		bool ConfirmClose(bool fEndTasks);
 		bool ConfirmRecordingChannelChange(TSTask::TaskID ID);
 		void GetCaptionRect(RECT *pRect) const;
+		bool AdjustDockedSize();
 		void UpdateTransparent();
 		void RedrawCaption();
 		void OnCommand(int Command);
 		bool ShowMainMenu(int x,int y) const;
 		bool EndTask(TSTask::TaskID ID,bool fConfirm=true);
+		struct TaskStartup
+		{
+			CTSTaskManager Manager;
+			int DeviceID=-1;
+			TSTask::String TunerName;
+			TSTask::ChannelInfo Channel;
+			TSTask::RecordingInfo Recording;
+			TSTask::StreamingInfo Streaming;
+			TSTask::EventInfo Event;
+			TSTask::StreamStatistics Statistics{};
+			SYSTEMTIME Clock{};
+			bool HasClock=false;
+			bool HasRecording=false;
+			bool HasStreaming=false;
+			bool NeedsRefresh=false;
+			std::vector<LPCWSTR> ToolEvents;
+			std::atomic<bool> Cancelled{false};
+			std::future<bool> Work;
+		};
+
+		bool CreateTSTaskBar(TSTask::TaskID ID);
+		bool RemoveTSTaskBar(TSTask::TaskID ID);
+		void StartTaskStartup(TSTask::TaskID ID);
+		void PollTaskStartup(bool Retry);
+		static bool ReadTaskStartup(TSTask::TaskID ClientID,TSTask::TaskID ID,TaskStartup &Startup);
+		void ApplyTaskStartup(TSTask::TaskID ID,const TaskStartup &Startup);
+		bool IsTaskReady(TSTask::TaskID ID);
+		void OnTaskEvent(TSTask::TaskID ID,UINT Message);
 		bool UpdateTSTaskBar(TSTask::TaskID ID);
 		bool UpdateTunerStatus(TSTask::TaskID ID);
 		bool UpdateChannelStatus(TSTask::TaskID ID);
@@ -203,10 +236,13 @@ namespace TSTaskCentre
 		int m_CaptionWidth;
 		bool m_fTransparentCaption;
 		CTSTaskBarBase m_TSTaskBarBase;
+		std::map<TSTask::TaskID,std::unique_ptr<TaskStartup>> m_TaskStartup;
 		CInformationBar m_InformationBar;
 		bool m_fShowInformationBar;
 		bool m_fAdjustSize;
 		bool m_fAdjustSizeOnRestore;
+		bool m_fDockBottom=false;
+		Position m_UndockedPosition{};
 
 		CTaskTrayManager m_TaskTrayManager;
 		bool m_fShowTrayIcon;

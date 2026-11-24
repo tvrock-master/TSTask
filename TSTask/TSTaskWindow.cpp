@@ -1,6 +1,8 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskWindow.h"
+#include "TVTestControlPlugin.h"
 #include "../Common/DebugDef.h"
 
 
@@ -56,7 +58,7 @@ namespace TSTask
 		if (m_hwnd!=nullptr)
 			return false;
 
-		OutLog(LOG_VERBOSE,L"%s‚ğì¬‚µ‚Ü‚·B",m_pszWindowClass);
+		OutLog(LOG_VERBOSE,L"%sã‚’ä½œæˆã—ã¾ã™ã€‚",m_pszWindowClass);
 
 		return ::CreateWindowEx(0,m_pszWindowClass,nullptr,WS_POPUP,
 								0,0,0,0,nullptr,nullptr,m_hinst,this)!=nullptr;
@@ -111,6 +113,13 @@ namespace TSTask
 		case WM_CREATE:
 			return 0;
 
+		case CTSTaskCore::NotificationMessage:
+			m_Core.GetCore().ProcessEngineNotifications();
+			return 0;
+		case CTVTestControlPlugin::WindowMessage:
+			if (m_pControlPlugin)
+				m_pControlPlugin->DispatchEvent(static_cast<UINT>(wParam), lParam);
+			return 0;
 		case WM_APP_RECORDING_STARTED:
 			{
 				EXECUTION_STATE Flags=ES_CONTINUOUS;
@@ -119,19 +128,19 @@ namespace TSTask
 				if (m_Core.GetCurSettings().Recording.GetAwayModeRequired())
 					Flags|=ES_AWAYMODE_REQUIRED;
 
-				OutLog(LOG_VERBOSE,L"ƒVƒXƒeƒ€g—pƒXƒe[ƒg‚ğİ’è‚µ‚Ü‚·B(0x%x)",UINT(Flags));
+				OutLog(LOG_VERBOSE,L"ã‚·ã‚¹ãƒ†ãƒ ä½¿ç”¨ã‚¹ãƒ†ãƒ¼ãƒˆã‚’è¨­å®šã—ã¾ã™ã€‚(0x%x)",UINT(Flags));
 
 				::SetThreadExecutionState(Flags);
 			}
 			return 0;
 
 		case WM_APP_RECORDING_STOPPED:
-			OutLog(LOG_VERBOSE,L"ƒVƒXƒeƒ€g—pƒXƒe[ƒg‚ğƒNƒŠƒA‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚·ã‚¹ãƒ†ãƒ ä½¿ç”¨ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ã‚¯ãƒªã‚¢ã—ã¾ã™ã€‚");
 
 			::SetThreadExecutionState(ES_CONTINUOUS);
 			return 0;
 
-		// ‚±‚Ì•Ó‚à‰½‚©‚µ‚½•û‚ª‚¢‚¢‚©‚È?
+		// ã“ã®è¾ºã‚‚ä½•ã‹ã—ãŸæ–¹ãŒã„ã„ã‹ãª?
 		/*
 		case WM_POWERBROADCAST:
 			break;
@@ -141,7 +150,7 @@ namespace TSTask
 		*/
 
 		case WM_DESTROY:
-			OutLog(LOG_VERBOSE,L"WM_QUIT‚ğƒ|ƒXƒg‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"WM_QUITã‚’ãƒã‚¹ãƒˆã—ã¾ã™ã€‚");
 			::PostQuitMessage(0);
 			return 0;
 		}

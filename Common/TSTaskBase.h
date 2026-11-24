@@ -1,4 +1,4 @@
-#ifndef TS_TASK_BASE_H
+Ôªø#ifndef TS_TASK_BASE_H
 #define TS_TASK_BASE_H
 
 
@@ -165,7 +165,7 @@ namespace TSTask
 			ULONGLONG Duration;
 		} EndTime;
 
-#if 0	// ÇªÇÃÇ§Çø...
+#if 0	// „Åù„ÅÆ„ÅÜ„Å°...
 		String BonDriverName;
 		WORD NetworkID;
 		WORD TransportStreamID;

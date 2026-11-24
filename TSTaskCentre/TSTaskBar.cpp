@@ -1,3 +1,4 @@
+Ôªø// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TSTaskBar.h"
@@ -8,18 +9,18 @@ namespace TSTaskCentre
 {
 
 	static const CTSTaskBar::ItemInfo g_ItemList[] = {
-		{L"Tuner",		L"É`ÉÖÅ[ÉiÅ["},
-		{L"Channel",	L"É`ÉÉÉìÉlÉã"},
-		{L"Recording",	L"ò^âÊ"},
-		{L"Signal",		L"êMçÜ"},
-		{L"Error",		L"ÉGÉâÅ["},
-		{L"Streaming",	L"ÉXÉgÉäÅ[É~ÉìÉO"},
-		{L"Event",		L"î‘ëg"},
-		{L"Clock",		L"éûåv"},
+		{L"Tuner",		L"„ÉÅ„É•„Éº„Éä„Éº"},
+		{L"Channel",	L"„ÉÅ„É£„É≥„Éç„É´"},
+		{L"Recording",	L"Èå≤Áîª"},
+		{L"Signal",		L"‰ø°Âè∑"},
+		{L"Error",		L"„Ç®„É©„Éº"},
+		{L"Streaming",	L"„Çπ„Éà„É™„Éº„Éü„É≥„Ç∞"},
+		{L"Event",		L"Áï™ÁµÑ"},
+		{L"Clock",		L"ÊôÇË®à"},
 	};
 
 	static_assert(_countof(g_ItemList)==CTSTaskBar::ITEM_ID_TRAILER,
-				  "çÄñ⁄ÇÃêîÇ™àÍívÇµÇ‹ÇπÇÒÅB");
+				  "Task bar item count does not match ITEM_ID_TRAILER.");
 
 
 	class CTSTaskBarItem : public CStatusBar::CItem
@@ -90,7 +91,7 @@ namespace TSTaskCentre
 
 			void DrawPreview(const DrawInfo &Info,const RECT &TextRect,const RECT &ClipRect) const override
 			{
-				DrawText(Info,L"PT5 ISDB-T : ínè„(UHF)",TextRect,ClipRect);
+				DrawText(Info,L"PT5 ISDB-T : Âú∞‰∏ä(UHF)",TextRect,ClipRect);
 			}
 
 			void SetTunerName(LPCWSTR pszTunerName)
@@ -135,7 +136,7 @@ namespace TSTaskCentre
 
 			void DrawPreview(const DrawInfo &Info,const RECT &TextRect,const RECT &ClipRect) const override
 			{
-				DrawText(Info,L"ÉAÉtÉäÉJíÜâõÉeÉåÉr",TextRect,ClipRect);
+				DrawText(Info,L"„Ç¢„Éï„É™„Ç´‰∏≠Â§Æ„ÉÜ„É¨„Éì",TextRect,ClipRect);
 			}
 
 			void SetChannelName(LPCWSTR pszChannelName)
@@ -183,7 +184,7 @@ namespace TSTaskCentre
 			void Draw(const DrawInfo &Info,const RECT &TextRect,const RECT &ClipRect) const override
 			{
 				if (m_RecordingInfo.State!=TSTask::RECORDING_STATE_NOT_RECORDING) {
-					Info.pStylePainter->DrawText(m_CircleStyle,L"Åú",TextRect,ClipRect,
+					Info.pStylePainter->DrawText(m_CircleStyle,L"‚óè",TextRect,ClipRect,
 												 Info.pFont,
 												 Graphics::TEXT_FORMAT_LEFT |
 												 Graphics::TEXT_FORMAT_VERTICAL_CENTER);
@@ -197,13 +198,13 @@ namespace TSTaskCentre
 					rc.left+=m_pStatusBar->GetFontHeight()+4;
 					DrawText(Info,szText,rc,ClipRect);
 				} else {
-					DrawText(Info,L"Å° <Rec>",TextRect,ClipRect);
+					DrawText(Info,L"‚ñ† <Rec>",TextRect,ClipRect);
 				}
 			}
 
 			void DrawPreview(const DrawInfo &Info,const RECT &TextRect,const RECT &ClipRect) const override
 			{
-				Info.pStylePainter->DrawText(m_CircleStyle,L"Åú",TextRect,ClipRect,Info.pFont,
+				Info.pStylePainter->DrawText(m_CircleStyle,L"‚óè",TextRect,ClipRect,Info.pFont,
 											 Graphics::TEXT_FORMAT_LEFT |
 											 Graphics::TEXT_FORMAT_VERTICAL_CENTER);
 				RECT rc=TextRect;
@@ -400,7 +401,7 @@ namespace TSTaskCentre
 
 				if (m_fStartTimeValid) {
 					Length+=TSTask::FormatString(&szText[Length],_countof(szText),
-												 L"%d:%02dÅ`",
+												 L"%d:%02dÔΩû",
 												 m_StartTime.wHour,m_StartTime.wMinute);
 					if (m_Duration>0) {
 						SYSTEMTIME EndTime=m_StartTime;
@@ -418,7 +419,7 @@ namespace TSTaskCentre
 
 			void DrawPreview(const DrawInfo &Info,const RECT &TextRect,const RECT &ClipRect) const override
 			{
-				DrawText(Info,L"1:30Å`2:00 ç°ì˙ÇÃÉjÉÖÅ[ÉX",TextRect,ClipRect);
+				DrawText(Info,L"1:30ÔΩû2:00 ‰ªäÊó•„ÅÆ„Éã„É•„Éº„Çπ",TextRect,ClipRect);
 			}
 
 			void SetEventInfo(LPCWSTR pszEventName,const SYSTEMTIME *pStartTime,DWORD Duration)

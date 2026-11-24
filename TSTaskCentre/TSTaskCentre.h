@@ -1,3 +1,4 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TS_TASK_CENTRE_H
 #define TS_TASK_CENTRE_H
 
@@ -6,17 +7,10 @@
 #include "../Common/TSTaskCommon.h"
 #endif
 
+#include "../Common/AppVersion.h"
 
 #define APP_NAME	"TSTaskCentre"
 #define APP_NAME_W	L"TSTaskCentre"
-
-#define APP_VERSION_MAJOR		0
-#define APP_VERSION_MINOR		2
-#define APP_VERSION_REVISION	0
-#define APP_VERSION_BUILD		0
-
-#define APP_VERSION_TEXT		"0.2.0"
-#define APP_VERSION_TEXT_W		L"0.2.0"
 
 #if defined(_M_IX86)
 #define APP_PLATFORM_W	L"x86"

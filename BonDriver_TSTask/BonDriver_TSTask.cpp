@@ -1,9 +1,9 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "../Common/TSTaskCommon.h"
 #define dllimport dllexport
 #include "IBonDriver2.h"
 #if !defined(BONDRIVER_TSTASK_CLIENT) && !defined(BONDRIVER_TSTASK_NO_CLIENT)
-// ƒNƒ‰ƒCƒAƒ“ƒg‚Æ‚µ‚Ä“o˜^‚µ‚Äƒ^ƒXƒN‚ÌI—¹/‹N“®‚É’Ç]‚·‚é
+// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã¨ã—ã¦ç™»éŒ²ã—ã¦ã‚¿ã‚¹ã‚¯ã®çµ‚äº†/èµ·å‹•ã«è¿½å¾“ã™ã‚‹
 #define BONDRIVER_TSTASK_CLIENT
 #endif
 #ifdef BONDRIVER_TSTASK_CLIENT
@@ -210,8 +210,8 @@ LPCTSTR CBonDriver_TSTask::EnumChannelName(const DWORD dwSpace,const DWORD dwCha
 		return nullptr;
 
 	static TCHAR szText[32];
-	// ÅŒã‚Ì "ch" ‚ÍATVTest ‚ÅƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚©‚çƒ`ƒƒƒ“ƒlƒ‹w’è‚Å‚«‚é‚æ‚¤‚É‚·‚é‚½‚ß‚Ì‚¨‚Ü‚¶‚È‚¢
-	TSTask::FormatString(szText,_countof(szText),TEXT("ƒ^ƒXƒN%uch"),dwChannel+1);
+	// æœ€å¾Œã® "ch" ã¯ã€TVTest ã§ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‹ã‚‰ãƒãƒ£ãƒ³ãƒãƒ«æŒ‡å®šã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹ãŸã‚ã®ãŠã¾ã˜ãªã„
+	TSTask::FormatString(szText,_countof(szText),TEXT("ã‚¿ã‚¹ã‚¯%uch"),dwChannel+1);
 
 	return szText;
 }

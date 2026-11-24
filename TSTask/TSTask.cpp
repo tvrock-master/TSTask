@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskCore.h"
@@ -6,7 +7,7 @@
 #include "ClientManager.h"
 #include "TSTaskWindow.h"
 #include "TSTaskCommandLine.h"
-#include "TvRock.h"
+#include "TVTestControlPlugin.h"
 #include "../Common/DebugDef.h"
 
 
@@ -26,19 +27,25 @@ namespace TSTask
 		bool ReloadSettings() override;
 
 	private:
+		int Run(LPCWSTR pszCmdLine);
+		bool Finalize();
 		void ApplyCommandLineSettings(const CTSTaskCommandLine &CommandLine,CTSTaskSettings &Settings);
+		void SelectStartupService(WORD DefaultServiceID);
+		String GetChannelHistorySection() const;
 
 		bool OnRegisterClient(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse);
 		bool OnUnregisterClient(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse);
 
 	// CEventHandler
 		bool OnTunerOpen() override;
+		bool OnTunerClose() override;
+		void OnTunerClosed() override;
+		void OnServiceChanged(WORD ServiceID) override;
 		bool OnRecordingStart(const RecordingSettings &Settings) override;
 		void OnRecordingStarted(const RecordingInfo &Info) override;
 		void OnRecordingStopped() override;
 		void OnTotChanged() override;
 		void OnErrorStatisticsReset() override;
-		bool OnChannelListLoaded(CTuningSpaceList &SpaceList) override;
 		bool OnStreamingStart(const StreamingInfo &Info) override;
 
 		CMessageMap m_MessageMap;
@@ -47,8 +54,11 @@ namespace TSTask
 		CClientManager m_ClientManager;
 		CBasicLogger m_Logger;
 		CTSTaskWindow m_TSTaskWindow;
-		CTvRockDTVTarget m_TvRockDTVTarget;
+		CTVTestControlPlugin m_TVTestControlPlugin;
 		CTSTaskCommandLine m_CommandLine;
+		String m_ChannelHistoryPath;
+		TuningChannelInfo m_LastService;
+		bool m_fTaskRunning=false;
 	};
 
 	CTSTaskApp::CTSTaskApp(HINSTANCE hInstance)
@@ -56,8 +66,9 @@ namespace TSTask
 		, m_MessageServer(&m_MessageMap)
 		, m_CoreMessageHandler(m_Core,*this)
 		, m_TSTaskWindow(*this)
-		, m_TvRockDTVTarget(*this)
+		, m_TVTestControlPlugin(*this)
 	{
+		m_TSTaskWindow.SetControlPlugin(&m_TVTestControlPlugin);
 		SetGlobalLogger(&m_Logger);
 	}
 
@@ -68,10 +79,17 @@ namespace TSTask
 
 	int CTSTaskApp::Main(LPCWSTR pszCmdLine)
 	{
-		OutLog(LOG_IMPORTANT,APP_NAME_W L" ver." APP_VERSION_TEXT_W L" (" APP_PLATFORM_W L") ‹N“®");
+		const int ExitCode=Run(pszCmdLine);
+		const bool fFinalized=Finalize();
+		return ExitCode==0 && !fFinalized ? 5 : ExitCode;
+	}
+
+	int CTSTaskApp::Run(LPCWSTR pszCmdLine)
+	{
+		OutLog(LOG_IMPORTANT,APP_NAME_W L" ver." APP_VERSION_TEXT_W L" (" APP_PLATFORM_W L") èµ·å‹•");
 
 		if (!IsStringEmpty(pszCmdLine)) {
-			OutLog(LOG_INFO,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ƒIƒvƒVƒ‡ƒ“ : %s",pszCmdLine);
+			OutLog(LOG_INFO,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚ªãƒ—ã‚·ãƒ§ãƒ³ : %s",pszCmdLine);
 			m_CommandLine.Parse(pszCmdLine);
 
 			if (m_CommandLine.m_LoggingLevel>=0)
@@ -79,6 +97,9 @@ namespace TSTask
 			if (m_CommandLine.m_DebugLog!=BOOL_DEFAULT)
 				m_Logger.EnableDebugTrace(m_CommandLine.m_DebugLog==BOOL_TRUE);
 		}
+
+		if (m_CommandLine.m_TvRockDeviceID>=0)
+			::SetErrorMode(::GetErrorMode() | SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
 
 		String IniFilePath;
 		if (!m_CommandLine.m_IniFileName.empty()) {
@@ -92,13 +113,18 @@ namespace TSTask
 			m_Settings.General.GetIniFilePath(&IniFilePath);
 		}
 
-		OutLog(LOG_VERBOSE,L"İ’è‚ğ \"%s\" ‚©‚ç“Ç‚İ‚İ‚Ü‚·B",IniFilePath.c_str());
+		OutLog(LOG_VERBOSE,L"è¨­å®šã‚’ \"%s\" ã‹ã‚‰èª­ã¿è¾¼ã¿ã¾ã™ã€‚",IniFilePath.c_str());
 
+		if (!IniFilePath.empty())
+			m_ChannelHistoryPath=IniFilePath+L".channels.ini";
+		unsigned int DefaultServiceID=0;
 		CSettings Settings;
 		if (Settings.Open(IniFilePath.c_str(),CSettings::OPEN_READ)) {
 			m_Settings.Load(Settings);
+			if (Settings.SetSection(L"Settings"))
+				Settings.Read(L"Tuner.DefaultServiceID",&DefaultServiceID);
 			m_CurSettings.Set(m_Settings);
-			OutLog(LOG_INFO,L"İ’è‚ğ \"%s\" ‚©‚ç“Ç‚İ‚İ‚Ü‚µ‚½B",IniFilePath.c_str());
+			OutLog(LOG_INFO,L"è¨­å®šã‚’ \"%s\" ã‹ã‚‰èª­ã¿è¾¼ã¿ã¾ã—ãŸã€‚",IniFilePath.c_str());
 		}
 
 		if (!IniFilePath.empty())
@@ -108,7 +134,7 @@ namespace TSTask
 
 		if (m_CurSettings.General.GetProcessPriority()!=PROCESS_PRIORITY_INVALID) {
 			DWORD Priority=m_CurSettings.General.GetProcessPriorityClass();
-			OutLog(LOG_INFO,L"ƒvƒƒZƒX‚Ì—Dæ“x‚ğİ’è‚µ‚Ü‚·B(%u)",Priority);
+			OutLog(LOG_INFO,L"ãƒ—ãƒ­ã‚»ã‚¹ã®å„ªå…ˆåº¦ã‚’è¨­å®šã—ã¾ã™ã€‚(%u)",Priority);
 			::SetPriorityClass(::GetCurrentProcess(),Priority);
 		}
 
@@ -127,22 +153,31 @@ namespace TSTask
 		}
 		m_Logger.EnableDebugTrace(m_CurSettings.General.GetDebugLog());
 
-		m_Core.Initialize();
+		const std::vector<TVTestPluginSettings> Plugins=Settings.IsOpen()?ReadTVTestPlugins(Settings):std::vector<TVTestPluginSettings>();
+		Settings.Close();
+		if (!m_Core.Initialize(Plugins)) {
+			OutLog(LOG_ERROR,L"éŒ²ç”»ã‚¨ãƒ³ã‚¸ãƒ³ã‚’åˆæœŸåŒ–ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
+			return 4;
+		}
+		if (!m_TSTaskWindow.Initialize(m_hInstance) || !m_TSTaskWindow.Create()) {
+			OutSystemErrorLog(::GetLastError(),L"TSTask ã®åˆ¶å¾¡ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
+			return 4;
+		}
 
-		m_TSTaskWindow.Initialize(m_hInstance);
+		m_Core.SetNotificationWindow(m_TSTaskWindow.GetHandle());
 
 		if (!m_TaskIdentity.Initialize(TASK_TYPE_SERVER,m_CurSettings.General.GetTaskID())) {
-			OutLog(LOG_ERROR,L"ƒ^ƒXƒN‚ÌID‚ğŠ„‚è“–‚Ä‚ç‚ê‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¹ã‚¯ã®IDã‚’å‰²ã‚Šå½“ã¦ã‚‰ã‚Œã¾ã›ã‚“ã€‚");
 			return 1;
 		}
 
 		if (!m_SharedInfo.Create(m_TaskIdentity.GetTaskID(),
 								 PackVersion(APP_VERSION_MAJOR,APP_VERSION_MINOR,APP_VERSION_REVISION))) {
-			OutLog(LOG_ERROR,L"‹¤—Lî•ñ‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"å…±æœ‰æƒ…å ±ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 			m_TaskIdentity.Finalize();
 
 			if (m_CurSettings.General.GetTaskID()==INVALID_TASK_ID) {
-				OutLog(LOG_VERBOSE,L"‘¼‚Ìƒ^ƒXƒNID‚Å‹¤—Lî•ñ‚Ìì¬‚ğs‚µ‚Ü‚·B");
+				OutLog(LOG_VERBOSE,L"ä»–ã®ã‚¿ã‚¹ã‚¯IDã§å…±æœ‰æƒ…å ±ã®ä½œæˆã‚’è©¦è¡Œã—ã¾ã™ã€‚");
 				TaskID ID=INVALID_TASK_ID;
 				while ((ID=TaskUtility::GetNextServerTaskID(ID))!=INVALID_TASK_ID) {
 					if (m_TaskIdentity.Initialize(TASK_TYPE_SERVER,ID)) {
@@ -153,7 +188,7 @@ namespace TSTask
 					}
 				}
 				if (ID==INVALID_TASK_ID) {
-					OutLog(LOG_ERROR,L"‹¤—Lî•ñ‚ğì¬‰Â”\‚Èƒ^ƒXƒNID‚ª‚ ‚è‚Ü‚¹‚ñB");
+					OutLog(LOG_ERROR,L"å…±æœ‰æƒ…å ±ã‚’ä½œæˆå¯èƒ½ãªã‚¿ã‚¹ã‚¯IDãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 					return 2;
 				}
 			} else {
@@ -161,7 +196,10 @@ namespace TSTask
 			}
 		}
 
-		m_ClientManager.Initialize(m_TaskIdentity.GetTaskID());
+		if (!m_ClientManager.Initialize(m_TaskIdentity.GetTaskID())) {
+			OutLog(LOG_ERROR,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’åˆæœŸåŒ–ã§ãã¾ã›ã‚“ã€‚");
+			return 3;
+		}
 
 		m_Core.AddEventHandler(this);
 		m_Core.AddEventHandler(&m_ClientManager);
@@ -172,33 +210,27 @@ namespace TSTask
 		m_MessageMap.SetHandler(MESSAGE_UnregisterClient,
 								new CMessageFunctor<CTSTaskApp>(this,&CTSTaskApp::OnUnregisterClient));
 
-		String ServerName;
-		TaskUtility::GetServerTaskLocalMessageServerName(m_TaskIdentity.GetTaskID(),&ServerName);
-		if (!m_MessageServer.Open(ServerName.c_str())) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒWƒT[ƒo[‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
-			return 3;
+		bool fTvRockPluginConfigured=false;
+		for (const auto &Plugin:Plugins) {
+			const auto &Name=Plugin.Name;
+			if (CTVTestControlPlugin::IsDiskRelayPlugin(Name.c_str())) {
+				m_TVTestControlPlugin.Load(Name.c_str());
+				continue;
+			}
+			if (!CTVTestControlPlugin::IsTvRockPlugin(Name.c_str()))
+				continue;
+			fTvRockPluginConfigured=true;
+			if (m_CommandLine.m_TvRockDeviceID>=0)
+				m_TVTestControlPlugin.Load(Name.c_str());
 		}
+		if (fTvRockPluginConfigured && m_CommandLine.m_TvRockDeviceID<0)
+			OutLog(LOG_WARNING,L"TvRockOnTVTest ã‚’ä½¿ç”¨ã™ã‚‹ã«ã¯ /did ã®æŒ‡å®šãŒå¿…è¦ã§ã™ã€‚");
 
-		m_SharedInfo.SetTaskState(TASK_STATE_RUNNING);
-
-		if (m_CommandLine.m_TvRockDeviceID>=0)
-			m_TvRockDTVTarget.Initialize(m_CommandLine.m_TvRockDeviceID,
-										 Settings.IsOpen()?&Settings:nullptr);
-
-		Settings.Close();
-
-		m_TSTaskWindow.Create();
-
-		CMessage StartedMessage;
-		BasicMessage::TaskStarted::InitializeMessage(&StartedMessage,m_TaskIdentity.GetTaskID());
-		BroadcastServerMessage(StartedMessage);
-
-		if (m_CurSettings.General.GetClientExecuteOnStart()) {
-			ExecuteClient();
-		}
+		if (!fTvRockPluginConfigured && m_CommandLine.m_TvRockDeviceID>=0)
+			OutLog(LOG_WARNING,L"INI ã® [Plugins] ã« TvRockOnTVTest ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
 
 		if (!m_CommandLine.m_BonDriverFileName.empty()) {
-			OutLog(LOG_VERBOSE,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åw’è‚³‚ê‚½ BonDriver \"%s\" ‚ğƒ[ƒh‚µ‚Ü‚·B",
+			OutLog(LOG_VERBOSE,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚ŒãŸ BonDriver \"%s\" ã‚’ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚",
 				   m_CommandLine.m_BonDriverFileName.c_str());
 
 			String BonDriverPath;
@@ -238,14 +270,14 @@ namespace TSTask
 								if (Channel>=0) {
 									m_Core.SetChannelByScanned(m_CommandLine.m_TuningSpace,Channel);
 								} else {
-									OutLog(LOG_ERROR,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Å‚Ìw’è‚Éˆê’v‚·‚éƒ`ƒƒƒ“ƒlƒ‹‚ª‚ ‚è‚Ü‚¹‚ñB");
+									OutLog(LOG_ERROR,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§ã®æŒ‡å®šã«ä¸€è‡´ã™ã‚‹ãƒãƒ£ãƒ³ãƒãƒ«ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 								}
 							} else {
-								OutLog(LOG_ERROR,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åw’è‚³‚ê‚½ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ(%d)‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ª‚ ‚è‚Ü‚¹‚ñB",
+								OutLog(LOG_ERROR,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚ŒãŸãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“(%d)ã®ãƒãƒ£ãƒ³ãƒãƒ«ãŒã‚ã‚Šã¾ã›ã‚“ã€‚",
 									   m_CommandLine.m_TuningSpace);
 							}
 						} else {
-							OutLog(LOG_ERROR,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ‚Ì‚İ‚Ìw’è‚Í‚Å‚«‚Ü‚¹‚ñB");
+							OutLog(LOG_ERROR,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“ã®ã¿ã®æŒ‡å®šã¯ã§ãã¾ã›ã‚“ã€‚");
 						}
 					} else if (m_CommandLine.m_NetworkID!=0
 							|| m_CommandLine.m_TransportStreamID!=0
@@ -266,9 +298,11 @@ namespace TSTask
 							}
 						}
 						if (!fFound) {
-							OutLog(LOG_ERROR,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åw’è‚³‚ê‚½ƒŠƒ‚ƒRƒ“”Ô†(%d)‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ª‚ ‚è‚Ü‚¹‚ñB",
+							OutLog(LOG_ERROR,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚ŒãŸãƒªãƒ¢ã‚³ãƒ³ç•ªå·(%d)ã®ãƒãƒ£ãƒ³ãƒãƒ«ãŒã‚ã‚Šã¾ã›ã‚“ã€‚",
 								   m_CommandLine.m_RemoteControlKeyID);
 						}
+					} else {
+						SelectStartupService(DefaultServiceID<SERVICE_ID_INVALID ? WORD(DefaultServiceID) : 0);
 					}
 				} else {
 					//m_Core.UnloadBonDriver();
@@ -277,7 +311,7 @@ namespace TSTask
 		}
 
 		if (m_CommandLine.m_Record==BOOL_TRUE) {
-			OutLog(LOG_VERBOSE,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åw’è‚³‚ê‚Ä‚¢‚é‚½‚ß˜^‰æ“o˜^‚ğs‚¢‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãŸã‚éŒ²ç”»ç™»éŒ²ã‚’è¡Œã„ã¾ã™ã€‚");
 
 			RecordingSettings RecSettings;
 			ReserveSettings Reserve;
@@ -310,23 +344,47 @@ namespace TSTask
 
 		if (m_CommandLine.m_StreamingUDP==BOOL_TRUE
 				|| m_CommandLine.m_StreamingTCP==BOOL_TRUE) {
-			OutLog(LOG_VERBOSE,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚Åw’è‚³‚ê‚Ä‚¢‚é‚½‚ßƒXƒgƒŠ[ƒ~ƒ“ƒO‚ğŠJn‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã§æŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãŸã‚ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’é–‹å§‹ã—ã¾ã™ã€‚");
 			StreamingInfo Info;
 			m_CurSettings.Streaming.GetStreamingSettings(&Info);
 			m_Core.StartStreaming(Info);
 		}
 
+		String ServerName;
+		TaskUtility::GetServerTaskLocalMessageServerName(m_TaskIdentity.GetTaskID(),&ServerName);
+		if (!m_MessageServer.Open(ServerName.c_str())) {
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚µãƒ¼ãƒãƒ¼ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
+			return 3;
+		}
+
+		m_fTaskRunning=true;
+		m_SharedInfo.SetTaskState(TASK_STATE_RUNNING);
+
+		CMessage StartedMessage;
+		BasicMessage::TaskStarted::InitializeMessage(&StartedMessage,m_TaskIdentity.GetTaskID());
+		BroadcastServerMessage(StartedMessage);
+
+		if (m_CurSettings.General.GetClientExecuteOnStart()) {
+			ExecuteClient();
+		}
+
 		m_StatisticsUpdater.SetUpdateInterval(m_CurSettings.General.GetStatisticsUpdateInterval());
 		m_StatisticsUpdater.StartThread();
 
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒWƒ‹[ƒv‚É“ü‚è‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«å…¥ã‚Šã¾ã™ã€‚");
 
+		int ExitCode=0;
 		while (true) {
 			CMessageServer::WaitMessageResult WaitResult=m_MessageServer.WaitWindowMessage();
 
-			if (WaitResult==CMessageServer::WAIT_RESULT_QUIT) {
-				m_TSTaskWindow.Destroy();
-			} else if (WaitResult==CMessageServer::WAIT_RESULT_WINDOW_MESSAGE) {
+			if (WaitResult==CMessageServer::WAIT_RESULT_QUIT)
+				break;
+			if (WaitResult==CMessageServer::WAIT_RESULT_ERROR) {
+				OutSystemErrorLog(::GetLastError(),L"TSTask ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å¾…æ©Ÿã«å¤±æ•—ã—ã¾ã—ãŸã€‚");
+				ExitCode=5;
+				break;
+			}
+			if (WaitResult==CMessageServer::WAIT_RESULT_WINDOW_MESSAGE) {
 				MSG msg;
 				bool fQuit=false;
 				while (::PeekMessage(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -341,31 +399,135 @@ namespace TSTask
 			}
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒWƒ‹[ƒv‚ğ”²‚¯‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã¾ã—ãŸã€‚");
 
+		return ExitCode;
+	}
+
+	String CTSTaskApp::GetChannelHistorySection() const
+	{
+		String DriverPath;
+		if (!m_Core.GetBonDriverFilePath(&DriverPath) || DriverPath.empty())
+			return {};
+
+		// ']' ã¯ INI ã®ã‚»ã‚¯ã‚·ãƒ§ãƒ³åã‚’çµ‚ç«¯ã™ã‚‹ã€‚'|' ã¯ãƒ•ã‚¡ã‚¤ãƒ«åã«ä½¿ç”¨ã§ããªã„ã€‚
+		StringUtility::Replace(DriverPath,L']',L'|');
+		return DriverPath;
+	}
+
+	void CTSTaskApp::SelectStartupService(WORD DefaultServiceID)
+	{
+		ChannelInfo Current;
+		if (!m_Core.GetChannel(&Current) || Current.Channel>=0)
+			return;
+
+		const String Section=GetChannelHistorySection();
+		CSettings History;
+		if (!Section.empty() && PathUtility::IsFileExists(m_ChannelHistoryPath.c_str())
+				&& History.Open(m_ChannelHistoryPath.c_str(),CSettings::OPEN_READ)
+				&& History.SetSection(Section.c_str())) {
+			unsigned int Space, Channel, ServiceID;
+			if (History.Read(L"Space",&Space) && Space!=TuningChannelInfo::SPACE_INVALID
+					&& History.Read(L"Channel",&Channel) && Channel!=TuningChannelInfo::CHANNEL_INVALID
+					&& History.Read(L"ServiceID",&ServiceID) && ServiceID>0 && ServiceID<SERVICE_ID_INVALID
+					&& m_Core.SetChannelByIndex(Space,Channel,WORD(ServiceID))) {
+				OutLog(LOG_INFO,L"å‰å›ã®ã‚µãƒ¼ãƒ“ã‚¹ã‚’é¸å±€ã—ã¾ã—ãŸã€‚(SID %u)",ServiceID);
+				return;
+			}
+		}
+
+		if (DefaultServiceID!=0 && m_Core.SetChannelByIDs(0,0,DefaultServiceID))
+			return;
+
+		CTuningSpaceList Scanned;
+		if (m_Core.GetScannedChannelList(&Scanned)) {
+			for (size_t Space=0;Space<Scanned.GetSpaceCount();Space++) {
+				const CChannelList *pList=Scanned.GetChannelList(Space);
+				if (pList==nullptr)
+					continue;
+				for (size_t Channel=0;Channel<pList->GetChannelCount();Channel++) {
+					const CChannelInfo *pInfo=pList->GetChannelInfo(Channel);
+					if (pInfo!=nullptr && pInfo->IsEnabled()
+							&& m_Core.SetChannelByScanned(int(Space),int(Channel)))
+						return;
+				}
+			}
+		}
+
+		BonDriverTuningSpaceList Spaces;
+		if (m_Core.GetBonDriverChannelList(&Spaces)) {
+			for (size_t Space=0;Space<Spaces.size();Space++) {
+				for (size_t Channel=0;Channel<Spaces[Space].ChannelList.size();Channel++) {
+					if (m_Core.SetChannelByIndex(DWORD(Space),DWORD(Channel)))
+						return;
+				}
+			}
+		}
+		OutLog(LOG_WARNING,L"èµ·å‹•æ™‚ã«é¸å±€ã§ãã‚‹ãƒãƒ£ãƒ³ãƒãƒ«ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
+	}
+
+	void CTSTaskApp::OnServiceChanged(WORD ServiceID)
+	{
+		ChannelInfo Current;
+		if (ServiceID!=0 && ServiceID!=SERVICE_ID_INVALID
+				&& m_Core.GetChannel(&Current) && Current.Space>=0 && Current.Channel>=0) {
+			m_LastService.Space=Current.Space;
+			m_LastService.Channel=Current.Channel;
+			m_LastService.ServiceID=ServiceID;
+		}
+	}
+
+	bool CTSTaskApp::OnTunerClose()
+	{
+		// æœªå‡¦ç†ã®ã‚µãƒ¼ãƒ“ã‚¹å¤‰æ›´é€šçŸ¥ãŒã‚ã£ã¦ã‚‚ã€çµ‚äº†ç›´å‰ã®é¸å±€çµæœã‚’ä¿å­˜ã™ã‚‹ã€‚
+		ChannelStreamIDs IDs;
+		if (m_Core.GetStreamIDs(&IDs))
+			OnServiceChanged(IDs.ServiceID);
+
+		if (m_LastService.ServiceID!=SERVICE_ID_INVALID && !m_ChannelHistoryPath.empty()) {
+			const String Section=GetChannelHistorySection();
+			CSettings History;
+			if (!Section.empty()
+					&& (!History.Open(m_ChannelHistoryPath.c_str()) || !History.SetSection(Section.c_str())
+						|| !History.Write(L"Space",unsigned(m_LastService.Space))
+						|| !History.Write(L"Channel",unsigned(m_LastService.Channel))
+						|| !History.Write(L"ServiceID",unsigned(m_LastService.ServiceID)))) {
+				OutLog(LOG_WARNING,L"å‰å›ã®é¸å±€çµæœã‚’ä¿å­˜ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚(%s)",m_ChannelHistoryPath.c_str());
+			}
+		}
+		return true;
+	}
+
+	void CTSTaskApp::OnTunerClosed()
+	{
+		m_LastService=TuningChannelInfo{};
+	}
+
+	bool CTSTaskApp::Finalize()
+	{
+		if (m_fTaskRunning)
+			m_SharedInfo.SetTaskState(TASK_STATE_ENDING);
+
+		// Stop external commands and timer callbacks before tearing down the core.
+		m_MessageServer.Close();
+		CancelReserve();
 		m_StatisticsUpdater.EndThread();
-
-		m_SharedInfo.SetTaskState(TASK_STATE_ENDING);
-
-		m_TvRockDTVTarget.Finalize();
-
-		m_Core.Finalize();
-
+		m_TVTestControlPlugin.Finalize();
+		const bool fFinalized=m_Core.Finalize();
+		m_TSTaskWindow.Destroy();
 		m_ClientManager.Finalize();
 
-		CMessage EndedMessage;
-		BasicMessage::TaskEnded::InitializeMessage(&EndedMessage,m_TaskIdentity.GetTaskID());
-		BroadcastServerMessage(EndedMessage);
-
-		m_MessageServer.Close();
+		if (m_fTaskRunning) {
+			CMessage EndedMessage;
+			BasicMessage::TaskEnded::InitializeMessage(&EndedMessage,m_TaskIdentity.GetTaskID());
+			BroadcastServerMessage(EndedMessage);
+		}
 
 		m_SharedInfo.Close();
-
 		m_TaskIdentity.Finalize();
 
-		OutLog(LOG_IMPORTANT,APP_NAME_W L" I—¹");
-
-		return 0;
+		OutLog(LOG_IMPORTANT,APP_NAME_W L" çµ‚äº†");
+		return fFinalized;
 	}
 
 	bool CTSTaskApp::Quit()
@@ -385,7 +547,7 @@ namespace TSTask
 
 	int CTSTaskApp::GetTvRockDeviceID() const
 	{
-		return m_TvRockDTVTarget.GetDeviceID();
+		return m_TVTestControlPlugin.IsTvRockLoaded()?m_CommandLine.m_TvRockDeviceID:-1;
 	}
 
 	bool CTSTaskApp::ReloadSettings()
@@ -393,11 +555,11 @@ namespace TSTask
 		String IniFilePath;
 		m_CurSettings.General.GetIniFilePath(&IniFilePath);
 
-		OutLog(LOG_VERBOSE,L"İ’è‚ğÄ“Ç‚İ‚İ‚µ‚Ü‚·B(%s)",IniFilePath.c_str());
+		OutLog(LOG_VERBOSE,L"è¨­å®šã‚’å†èª­ã¿è¾¼ã¿ã—ã¾ã™ã€‚(%s)",IniFilePath.c_str());
 
 		CSettings Settings;
 		if (!Settings.Open(IniFilePath.c_str(),CSettings::OPEN_READ)) {
-			OutLog(LOG_ERROR,L"İ’è‚ÌÄ“Ç‚İ‚İ‚ª‚Å‚«‚Ü‚¹‚ñB(%s)",IniFilePath.c_str());
+			OutLog(LOG_ERROR,L"è¨­å®šã®å†èª­ã¿è¾¼ã¿ãŒã§ãã¾ã›ã‚“ã€‚(%s)",IniFilePath.c_str());
 			return false;
 		}
 
@@ -496,11 +658,10 @@ namespace TSTask
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒg(%u)‚ğ“o˜^‚µ‚Ü‚·B",(UINT)ID);
+		OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ(%u)ã‚’ç™»éŒ²ã—ã¾ã™ã€‚",(UINT)ID);
 
-		m_ClientManager.AddClient((TaskID)ID);
-
-		pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_OK);
+		pResponse->SetProperty(MESSAGE_PROPERTY_Result,
+			m_ClientManager.AddClient((TaskID)ID)?MESSAGE_RESULT_OK:MESSAGE_RESULT_Failed);
 
 		return true;
 	}
@@ -514,7 +675,7 @@ namespace TSTask
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒg(%u)‚ğ“o˜^‰ğœ‚µ‚Ü‚·B",(UINT)ID);
+		OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ(%u)ã‚’ç™»éŒ²è§£é™¤ã—ã¾ã™ã€‚",(UINT)ID);
 
 		m_ClientManager.RemoveClient((TaskID)ID);
 
@@ -553,7 +714,7 @@ namespace TSTask
 	{
 		m_TSTaskWindow.OnRecordingStopped();
 		if (m_CurSettings.Recording.GetExitOnStop()) {
-			OutLog(LOG_INFO,L"˜^‰æ‚ª’â~‚µ‚½‚Ì‚ÅƒvƒƒOƒ‰ƒ€‚ğI—¹‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"éŒ²ç”»ãŒåœæ­¢ã—ãŸã®ã§ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
 			Quit();
 		}
 	}
@@ -578,32 +739,6 @@ namespace TSTask
 			m_Core.SetStreamingMaxConnectRetries(m_CurSettings.Streaming.GetMaxConnectRetries());
 			m_Core.SetStreamingTcpMaxSendRetries(m_CurSettings.Streaming.GetTcpMaxSendRetries());
 			m_Core.SetStreamingTcpPrependHeader(m_CurSettings.Streaming.GetTcpPrependHeader());
-		}
-
-		return true;
-	}
-
-	bool CTSTaskApp::OnChannelListLoaded(CTuningSpaceList &SpaceList)
-	{
-		if (m_TvRockDTVTarget.GetDeviceID()<0)
-			return false;
-
-		OutLog(LOG_VERBOSE,L"ƒ`ƒƒƒ“ƒlƒ‹ƒŠƒXƒg‚Éü”g”‚ğİ’è‚µ‚Ü‚·B");
-
-		for (size_t i=0;i<SpaceList.GetSpaceCount();i++) {
-			CChannelList *pChannelList=SpaceList.GetChannelList(i);
-			if (pChannelList==nullptr)
-				continue;
-
-			for (size_t j=0;j<pChannelList->GetChannelCount();j++) {
-				CChannelInfo *pChannelInfo=pChannelList->GetChannelInfo(j);
-
-				if (pChannelInfo!=nullptr) {
-					int Frequency=m_TvRockDTVTarget.GetFrequencyByTSID(pChannelInfo->GetTransportStreamID());
-					if (Frequency!=0)
-						pChannelInfo->SetFrequency(Frequency);
-				}
-			}
 		}
 
 		return true;

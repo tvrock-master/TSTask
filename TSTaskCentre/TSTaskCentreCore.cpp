@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TSTaskCentreCore.h"
 #include "../Common/DebugDef.h"
@@ -21,7 +21,7 @@ namespace TSTaskCentre
 	bool CTSTaskCentreCore::Initialize()
 	{
 		if (!m_TaskIdentity.Initialize(TSTask::TASK_TYPE_CLIENT)) {
-			TSTask::OutLog(TSTask::LOG_ERROR,L"ƒ^ƒXƒN‚ÌID‚ğŠ„‚è“–‚Ä‚ç‚ê‚Ü‚¹‚ñB");
+			TSTask::OutLog(TSTask::LOG_ERROR,L"ã‚¿ã‚¹ã‚¯ã®IDã‚’å‰²ã‚Šå½“ã¦ã‚‰ã‚Œã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -42,7 +42,7 @@ namespace TSTaskCentre
 		HDC hdc=::CreateIC(TEXT("DISPLAY"),nullptr,nullptr,nullptr);
 		if (hdc!=nullptr) {
 			m_DPI=::GetDeviceCaps(hdc,LOGPIXELSX);
-			TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒfƒBƒXƒvƒŒƒC‰ğ‘œ“x‚ğæ“¾‚µ‚Ü‚µ‚½B(%d DPI)",m_DPI);
+			TSTask::OutLog(TSTask::LOG_VERBOSE,L"ãƒ‡ã‚£ã‚¹ãƒ—ãƒ¬ã‚¤è§£åƒåº¦ã‚’å–å¾—ã—ã¾ã—ãŸã€‚(%d DPI)",m_DPI);
 			::DeleteDC(hdc);
 		}
 
@@ -71,11 +71,6 @@ namespace TSTaskCentre
 	bool CTSTaskCentreCore::GetTaskList(TSTask::TaskUtility::TaskIDList *pList) const
 	{
 		return m_TSTaskManager.GetTaskList(pList);
-	}
-
-	bool CTSTaskCentreCore::AddTask(TSTask::TaskID ID)
-	{
-		return m_TSTaskManager.AddTask(GetTaskID(),ID);
 	}
 
 	bool CTSTaskCentreCore::RemoveTask(TSTask::TaskID ID)
@@ -107,15 +102,15 @@ namespace TSTaskCentre
 		si.cb=sizeof(si);
 		::ZeroMemory(&pi,sizeof(pi));
 
-		TSTask::OutLog(TSTask::LOG_INFO,L"V‹Kƒ^ƒXƒN(%s)‚ğì¬‚µ‚Ü‚·B",ExeFilePath.c_str());
+		TSTask::OutLog(TSTask::LOG_INFO,L"æ–°è¦ã‚¿ã‚¹ã‚¯(%s)ã‚’ä½œæˆã—ã¾ã™ã€‚",ExeFilePath.c_str());
 
 		if (!::CreateProcess(nullptr,&CommandLine[0],nullptr,nullptr,FALSE,0,nullptr,nullptr,&si,&pi)) {
-			TSTask::OutSystemErrorLog(::GetLastError(),L"ƒvƒƒZƒX(%s)‚ğì¬‚Å‚«‚Ü‚¹‚ñB",
+			TSTask::OutSystemErrorLog(::GetLastError(),L"ãƒ—ãƒ­ã‚»ã‚¹(%s)ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",
 									  ExeFilePath.c_str());
 			return false;
 		}
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒvƒƒZƒX(%s)‚ğì¬‚µ‚Ü‚µ‚½B(PID %u)",
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ãƒ—ãƒ­ã‚»ã‚¹(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚(PID %u)",
 					   ExeFilePath.c_str(),pi.dwProcessId);
 
 		::CloseHandle(pi.hProcess);
@@ -378,7 +373,7 @@ namespace TSTaskCentre
 		if (Info.Command.empty())
 			return false;
 
-		TSTask::OutLog(TSTask::LOG_INFO,L"ƒc[ƒ‹‚ğÀs‚µ‚Ü‚·B(%s : %s)",
+		TSTask::OutLog(TSTask::LOG_INFO,L"ãƒ„ãƒ¼ãƒ«ã‚’å®Ÿè¡Œã—ã¾ã™ã€‚(%s : %s)",
 					   Info.Name.c_str(),Info.Command.c_str());
 
 		TSTask::String FilePath,Parameters;
@@ -402,7 +397,7 @@ namespace TSTaskCentre
 		}
 
 		if (TSTask::StringUtility::CompareNoCase(FilePath,L"message")==0) {
-			TSTask::OutLog(TSTask::LOG_INFO,L"ƒƒbƒZ[ƒW‚ğ‘—M‚µ‚Ü‚·B(%s)",Info.Command.c_str()+Pos);
+			TSTask::OutLog(TSTask::LOG_INFO,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é€ä¿¡ã—ã¾ã™ã€‚(%s)",Info.Command.c_str()+Pos);
 
 			TSTask::CMessageTranslator Translator;
 			std::vector<TSTask::CMessage> MessageList;
@@ -428,16 +423,16 @@ namespace TSTaskCentre
 				if (!TSTask::FormatVariableString(&Parameters,&StringMap,Info.Command.c_str()+Pos))
 					return false;
 				if (StringMap.IsParameterNotAvailable()) {
-					TSTask::OutLog(TSTask::LOG_ERROR,L"ƒpƒ‰ƒ[ƒ^‚ª—˜—p‚Å‚«‚Ü‚¹‚ñB");
+					TSTask::OutLog(TSTask::LOG_ERROR,L"ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒåˆ©ç”¨ã§ãã¾ã›ã‚“ã€‚");
 					return false;
 				}
 				if (StringMap.IsParameterAcquireFailed()) {
-					TSTask::OutLog(TSTask::LOG_ERROR,L"ƒpƒ‰ƒ[ƒ^‚É•K—v‚Èî•ñ‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB");
+					TSTask::OutLog(TSTask::LOG_ERROR,L"ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã«å¿…è¦ãªæƒ…å ±ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚");
 					return false;
 				}
 			}
 
-			TSTask::OutLog(TSTask::LOG_INFO,L"ƒVƒFƒ‹‚É‚æ‚éƒRƒ}ƒ“ƒhÀs‚ğs‚È‚¢‚Ü‚·B(%s : %s)",
+			TSTask::OutLog(TSTask::LOG_INFO,L"ã‚·ã‚§ãƒ«ã«ã‚ˆã‚‹ã‚³ãƒãƒ³ãƒ‰å®Ÿè¡Œã‚’è¡Œãªã„ã¾ã™ã€‚(%s : %s)",
 						   FilePath.c_str(),Parameters.c_str());
 
 			SHELLEXECUTEINFO sei;
@@ -451,7 +446,7 @@ namespace TSTaskCentre
 			sei.lpDirectory=Info.CurrentDirectory.empty()?nullptr:Info.CurrentDirectory.c_str();
 			sei.nShow=Info.ShowCommand;
 			if (!::ShellExecuteEx(&sei)) {
-				TSTask::OutSystemErrorLog(::GetLastError(),L"ƒc[ƒ‹‚ğÀs‚Å‚«‚Ü‚¹‚ñB");
+				TSTask::OutSystemErrorLog(::GetLastError(),L"ãƒ„ãƒ¼ãƒ«ã‚’å®Ÿè¡Œã§ãã¾ã›ã‚“ã€‚");
 				return false;
 			}
 		}
@@ -468,7 +463,7 @@ namespace TSTaskCentre
 		if (i<0)
 			return true;
 
-		TSTask::OutLog(TSTask::LOG_INFO,L"ƒCƒxƒ“ƒg‚É‚æ‚èƒc[ƒ‹‚ğÀs‚µ‚Ü‚·B(%s)",pszEvent);
+		TSTask::OutLog(TSTask::LOG_INFO,L"ã‚¤ãƒ™ãƒ³ãƒˆã«ã‚ˆã‚Šãƒ„ãƒ¼ãƒ«ã‚’å®Ÿè¡Œã—ã¾ã™ã€‚(%s)",pszEvent);
 
 		do {
 			CToolsSettings::ToolInfo Info;
@@ -505,7 +500,7 @@ namespace TSTaskCentre
 
 			m_Settings.Recording.GetRecordingSettings(&Settings);
 			TSTask::BasicMessage::StartRecording::InitializeMessage(&DefaultMessage,Settings);
-			// Directories ‚Ìˆµ‚¢‚ª”÷–­
+			// Directories ã®æ‰±ã„ãŒå¾®å¦™
 			CopyMessageProperties(pMessage,DefaultMessage);
 		} else if (::lstrcmpW(pMessage->GetName(),L"StartStreaming")==0) {
 			TSTask::StreamingInfo Info;

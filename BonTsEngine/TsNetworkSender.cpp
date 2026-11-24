@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TsNetworkSender.h"
 #include "StdUtil.h"
 #include "../Common/DebugDef.h"
@@ -65,12 +65,12 @@ bool CTsNetworkSender::Open(const AddressInfo *pList, DWORD Length)
 	CBlockLock Lock(&m_DecoderLock);
 
 	if (IsOpen()) {
-		SetError(TEXT("Šù‚ÉŠJ‚©‚ê‚Ä‚¢‚Ü‚·B"));
+		SetError(TEXT("æ—¢ã«é–‹ã‹ã‚Œã¦ã„ã¾ã™ã€‚"));
 		return false;
 	}
 
 	if (pList == NULL || Length == 0) {
-		SetError(TEXT("ƒAƒhƒŒƒX‚ªw’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"));
+		SetError(TEXT("ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
@@ -79,7 +79,7 @@ bool CTsNetworkSender::Open(const AddressInfo *pList, DWORD Length)
 		int Error = ::WSAStartup(MAKEWORD(2,0), &WSAData);
 		if (Error != 0) {
 			TCHAR szText[64];
-			StdUtil::snprintf(szText, _countof(szText), TEXT("Winsock‚Ì‰Šú‰»‚ª‚Å‚«‚Ü‚¹‚ñB(%d)"), Error);
+			StdUtil::snprintf(szText, _countof(szText), TEXT("Winsockã®åˆæœŸåŒ–ãŒã§ãã¾ã›ã‚“ã€‚(%d)"), Error);
 			SetError(szText);
 			return false;
 		}
@@ -106,11 +106,11 @@ bool CTsNetworkSender::Open(const AddressInfo *pList, DWORD Length)
 			AddrHints.ai_socktype = Type;
 			int Result = ::GetAddrInfo(pList[i].pszAddress, szPort, &AddrHints, &Info.AddrList);
 			if (Result != 0) {
-				SetError(TEXT("ƒAƒhƒŒƒX‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB"));
+				SetError(TEXT("ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚"));
 				throw __LINE__;
 			}
 
-			// ”ñƒuƒƒbƒLƒ“ƒO‚Éİ’è
+			// éãƒ–ãƒ­ãƒƒã‚­ãƒ³ã‚°ã«è¨­å®š
 			u_long arg = 1;
 			::ioctlsocket(Info.sock, FIONBIO, &arg);
 
@@ -131,7 +131,7 @@ bool CTsNetworkSender::Open(const AddressInfo *pList, DWORD Length)
 		m_EndSendingEvent.Create(true);
 		m_hSendThread = (HANDLE)::_beginthreadex(NULL, 0, SendThread, this, 0, NULL);
 		if (m_hSendThread == NULL) {
-			SetError(TEXT("ƒXƒŒƒbƒh‚ğì¬‚Å‚«‚Ü‚¹‚ñB"));
+			SetError(TEXT("ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚"));
 			throw __LINE__;
 		}
 	} catch (...) {
@@ -148,7 +148,7 @@ bool CTsNetworkSender::Close()
 	if (m_hSendThread) {
 		m_EndSendingEvent.Set();
 		if (::WaitForSingleObject(m_hSendThread, 10000) == WAIT_TIMEOUT) {
-			Trace(CTracer::TYPE_WARNING, TEXT("ƒlƒbƒgƒ[ƒN‘—MƒXƒŒƒbƒh‚ª‰“š‚µ‚È‚¢‚½‚ß‹­§I—¹‚µ‚Ü‚·B"));
+			Trace(CTracer::TYPE_WARNING, TEXT("ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ãªã„ãŸã‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™ã€‚"));
 			::TerminateThread(m_hSendThread, -1);
 		}
 		::CloseHandle(m_hSendThread);
@@ -480,7 +480,7 @@ bool CTsNetworkSender::ConnectTCP()
 
 
 /*
-	Ú‘±‚²‚Æ‚ÉƒXƒŒƒbƒh‚ğì‚é‚æ‚¤‚É‰ü—Ç‚µ‚½•û‚ª‚¢‚¢‚Æv‚í‚ê‚Ü‚·
+	æ¥ç¶šã”ã¨ã«ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ä½œã‚‹ã‚ˆã†ã«æ”¹è‰¯ã—ãŸæ–¹ãŒã„ã„ã¨æ€ã‚ã‚Œã¾ã™
 */
 void CTsNetworkSender::SendMain()
 {
@@ -493,7 +493,7 @@ void CTsNetworkSender::SendMain()
 
 	for (auto i = m_SockList.begin(); i != m_SockList.end(); ++i) {
 		if (i->Type == SOCKET_TCP && !i->bConnected) {
-			TraceAddress(CTracer::TYPE_ERROR, TEXT("%s:%d ‚ÉÚ‘±‚Å‚«‚Ü‚¹‚ñB"), i->AddrList);
+			TraceAddress(CTracer::TYPE_ERROR, TEXT("%s:%d ã«æ¥ç¶šã§ãã¾ã›ã‚“ã€‚"), i->AddrList);
 		}
 	}
 
@@ -613,7 +613,7 @@ void CTsNetworkSender::TraceAddress(CTracer::TraceType Type, LPCTSTR pszFormat, 
 
 void CTsNetworkSender::ConnectedTrace(const ADDRINFOT *addr)
 {
-	TraceAddress(CTracer::TYPE_INFORMATION, TEXT("%s:%d ‚ÉÚ‘±‚µ‚Ü‚µ‚½B"), addr);
+	TraceAddress(CTracer::TYPE_INFORMATION, TEXT("%s:%d ã«æ¥ç¶šã—ã¾ã—ãŸã€‚"), addr);
 }
 
 

@@ -1,4 +1,4 @@
-#ifndef TSTASKCENTRE_TASK_STREAMING_SETTINGS_DIALOG_H
+Ôªø#ifndef TSTASKCENTRE_TASK_STREAMING_SETTINGS_DIALOG_H
 #define TSTASKCENTRE_TASK_STREAMING_SETTINGS_DIALOG_H
 
 
@@ -19,7 +19,7 @@ namespace TSTaskCentre
 		INT_PTR DlgProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) override;
 
 	// CSettingsDialog::CPage
-		LPCWSTR GetTitle() const override { return L"ÉXÉgÉäÅ[É~ÉìÉO"; }
+		LPCWSTR GetTitle() const override { return L"„Çπ„Éà„É™„Éº„Éü„É≥„Ç∞"; }
 		COLORREF GetTitleColor() const override { return RGB(0,192,128); }
 		int GetIcon() const override { return ICON_STREAMING; }
 

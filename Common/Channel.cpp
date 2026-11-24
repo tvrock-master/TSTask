@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "Channel.h"
 #include "DebugDef.h"
@@ -582,8 +582,8 @@ namespace TSTask
 			return false;
 
 		String Buffer(
-			L"; TVTest ƒ`ƒƒƒ“ƒlƒ‹İ’èƒtƒ@ƒCƒ‹\r\n"
-			L"; –¼Ì,ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ,ƒ`ƒƒƒ“ƒlƒ‹,ƒŠƒ‚ƒRƒ“”Ô†,ƒT[ƒrƒXƒ^ƒCƒv,ƒT[ƒrƒXID,ƒlƒbƒgƒ[ƒNID,TSID,ó‘Ô\r\n");
+			L"; TVTest ãƒãƒ£ãƒ³ãƒãƒ«è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«\r\n"
+			L"; åç§°,ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“,ãƒãƒ£ãƒ³ãƒãƒ«,ãƒªãƒ¢ã‚³ãƒ³ç•ªå·,ã‚µãƒ¼ãƒ“ã‚¹ã‚¿ã‚¤ãƒ—,ã‚µãƒ¼ãƒ“ã‚¹ID,ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ID,TSID,çŠ¶æ…‹\r\n");
 		String Temp;
 
 		for (size_t i=0;i<GetSpaceCount();i++) {
@@ -602,7 +602,7 @@ namespace TSTask
 				LPCWSTR pszName=pChInfo->GetName();
 				String Name;
 
-				// •K—v‚É‰‚¶‚Ä " ‚ÅˆÍ‚Ş
+				// å¿…è¦ã«å¿œã˜ã¦ " ã§å›²ã‚€
 				if (pszName[0]==L'#' || pszName[0]==L';'
 						|| ::StrChrW(pszName,L',')!=NULL
 						|| ::StrChrW(pszName,L'"')!=NULL) {
@@ -795,12 +795,12 @@ namespace TSTask
 
 			p+=::StrSpnW(p,L"\r\n \t");
 
-			if (*p==L'#' || *p==L';') {	// ƒRƒƒ“ƒg
+			if (*p==L'#' || *p==L';') {	// ã‚³ãƒ¡ãƒ³ãƒˆ
 				p++;
 				if (*p==L'#') {
 					p++;
 					if (::StrCmpNIW(p,L"SPACE(",6)==0) {
-						// ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ–¼ #space(ƒCƒ“ƒfƒbƒNƒX,–¼‘O)
+						// ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“å #space(ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹,åå‰)
 						p+=6;
 						SkipSpaces(&p);
 						if (IsDigit(*p)) {
@@ -832,7 +832,7 @@ namespace TSTask
 			{
 				CChannelInfo ChInfo;
 
-				// ƒ`ƒƒƒ“ƒlƒ‹–¼
+				// ãƒãƒ£ãƒ³ãƒãƒ«å
 				Name.clear();
 				bool fQuote=false;
 				if (*p==L'"') {
@@ -858,35 +858,35 @@ namespace TSTask
 				if (!NextToken(&p))
 					goto Next;
 
-				// ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ
+				// ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“
 				if (!IsDigit(*p))
 					goto Next;
 				ChInfo.SetSpace(ParseDigits(&p));
 				if (!NextToken(&p))
 					goto Next;
 
-				// ƒ`ƒƒƒ“ƒlƒ‹
+				// ãƒãƒ£ãƒ³ãƒãƒ«
 				if (!IsDigit(*p))
 					goto Next;
 				ChInfo.SetChannel(ParseDigits(&p));
 
 				if (NextToken(&p)) {
-					// ƒŠƒ‚ƒRƒ“”Ô†(ƒIƒvƒVƒ‡ƒ“)
+					// ãƒªãƒ¢ã‚³ãƒ³ç•ªå·(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 					ChInfo.SetRemoteControlKeyID(ParseDigits(&p));
 					if (NextToken(&p)) {
-						// ƒT[ƒrƒXƒ^ƒCƒv(ƒIƒvƒVƒ‡ƒ“)
+						// ã‚µãƒ¼ãƒ“ã‚¹ã‚¿ã‚¤ãƒ—(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 						ChInfo.SetServiceType(static_cast<BYTE>(ParseDigits(&p)));
 						if (NextToken(&p)) {
-							// ƒT[ƒrƒXID(ƒIƒvƒVƒ‡ƒ“)
+							// ã‚µãƒ¼ãƒ“ã‚¹ID(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 							ChInfo.SetServiceID(static_cast<WORD>(ParseDigits(&p)));
 							if (NextToken(&p)) {
-								// ƒlƒbƒgƒ[ƒNID(ƒIƒvƒVƒ‡ƒ“)
+								// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ID(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 								ChInfo.SetNetworkID(static_cast<WORD>(ParseDigits(&p)));
 								if (NextToken(&p)) {
-									// ƒgƒ‰ƒ“ƒXƒ|[ƒgƒXƒgƒŠ[ƒ€ID(ƒIƒvƒVƒ‡ƒ“)
+									// ãƒˆãƒ©ãƒ³ã‚¹ãƒãƒ¼ãƒˆã‚¹ãƒˆãƒªãƒ¼ãƒ ID(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 									ChInfo.SetTransportStreamID(static_cast<WORD>(ParseDigits(&p)));
 									if (NextToken(&p)) {
-										// ó‘Ô(ƒIƒvƒVƒ‡ƒ“)
+										// çŠ¶æ…‹(ã‚ªãƒ—ã‚·ãƒ§ãƒ³)
 										if (IsDigit(*p)) {
 											int Flags=ParseDigits(&p);
 											ChInfo.Enable((Flags&1)!=0);

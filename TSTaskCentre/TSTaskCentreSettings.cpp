@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TSTaskCentreSettings.h"
 #include "Graphics.h"
@@ -23,7 +23,7 @@ namespace TSTaskCentre
 
 		m_ProcessPriority=PROCESS_PRIORITY_INVALID;
 
-		m_fExitWhenAllTaskEnded=true;
+		m_fExitWhenAllTaskEnded=false;
 
 		m_LoggingLevel=TSTask::LOG_INFO;
 		m_MaxLog=500;
@@ -502,6 +502,7 @@ namespace TSTaskCentre
 		m_Width=0;
 		m_Height=0;
 		m_fMinimize=false;
+		m_fDockBottom=false;
 
 		m_fShowTrayIcon=false;
 		m_fMinimizeToTray=false;
@@ -553,6 +554,7 @@ namespace TSTaskCentre
 		Settings.Read(L"MainBoard.Width",&m_Width);
 		Settings.Read(L"MainBoard.Height",&m_Height);
 		Settings.Read(L"MainBoard.Minimize",&m_fMinimize);
+		Settings.Read(L"MainBoard.DockBottom",&m_fDockBottom);
 		Settings.Read(L"MainBoard.ShowTrayIcon",&m_fShowTrayIcon);
 		Settings.Read(L"MainBoard.MinimizeToTray",&m_fMinimizeToTray);
 		Settings.Read(L"MainBoard.ShowInTaskbar",&m_fShowInTaskbar);
@@ -629,6 +631,7 @@ namespace TSTaskCentre
 		Settings.Write(L"MainBoard.Width",m_Width);
 		Settings.Write(L"MainBoard.Height",m_Height);
 		Settings.Write(L"MainBoard.Minimize",m_fMinimize);
+		Settings.Write(L"MainBoard.DockBottom",m_fDockBottom);
 		Settings.Write(L"MainBoard.ShowTrayIcon",m_fShowTrayIcon);
 		Settings.Write(L"MainBoard.MinimizeToTray",m_fMinimizeToTray);
 		Settings.Write(L"MainBoard.ShowInTaskbar",m_fShowInTaskbar);
@@ -1063,10 +1066,10 @@ namespace TSTaskCentre
 		m_ToolList.clear();
 
 		ToolInfo Info;
-		Info.Name=L"TVTestÇ≈éãíÆ";
+		Info.Name=L"TVTest„ÅßË¶ñËÅ¥";
 		Info.Command=L"TVTest.exe /d BonDriver_TSTask.dll /chspace 0 /ch %task-id% /sid %service-id%";
 		m_ToolList.push_back(Info);
-		Info.Name=L"TVTestÇ≈ÉlÉbÉgÉèÅ[ÉNéãíÆ";
+		Info.Name=L"TVTest„Åß„Éç„ÉÉ„Éà„ÉØ„Éº„ÇØË¶ñËÅ¥";
 		Info.Command=L"TVTest.exe /d BonDriver_%protocol%.dll /port %port% /sid %service-id%";
 		m_ToolList.push_back(Info);
 	}

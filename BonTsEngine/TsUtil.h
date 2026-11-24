@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 
 #include <functional>
@@ -8,7 +8,7 @@
 namespace TsEngine
 {
 
-	// ‘}“üƒ\[ƒg
+	// æŒ¿å…¥ã‚½ãƒ¼ãƒˆ
 	template<typename TValue, typename TSize, typename TCmp>
 		void InsertionSort(TValue *array, TSize size, TCmp cmp = std::less<TValue>())
 	{

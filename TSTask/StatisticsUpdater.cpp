@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskAppCore.h"
@@ -28,7 +29,7 @@ namespace TSTask
 		CThread::CFunctorBase *pFunctor=
 			new CThread::CFunctor<CStatisticsUpdater>(this,&CStatisticsUpdater::UpdateThread);
 		if (!m_Thread.Begin(pFunctor)) {
-			OutLog(LOG_ERROR,L"“Œvî•ñXVƒXƒŒƒbƒh‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"çµ±è¨ˆæƒ…å ±æ›´æ–°ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			delete pFunctor;
 			EndThread();
 			return false;
@@ -40,10 +41,10 @@ namespace TSTask
 	void CStatisticsUpdater::EndThread()
 	{
 		if (m_Thread.IsOpened()) {
-			OutLog(LOG_VERBOSE,L"“Œvî•ñXVƒXƒŒƒbƒh‚ğI—¹‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"çµ±è¨ˆæƒ…å ±æ›´æ–°ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
 			m_EndEvent.Set();
 			if (m_Thread.Wait(10000)==WAIT_TIMEOUT) {
-				OutLog(LOG_WARNING,L"“Œvî•ñXVƒXƒŒƒbƒh‚Ì‰“š‚ª–³‚¢‚½‚ß‹­§I—¹‚µ‚Ü‚·B");
+				OutLog(LOG_WARNING,L"çµ±è¨ˆæƒ…å ±æ›´æ–°ã‚¹ãƒ¬ãƒƒãƒ‰ã®å¿œç­”ãŒç„¡ã„ãŸã‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™ã€‚");
 				m_Thread.Terminate();
 			}
 			m_Thread.Close();
@@ -65,6 +66,7 @@ namespace TSTask
 
 		while (m_EndEvent.Wait(m_UpdateInterval)==WAIT_TIMEOUT) {
 			m_Core.UpdateStreamStatistics();
+			m_Core.GetCore().CheckRecordingFreeSpace();
 		}
 
 		return 0;

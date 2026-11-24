@@ -25,7 +25,6 @@ namespace TSTaskCentre
 
 		int GetTaskCount() const;
 		bool GetTaskList(TSTask::TaskUtility::TaskIDList *pList) const;
-		bool AddTask(TSTask::TaskID ID);
 		bool RemoveTask(TSTask::TaskID ID);
 		bool NewTask();
 

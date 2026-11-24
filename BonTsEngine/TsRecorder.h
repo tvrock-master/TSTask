@@ -1,3 +1,4 @@
+Ôªø// Modified in this TSTask fork (recorded 2026-11-19).
 #pragma once
 
 
@@ -10,12 +11,12 @@ class CTsRecorder : public CMediaDecoder
 public:
 	enum
 	{
-		EVENT_WRITE_ERROR	// èëÇ´èoÇµÉGÉâÅ[
+		EVENT_WRITE_ERROR	// Êõ∏„ÅçÂá∫„Åó„Ç®„É©„Éº
 	};
 
 	enum
 	{
-		OPEN_OVERWRITE	= 0x0001U	// è„èëÇ´
+		OPEN_OVERWRITE	= 0x0001U	// ‰∏äÊõ∏„Åç
 	};
 
 	class ABSTRACT_CLASS_DECL CWriter : public CBonErrorHandler
@@ -63,6 +64,7 @@ public:
 	bool IsWriteSizeAvailable() const;
 	ULONGLONG GetWriteSize() const;
 	DWORD GetWriteErrorCount() const;
+	bool HasWriteError();
 
 	bool Pause();
 	bool Resume();
@@ -82,6 +84,9 @@ public:
 protected:
 	bool PushData(const BYTE *pData, SIZE_T DataSize);
 	DWORD WriteData(const BYTE *pData, DWORD DataSize, DWORD *pWrittenSize);
+	DWORD WriteToFile(const BYTE *pData, DWORD DataSize, DWORD *pWrittenSize);
+	DWORD FlushWriteBuffer();
+	void ReportQueueDrop();
 	bool FlushBuffer();
 
 	static unsigned int __stdcall WriteThread(LPVOID lpParameter);
@@ -102,6 +107,7 @@ protected:
 	DWORD m_WriteErrorCount;
 
 	bool m_bWriteError;
+	bool m_bQueueDropReported = false;
 	volatile bool m_bPause;
 
 	bool m_bEnableQueueing;

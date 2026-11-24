@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "StreamPool.h"
 #include "DebugDef.h"
@@ -38,7 +38,7 @@ namespace TSTask
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹‚Ìƒƒ‚ƒŠ‚ğƒ}ƒbƒv‚µ‚Ü‚µ‚½B(Address %p)",m_pBuffer);
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ã®ãƒ¡ãƒ¢ãƒªã‚’ãƒãƒƒãƒ—ã—ã¾ã—ãŸã€‚(Address %p)",m_pBuffer);
 
 		StreamInfo *pInfo=reinterpret_cast<StreamInfo*>(m_pBuffer);
 		::ZeroMemory(pInfo,sizeof(StreamInfo));
@@ -58,7 +58,7 @@ namespace TSTask
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹‚Ì“Ç‚İ‚İ—pƒƒ‚ƒŠ‚ğƒ}ƒbƒv‚µ‚Ü‚µ‚½B(Address %p)",m_pBuffer);
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ã®èª­ã¿è¾¼ã¿ç”¨ãƒ¡ãƒ¢ãƒªã‚’ãƒãƒƒãƒ—ã—ã¾ã—ãŸã€‚(Address %p)",m_pBuffer);
 
 		return true;
 	}
@@ -147,7 +147,7 @@ namespace TSTask
 		if (pInfo->FirstPos>=pInfo->BufferLength
 				|| pInfo->StreamLength>pInfo->BufferLength) {
 			m_SharedMemory.Unlock();
-			OutLog(LOG_ERROR,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹‚Ìƒwƒbƒ_‚ª•s³‚Å‚·B");
+			OutLog(LOG_ERROR,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ã®ãƒ˜ãƒƒãƒ€ãŒä¸æ­£ã§ã™ã€‚");
 			return false;
 		}
 
@@ -202,14 +202,14 @@ namespace TSTask
 
 		if ((pInfo->Status&STATUS_ENDED)!=0) {
 			m_SharedMemory.Unlock();
-			OutLog(LOG_ERROR,L"ƒXƒgƒŠ[ƒ€‚ªŠù‚ÉI—¹‚µ‚Ä‚¢‚Ü‚·B");
+			OutLog(LOG_ERROR,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãŒæ—¢ã«çµ‚äº†ã—ã¦ã„ã¾ã™ã€‚");
 			return false;
 		}
 
 		if (pInfo->FirstPos>=pInfo->BufferLength
 				|| pInfo->StreamLength>pInfo->BufferLength) {
 			m_SharedMemory.Unlock();
-			OutLog(LOG_ERROR,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹‚Ìƒwƒbƒ_‚ª•s³‚Å‚·B");
+			OutLog(LOG_ERROR,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ã®ãƒ˜ãƒƒãƒ€ãŒä¸æ­£ã§ã™ã€‚");
 			return false;
 		}
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "GeneralSettingsDialog.h"
 #include "MiscDialog.h"
@@ -41,6 +41,7 @@ namespace TSTaskCentre
 
 				CheckItem(IDC_SETTINGS_SHOW_IN_TASKBAR,Settings.MainBoard.GetShowInTaskbar());
 				CheckItem(IDC_SETTINGS_SHOW_TRAY_ICON,Settings.MainBoard.GetShowTrayIcon());
+				CheckItem(IDC_SETTINGS_DOCK_BOTTOM,Settings.MainBoard.GetDockBottom());
 				if (Settings.MainBoard.GetShowInTaskbar()) {
 					CheckItem(IDC_SETTINGS_MINIMIZE_TO_TRAY,Settings.MainBoard.GetMinimizeToTray());
 				} else {
@@ -55,7 +56,7 @@ namespace TSTaskCentre
 				SetItemString(IDC_SETTINGS_TSTASK_OPTIONS,Text);
 
 				::SendDlgItemMessage(hDlg,IDC_SETTINGS_THEME,CB_ADDSTRING,0,
-									 reinterpret_cast<LPARAM>(L"ƒfƒtƒHƒ‹ƒg"));
+									 reinterpret_cast<LPARAM>(L"ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ"));
 				int Sel=0;
 				CThemeManager &ThemeManager=m_Core.GetThemeManager();
 				std::vector<TSTask::String> ThemeFiles;
@@ -138,6 +139,7 @@ namespace TSTaskCentre
 
 		Settings.MainBoard.SetShowInTaskbar(IsItemChecked(IDC_SETTINGS_SHOW_IN_TASKBAR));
 		Settings.MainBoard.SetShowTrayIcon(IsItemChecked(IDC_SETTINGS_SHOW_TRAY_ICON));
+		Settings.MainBoard.SetDockBottom(IsItemChecked(IDC_SETTINGS_DOCK_BOTTOM));
 		Settings.MainBoard.SetMinimizeToTray(
 			!Settings.MainBoard.GetShowInTaskbar()
 				|| IsItemChecked(IDC_SETTINGS_MINIMIZE_TO_TRAY));

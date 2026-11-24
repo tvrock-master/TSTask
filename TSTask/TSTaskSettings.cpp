@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskSettings.h"
 #include "../Common/DebugDef.h"
@@ -802,7 +802,7 @@ namespace TSTask
 	bool CRecordingSettings::SetWriteBufferSize(unsigned int Size)
 	{
 		if (Size<WRITE_BUFFER_SIZE_MIN || Size>WRITE_BUFFER_SIZE_MAX) {
-			OutLog(LOG_ERROR,L"ƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«o‚µƒTƒCƒY‚Ìw’è‚ª—LŒø”ÍˆÍŠO‚Å‚·B(%u Bytes : %u ‚©‚ç %u ‚Ü‚Å)",
+			OutLog(LOG_ERROR,L"ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãå‡ºã—ã‚µã‚¤ã‚ºã®æŒ‡å®šãŒæœ‰åŠ¹ç¯„å›²å¤–ã§ã™ã€‚(%u Bytes : %u ã‹ã‚‰ %u ã¾ã§)",
 				   Size,WRITE_BUFFER_SIZE_MIN,WRITE_BUFFER_SIZE_MAX);
 			return false;
 		}
@@ -820,7 +820,7 @@ namespace TSTask
 	bool CRecordingSettings::SetMaxPendingSize(unsigned int Size)
 	{
 		if (Size<MAX_PENDING_SIZE_MIN || Size>MAX_PENDING_SIZE_MAX) {
-			OutLog(LOG_ERROR,L"ƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«o‚µ‘Ò‚¿Å‘åƒTƒCƒY‚Ìw’è‚ª—LŒø”ÍˆÍŠO‚Å‚·B(%u Bytes : %u ‚©‚ç %u ‚Ü‚Å)",
+			OutLog(LOG_ERROR,L"ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãå‡ºã—å¾…ã¡æœ€å¤§ã‚µã‚¤ã‚ºã®æŒ‡å®šãŒæœ‰åŠ¹ç¯„å›²å¤–ã§ã™ã€‚(%u Bytes : %u ã‹ã‚‰ %u ã¾ã§)",
 				   Size,MAX_PENDING_SIZE_MIN,MAX_PENDING_SIZE_MAX);
 			return false;
 		}
@@ -848,7 +848,7 @@ namespace TSTask
 	bool CRecordingSettings::SetPreAllocateSize(ULONGLONG Size)
 	{
 		if (Size>PRE_ALLOCATE_SIZE_MAX) {
-			OutLog(LOG_ERROR,L"ƒtƒ@ƒCƒ‹—Ìˆæ‚Ì–‘OŠm•ÛƒTƒCƒY‚Ìw’è‚ª—LŒø”ÍˆÍŠO‚Å‚·B(%llu Bytes : %llu ‚Ü‚Å)",
+			OutLog(LOG_ERROR,L"ãƒ•ã‚¡ã‚¤ãƒ«é ˜åŸŸã®äº‹å‰ç¢ºä¿ã‚µã‚¤ã‚ºã®æŒ‡å®šãŒæœ‰åŠ¹ç¯„å›²å¤–ã§ã™ã€‚(%llu Bytes : %llu ã¾ã§)",
 				   Size,PRE_ALLOCATE_SIZE_MAX);
 			return false;
 		}

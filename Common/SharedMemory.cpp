@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "SharedMemory.h"
 #include "DebugDef.h"
@@ -27,11 +27,11 @@ namespace TSTask
 		String MutexName;
 		GetMutexName(pszName,&MutexName);
 		if (!m_Mutex.Create(MutexName.c_str(),false)) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ‚ÌMutex(%s)‚ğì¬‚Å‚«‚Ü‚¹‚ñB",MutexName.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒªã®Mutex(%s)ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",MutexName.c_str());
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ‚ÌMutex(%s)‚ğì¬‚µ‚Ü‚µ‚½B",MutexName.c_str());
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒªã®Mutex(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚",MutexName.c_str());
 
 		CBasicSecurityAttributes SecurityAttributes;
 		SecurityAttributes.Initialize();
@@ -48,13 +48,13 @@ namespace TSTask
 			pszName);
 		if (m_hFileMapping==nullptr) {
 			OutSystemErrorLog(::GetLastError(),
-							  L"ƒtƒ@ƒCƒ‹ƒ}ƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg(%s)‚ğì¬‚Å‚«‚Ü‚¹‚ñB",
+							  L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(%s)ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",
 							  pszName);
 			m_Mutex.Close();
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒtƒ@ƒCƒ‹ƒ}ƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg(%s)‚ğì¬‚µ‚Ü‚µ‚½B(%Iu bytes)",
+		OutLog(LOG_VERBOSE,L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚(%Iu bytes)",
 			   pszName,Size);
 
 		if (pfExists!=nullptr)
@@ -73,11 +73,11 @@ namespace TSTask
 		String MutexName;
 		GetMutexName(pszName,&MutexName);
 		if (!m_Mutex.Open(MutexName.c_str())) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ‚ÌMutex(%s)‚ğŠJ‚¯‚Ü‚¹‚ñB",MutexName.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒªã®Mutex(%s)ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",MutexName.c_str());
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ‚ÌMutex(%s)‚ğŠJ‚«‚Ü‚µ‚½B",MutexName.c_str());
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒªã®Mutex(%s)ã‚’é–‹ãã¾ã—ãŸã€‚",MutexName.c_str());
 
 		CBasicSecurityAttributes SecurityAttributes;
 		SecurityAttributes.Initialize();
@@ -85,13 +85,13 @@ namespace TSTask
 		m_hFileMapping=::OpenFileMapping(DesiredAccess,fInheritHandle,pszName);
 		if (m_hFileMapping==nullptr) {
 			OutSystemErrorLog(::GetLastError(),
-							  L"ƒtƒ@ƒCƒ‹ƒ}ƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg(%s)‚ğŠJ‚¯‚Ü‚¹‚ñB",
+							  L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(%s)ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",
 							  pszName);
 			m_Mutex.Close();
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒtƒ@ƒCƒ‹ƒ}ƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg(%s)‚ğŠJ‚«‚Ü‚µ‚½B(%p)",
+		OutLog(LOG_VERBOSE,L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(%s)ã‚’é–‹ãã¾ã—ãŸã€‚(%p)",
 			   pszName,m_hFileMapping);
 
 		return true;
@@ -101,7 +101,7 @@ namespace TSTask
 	{
 		if (m_hFileMapping!=nullptr) {
 			::CloseHandle(m_hFileMapping);
-			OutLog(LOG_VERBOSE,L"ƒtƒ@ƒCƒ‹ƒ}ƒbƒsƒ“ƒOƒIƒuƒWƒFƒNƒg(%p)‚ğ•Â‚¶‚Ü‚µ‚½B",m_hFileMapping);
+			OutLog(LOG_VERBOSE,L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒƒãƒ”ãƒ³ã‚°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(%p)ã‚’é–‰ã˜ã¾ã—ãŸã€‚",m_hFileMapping);
 			m_hFileMapping=nullptr;
 		}
 

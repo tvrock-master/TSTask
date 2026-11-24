@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskAppCore.h"
@@ -23,22 +24,22 @@ namespace TSTask
 
 	bool CReserveManager::Reserve(const ReserveSettings &Reserve,const RecordingSettings &RecSettings)
 	{
-		OutLog(LOG_INFO,L"—\–ñ‚Ì“o˜^‚ğs‚¢‚Ü‚·B");
+		OutLog(LOG_INFO,L"äºˆç´„ã®ç™»éŒ²ã‚’è¡Œã„ã¾ã™ã€‚");
 
 		if (Reserve.StartTime.Type<0 || Reserve.StartTime.Type>=ReserveSettings::START_TIME_TRAILER
 				|| Reserve.EndTime.Type<0 || Reserve.EndTime.Type>=ReserveSettings::END_TIME_TRAILER) {
-			OutLog(LOG_ERROR,L"—\–ñ“ú‚Ìw’è‚ª•s³‚Å‚·B");
+			OutLog(LOG_ERROR,L"äºˆç´„æ—¥æ™‚ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
 			return false;
 		}
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		if (m_fReserved) {
-			OutLog(LOG_ERROR,L"—\–ñ‚ªŠù‚És‚í‚ê‚Ä‚¢‚é‚½‚ßAV‚µ‚¢—\–ñ‚ª‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"äºˆç´„ãŒæ—¢ã«è¡Œã‚ã‚Œã¦ã„ã‚‹ãŸã‚ã€æ–°ã—ã„äºˆç´„ãŒã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -53,7 +54,7 @@ namespace TSTask
 		m_EndEvent.Create();
 		m_hTimer=::CreateWaitableTimer(nullptr,FALSE,nullptr);
 		if (m_hTimer==nullptr) {
-			OutSystemErrorLog(::GetLastError(),L"Waitable timer ‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+			OutSystemErrorLog(::GetLastError(),L"Waitable timer ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 			Cancel();
 			return false;
 		}
@@ -61,7 +62,7 @@ namespace TSTask
 		CThread::CFunctor<CReserveManager> *pFunctor=
 			new CThread::CFunctor<CReserveManager>(this,&CReserveManager::TimerWaitThread);
 		if (!m_TimerThread.Begin(pFunctor)) {
-			OutLog(LOG_ERROR,L"—\–ñƒ^ƒCƒ}[‚ÌƒXƒŒƒbƒh‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"äºˆç´„ã‚¿ã‚¤ãƒãƒ¼ã®ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 			delete pFunctor;
 			Cancel();
 			return false;
@@ -74,19 +75,19 @@ namespace TSTask
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		if (m_hTimer!=nullptr) {
-			OutLog(LOG_VERBOSE,L"—\–ñ‚ğƒLƒƒƒ“ƒZƒ‹‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"äºˆç´„ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã—ã¾ã™ã€‚");
 			::CancelWaitableTimer(m_hTimer);
 		}
 
 		if (m_TimerThread.IsOpened()) {
 			m_EndEvent.Set();
 			if (m_TimerThread.Wait(5000)==WAIT_TIMEOUT) {
-				OutLog(LOG_WARNING,L"—\–ñƒ^ƒCƒ}[‚ÌƒXƒŒƒbƒh‚ª‰“š‚µ‚È‚¢‚½‚ß‹­§I—¹‚µ‚Ü‚·B");
+				OutLog(LOG_WARNING,L"äºˆç´„ã‚¿ã‚¤ãƒãƒ¼ã®ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ãªã„ãŸã‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™ã€‚");
 				m_TimerThread.Terminate();
 			}
 			m_TimerThread.Close();
@@ -109,7 +110,7 @@ namespace TSTask
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -120,7 +121,7 @@ namespace TSTask
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -139,7 +140,7 @@ namespace TSTask
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -180,7 +181,7 @@ namespace TSTask
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -248,19 +249,19 @@ namespace TSTask
 
 		if (liTime.QuadPart!=0) {
 			if (liTime.QuadPart<0) {
-				OutLog(LOG_INFO,L"%lld •bŒã‚ÉŠJn‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B",
+				OutLog(LOG_INFO,L"%lld ç§’å¾Œã«é–‹å§‹ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚",
 					   -liTime.QuadPart/10000000LL);
 			} else {
 				SYSTEMTIME st;
 				::FileTimeToSystemTime(reinterpret_cast<FILETIME*>(&liTime),&st);
-				OutLog(LOG_INFO,L"%d/%d/%d %d:%02d:%02d (UTC) ‚ÉŠJn‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B",
+				OutLog(LOG_INFO,L"%d/%d/%d %d:%02d:%02d (UTC) ã«é–‹å§‹ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚",
 					   st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
 			}
 		} else {
-			OutLog(LOG_INFO,L"‘¦À‚ÉŠJn‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"å³åº§ã«é–‹å§‹ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚");
 		}
 		if (!::SetWaitableTimer(m_hTimer,&liTime,0,nullptr,nullptr,TRUE)) {
-			OutSystemErrorLog(::GetLastError(),L"—\–ñŠJn—p Waitable timer ‚ğİ’è‚Å‚«‚Ü‚¹‚ñB");
+			OutSystemErrorLog(::GetLastError(),L"äºˆç´„é–‹å§‹ç”¨ Waitable timer ã‚’è¨­å®šã§ãã¾ã›ã‚“ã€‚");
 			return 1;
 		}
 
@@ -270,12 +271,13 @@ namespace TSTask
 		DWORD Result=::WaitForMultipleObjects(2,Handles,FALSE,INFINITE);
 
 		if (Result==WAIT_OBJECT_0+1) {
-			OutLog(LOG_INFO,L"—\–ñ‚³‚ê‚½˜^‰æ‚ğŠJn‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"äºˆç´„ã•ã‚ŒãŸéŒ²ç”»ã‚’é–‹å§‹ã—ã¾ã™ã€‚");
 			RecordingSettings Settings=Info.Settings;
 			String FileName;
 			if (m_Core.FormatRecordFileName(Settings.FileName.c_str(),&FileName))
 				Settings.FileName=FileName;
-			if (!m_Core.GetCore().StartRecording(Settings))
+			ULONGLONG RecordingID;
+			if (!m_Core.GetCore().StartRecording(Settings,&RecordingID))
 				return 1;
 
 			if (Info.Reserve.EndTime.Type!=ReserveSettings::END_TIME_NOT_SPECIFIED) {
@@ -286,7 +288,7 @@ namespace TSTask
 						liTime.LowPart=Info.Reserve.EndTime.Time.dwLowDateTime;
 						liTime.HighPart=Info.Reserve.EndTime.Time.dwHighDateTime;
 					} else {
-						OutLog(LOG_WARNING,L"˜^‰æ’â~‚ğŠù‚É‰ß‚¬‚Ä‚¢‚Ü‚·B");
+						OutLog(LOG_WARNING,L"éŒ²ç”»åœæ­¢æ™‚åˆ»ã‚’æ—¢ã«éãã¦ã„ã¾ã™ã€‚");
 						liTime.QuadPart=0;
 					}
 				} else {
@@ -294,36 +296,37 @@ namespace TSTask
 				}
 				if (liTime.QuadPart!=0) {
 					if (liTime.QuadPart<0) {
-						OutLog(LOG_INFO,L"%lld •bŒã‚É’â~‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B",
+						OutLog(LOG_INFO,L"%lld ç§’å¾Œã«åœæ­¢ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚",
 							   -liTime.QuadPart/10000000LL);
 					} else {
 						SYSTEMTIME st;
 						::FileTimeToSystemTime(reinterpret_cast<FILETIME*>(&liTime),&st);
-						OutLog(LOG_INFO,L"%d/%d/%d %d:%02d:%02d (UTC) ‚É’â~‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B",
+						OutLog(LOG_INFO,L"%d/%d/%d %d:%02d:%02d (UTC) ã«åœæ­¢ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚",
 							   st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond);
 					}
 				} else {
-					OutLog(LOG_INFO,L"‘¦À‚É’â~‚·‚é‚æ‚¤‚Éƒ^ƒCƒ}[‚ğİ’è‚µ‚Ü‚·B");
+					OutLog(LOG_INFO,L"å³åº§ã«åœæ­¢ã™ã‚‹ã‚ˆã†ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’è¨­å®šã—ã¾ã™ã€‚");
 				}
 				if (!::SetWaitableTimer(m_hTimer,&liTime,0,nullptr,nullptr,FALSE)) {
-					OutSystemErrorLog(::GetLastError(),L"—\–ñ’â~—p Waitable timer ‚ğİ’è‚Å‚«‚Ü‚¹‚ñB");
+					OutSystemErrorLog(::GetLastError(),L"äºˆç´„åœæ­¢ç”¨ Waitable timer ã‚’è¨­å®šã§ãã¾ã›ã‚“ã€‚");
+					m_Core.GetCore().StopRecording(RecordingID);
 					return 1;
 				}
 
 				Result=::WaitForMultipleObjects(2,Handles,FALSE,INFINITE);
 				if (Result==WAIT_OBJECT_0+1) {
-					OutLog(LOG_INFO,L"—\–ñ‚³‚ê‚½˜^‰æ‚ğ’â~‚µ‚Ü‚·B");
-					m_Core.GetCore().StopRecording();
+					OutLog(LOG_INFO,L"äºˆç´„éŒ²ç”»ã®åœæ­¢æ™‚åˆ»ã«ãªã‚Šã¾ã—ãŸã€‚");
+					m_Core.GetCore().StopRecording(RecordingID);
 				} else if (Result==WAIT_OBJECT_0) {
-					OutLog(LOG_INFO,L"—\–ñ’â~‚Ì‘Ò‹@‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+					OutLog(LOG_INFO,L"äºˆç´„åœæ­¢ã®å¾…æ©ŸãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 				} else {
-					OutLog(LOG_ERROR,L"—\–ñ’â~‚Ì‘Ò‹@‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B(Code %lu)",Result);
+					OutLog(LOG_ERROR,L"äºˆç´„åœæ­¢ã®å¾…æ©Ÿã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚(Code %lu)",Result);
 				}
 			}
 		} else if (Result==WAIT_OBJECT_0) {
-			OutLog(LOG_INFO,L"—\–ñŠJn‚Ì‘Ò‹@‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"äºˆç´„é–‹å§‹ã®å¾…æ©ŸãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 		} else {
-			OutLog(LOG_ERROR,L"—\–ñŠJn‚Ì‘Ò‹@‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B(Code %lu)",Result);
+			OutLog(LOG_ERROR,L"äºˆç´„é–‹å§‹ã®å¾…æ©Ÿã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚(Code %lu)",Result);
 		}
 
 		return 0;

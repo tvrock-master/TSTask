@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "CommandLine.h"
 #include "DebugDef.h"
@@ -87,7 +87,7 @@ namespace TSTask
 
 		wchar_t *pEnd;
 		__int64 Value=::_wcstoi64(m_ppszArgList[i->second+1],&pEnd,0);
-		// TODO: ƒI[ƒoƒtƒ[AƒAƒ“ƒ_[ƒtƒ[‚Ìƒ`ƒFƒbƒN
+		// TODO: ã‚ªãƒ¼ãƒãƒ•ãƒ­ãƒ¼ã€ã‚¢ãƒ³ãƒ€ãƒ¼ãƒ•ãƒ­ãƒ¼ã®ãƒã‚§ãƒƒã‚¯
 		switch (*pEnd) {
 		case L'K':	Value*=1024;			break;
 		case L'k':	Value*=1000;			break;
@@ -185,11 +185,11 @@ namespace TSTask
 	bool CCommandLineParser::ParseTime(LPCWSTR pszText,FILETIME *pTime) const
 	{
 		/*
-		“ú•t‚Æ‚Ìƒp[ƒX‚ğs‚¤
-		Y-M-DTh:m:s ‚â Y/M/D-h:m:s ‚È‚Ç‚ğƒAƒoƒEƒg‚Éó‚¯•t‚¯‚é
-		YAMAs‚ÍÈ—ª‰Â”\
-		“ú•t‚Ì‚İ‚ğw’è‚µ‚½ê‡A‚»‚Ì“ú‚Ì00•ª0•b‚©‚ç‚Æ‚·‚é
-		‚Ì‚İ‚ğw’è‚µ‚½ê‡AŸ‚É‚»‚Ì‚ª—ˆ‚é‚Æ‚·‚é
+		æ—¥ä»˜ã¨æ™‚åˆ»ã®ãƒ‘ãƒ¼ã‚¹ã‚’è¡Œã†
+		Y-M-DTh:m:s ã‚„ Y/M/D-h:m:s ãªã©ã‚’ã‚¢ãƒã‚¦ãƒˆã«å—ã‘ä»˜ã‘ã‚‹
+		Yã€Mã€sã¯çœç•¥å¯èƒ½
+		æ—¥ä»˜ã®ã¿ã‚’æŒ‡å®šã—ãŸå ´åˆã€ãã®æ—¥ã®0æ™‚0åˆ†0ç§’ã‹ã‚‰ã¨ã™ã‚‹
+		æ™‚åˆ»ã®ã¿ã‚’æŒ‡å®šã—ãŸå ´åˆã€æ¬¡ã«ãã®æ™‚åˆ»ãŒæ¥ã‚‹æ™‚ã¨ã™ã‚‹
 		 */
 		SYSTEMTIME CurTime,Time;
 		::GetLocalTime(&CurTime);
@@ -264,7 +264,7 @@ namespace TSTask
 					return false;
 				if (TimeCount>2) {
 					Time.wSecond=TimeValue[2];
-					if (Time.wSecond>59)	// Windows‚É‰[•b‚Í–³‚¢‚ç‚µ‚¢
+					if (Time.wSecond>59)	// Windowsã«é–ç§’ã¯ç„¡ã„ã‚‰ã—ã„
 						return false;
 				}
 			}
@@ -295,8 +295,8 @@ namespace TSTask
 
 	bool CCommandLineParser::ParseDuration(LPCWSTR pszText,int *pDuration) const
 	{
-		// ?h?m?s Œ`®‚ÌŠÔw’è‚ğƒp[ƒX‚·‚é
-		// ’PˆÊ‚Ìw’è‚ª–³‚¢ê‡‚Í•b’PˆÊ‚Æ‰ğß‚·‚é
+		// ?h?m?s å½¢å¼ã®æ™‚é–“æŒ‡å®šã‚’ãƒ‘ãƒ¼ã‚¹ã™ã‚‹
+		// å˜ä½ã®æŒ‡å®šãŒç„¡ã„å ´åˆã¯ç§’å˜ä½ã¨è§£é‡ˆã™ã‚‹
 		LPCWSTR p=pszText;
 		int DurationSec=0,Duration=0;
 

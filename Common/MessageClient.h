@@ -1,7 +1,9 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASK_MESSAGE_CLIENT_H
 #define TSTASK_MESSAGE_CLIENT_H
 
 
+#include <functional>
 #include "Message.h"
 
 
@@ -28,9 +30,10 @@ namespace TSTask
 	public:
 		CLocalMessageClient();
 		~CLocalMessageClient();
-		bool SetServer(const String &ServerName);
+		bool SetServer(const String &ServerName,std::function<bool()> IsServerEnding={});
 
 	private:
+		std::function<bool()> m_IsServerEnding;
 		bool Send(const void *pSendData,size_t SendSize,CDataBlock *pReceiveData) override;
 		bool ReadPipe(HANDLE hPipe,void *pBuffer,DWORD Size,DWORD *pReadSize,OVERLAPPED *pOverlapped);
 		bool ReadPipe(HANDLE hPipe,void *pBuffer,DWORD Size,OVERLAPPED *pOverlapped);

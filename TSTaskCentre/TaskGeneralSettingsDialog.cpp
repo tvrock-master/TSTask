@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TaskGeneralSettingsDialog.h"
 #include "MiscDialog.h"
@@ -54,7 +54,7 @@ namespace TSTaskCentre
 					GetItemString(IDC_TASK_SETTINGS_BONDRIVER_FOLDER,&Folder);
 					if (Folder.empty())
 						TSTask::GetModuleDirectory(nullptr,&Folder);
-					if (BrowseFolderDialog(hDlg,&Folder,L"BonDriver ‚ÌŒŸõƒtƒHƒ‹ƒ_"))
+					if (BrowseFolderDialog(hDlg,&Folder,L"BonDriver ã®æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€"))
 						SetItemString(IDC_TASK_SETTINGS_BONDRIVER_FOLDER,Folder);
 				}
 				return TRUE;

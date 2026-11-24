@@ -1,3 +1,4 @@
+Ôªø// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TsRecorder.h"
 #include "BasicFile.h"
@@ -163,10 +164,10 @@ CBasicFile *CFileWriter::OpenFile(LPCTSTR pszFileName, UINT Flags, ULONGLONG Pre
 
 	if (!pFile->Open(pszFileName,
 					 CBasicFile::OPEN_WRITE | CBasicFile::OPEN_SHAREREAD |
-					 (!(Flags & CTsRecorder::OPEN_OVERWRITE) ? CBasicFile::OPEN_NEW : 0))) {
+					 ((Flags & CTsRecorder::OPEN_OVERWRITE) ? CBasicFile::OPEN_OVERWRITE : CBasicFile::OPEN_NEW))) {
 		TCHAR szMessage[1024];
 		pFile->GetLastErrorMessage(szMessage, _countof(szMessage));
-		SetError(pFile->GetLastError(), TEXT("ÉtÉ@ÉCÉãÇ™äJÇØÇ‹ÇπÇÒÅB"), nullptr, szMessage);
+		SetError(pFile->GetLastError(), TEXT("„Éï„Ç°„Ç§„É´„ÅåÈñã„Åë„Åæ„Åõ„Çì„ÄÇ"), nullptr, szMessage);
 		delete pFile;
 		return nullptr;
 	}
@@ -241,7 +242,7 @@ bool CEdcbPluginWriter::Load(LPCTSTR pszFileName)
 
 	HMODULE hLib = ::LoadLibrary(pszFileName);
 	if (!hLib) {
-		SetError(TEXT("DLLÇÉçÅ[ÉhÇ≈Ç´Ç‹ÇπÇÒÅB"));
+		SetError(TEXT("DLL„Çí„É≠„Éº„Éâ„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 		return false;
 	}
 
@@ -255,14 +256,14 @@ bool CEdcbPluginWriter::Load(LPCTSTR pszFileName)
 	if (!pCreateCtrl || !m_pDeleteCtrl || !m_pStartSave || !m_pStopSave
 			|| !m_pGetSaveFilePath || !m_pAddTSBuff) {
 		::FreeLibrary(hLib);
-		SetError(TEXT("ÉvÉâÉOÉCÉìÇ©ÇÁïKóvÇ»ä÷êîÇéÊìæÇ≈Ç´Ç‹ÇπÇÒÅB"));
+		SetError(TEXT("„Éó„É©„Ç∞„Ç§„É≥„Åã„ÇâÂøÖË¶Å„Å™Èñ¢Êï∞„ÇíÂèñÂæó„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 		return false;
 	}
 
 	DWORD ID;
 	if (!pCreateCtrl(&ID)) {
 		::FreeLibrary(hLib);
-		SetError(TEXT("ï€ë∂ópÉCÉìÉXÉ^ÉìÉXÇçÏê¨Ç≈Ç´Ç‹ÇπÇÒÅB"));
+		SetError(TEXT("‰øùÂ≠òÁî®„Ç§„É≥„Çπ„Çø„É≥„Çπ„Çí‰ΩúÊàê„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 		return false;
 	}
 
@@ -296,7 +297,7 @@ bool CEdcbPluginWriter::Open(LPCTSTR pszFileName, UINT Flags, ULONGLONG PreAlloc
 	if (!m_pStartSave(m_ID, pszFileName,
 					  (Flags & CTsRecorder::OPEN_OVERWRITE) != 0,
 					  PreAllocationUnit)) {
-		SetError(TEXT("ÉvÉâÉOÉCÉìÇ≈ÇÃï€ë∂ÇäJénÇ≈Ç´Ç‹ÇπÇÒÅB"));
+		SetError(TEXT("„Éó„É©„Ç∞„Ç§„É≥„Åß„ÅÆ‰øùÂ≠ò„ÇíÈñãÂßã„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 		return false;
 	}
 
@@ -398,7 +399,7 @@ CTsRecorder::CTsRecorder(IEventHandler *pEventHandler)
 	: CMediaDecoder(pEventHandler, 1UL, 0UL)
 	, m_pWriter(nullptr)
 
-	, m_BufferSize(0x200000)
+	, m_BufferSize(0x200000 / 188 * 188)
 	, m_BufferUsed(0)
 	, m_pWriteBuffer(nullptr)
 
@@ -424,16 +425,17 @@ CTsRecorder::CTsRecorder(IEventHandler *pEventHandler)
 
 CTsRecorder::~CTsRecorder()
 {
-	ClearQueue();
 	CloseFile();
+	ClearQueue();
 }
 
 
 void CTsRecorder::Reset(void)
 {
 	CBlockLock Lock(&m_DecoderLock);
-
-	ClearQueue();
+	// Discard time-shift history only when there is no recording file.
+	if (!m_pWriter)
+		ClearQueue();
 }
 
 
@@ -459,21 +461,22 @@ bool CTsRecorder::OpenFile(LPCTSTR pszFileName, UINT Flags)
 bool CTsRecorder::OpenFile(LPCTSTR pszPluginName, LPCTSTR pszFileName, UINT Flags)
 {
 	if (!pszFileName) {
-		SetError(TEXT("à¯êîÇ™ïsê≥Ç≈Ç∑ÅB"));
+		SetError(TEXT("ÂºïÊï∞„Åå‰∏çÊ≠£„Åß„Åô„ÄÇ"));
 		return false;
 	}
 
 	CBlockLock Lock(&m_DecoderLock);
 
-	// àÍíUï¬Ç∂ÇÈ
+	// ‰∏ÄÊó¶Èñâ„Åò„Çã
 	CloseFile();
 
 	m_InputSize = 0;
 	m_OutputSize = 0;
 	m_OutputCount = 0;
 	m_WriteErrorCount = 0;
+	m_bQueueDropReported = false;
 
-	// ÉtÉ@ÉCÉãÇäJÇ≠
+	// „Éï„Ç°„Ç§„É´„ÇíÈñã„Åè
 	if (pszPluginName && pszPluginName[0]) {
 		CEdcbPluginWriter *pWriter = new CEdcbPluginWriter;
 		if (!pWriter->Load(pszPluginName)) {
@@ -501,22 +504,22 @@ bool CTsRecorder::OpenFile(LPCTSTR pszPluginName, LPCTSTR pszFileName, UINT Flag
 		} catch (...) {
 #if 0
 			CloseFile();
-			SetError(CTracer::TYPE_ERROR, TEXT("ÉÅÉÇÉäÇ™ämï€Ç≈Ç´Ç‹ÇπÇÒÅB"));
+			SetError(CTracer::TYPE_ERROR, TEXT("„É°„É¢„É™„ÅåÁ¢∫‰øù„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 			return false;
 #else
-			Trace(CTracer::TYPE_WARNING, TEXT("èëÇ´èoÇµÉoÉbÉtÉ@ÇÃÉÅÉÇÉäÇämï€Ç≈Ç´Ç‹ÇπÇÒÅB"));
-			// ÉoÉbÉtÉ@ÉäÉìÉOÇ»ÇµÇ≈ë±çs
+			Trace(CTracer::TYPE_WARNING, TEXT("Êõ∏„ÅçÂá∫„Åó„Éê„ÉÉ„Éï„Ç°„ÅÆ„É°„É¢„É™„ÇíÁ¢∫‰øù„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
+			// „Éê„ÉÉ„Éï„Ç°„É™„É≥„Ç∞„Å™„Åó„ÅßÁ∂öË°å
 #endif
 		}
 	}
 	m_BufferUsed = 0;
 
-	// èëÇ´èoÇµÉXÉåÉbÉhäJén
+	// Êõ∏„ÅçÂá∫„Åó„Çπ„É¨„ÉÉ„ÉâÈñãÂßã
 	m_EndEvent.Reset();
 	m_hThread = (HANDLE)::_beginthreadex(nullptr, 0, WriteThread, this, 0, nullptr);
 	if (!m_hThread) {
 		CloseFile();
-		SetError(TEXT("ÉXÉåÉbÉhÇ™çÏê¨Ç≈Ç´Ç‹ÇπÇÒÅB"));
+		SetError(TEXT("„Çπ„É¨„ÉÉ„Éâ„Åå‰ΩúÊàê„Åß„Åç„Åæ„Åõ„Çì„ÄÇ"));
 		return false;
 	}
 
@@ -529,14 +532,14 @@ bool CTsRecorder::OpenFile(LPCTSTR pszPluginName, LPCTSTR pszFileName, UINT Flag
 bool CTsRecorder::RelayFile(LPCTSTR pszFileName, UINT Flags)
 {
 	if (!pszFileName) {
-		SetError(TEXT("à¯êîÇ™ïsê≥Ç≈Ç∑ÅB"));
+		SetError(TEXT("ÂºïÊï∞„Åå‰∏çÊ≠£„Åß„Åô„ÄÇ"));
 		return false;
 	}
 
+	CBlockLock Lock1(&m_DecoderLock);
 	if (!m_pWriter)
 		return OpenFile(pszFileName, Flags);
 
-	CBlockLock Lock1(&m_DecoderLock);
 	CBlockLock Lock2(&m_WriterLock);
 
 	if (!m_pWriter->ReOpen(pszFileName, Flags, m_PreAllocationUnit)) {
@@ -560,27 +563,30 @@ void CTsRecorder::CloseFile()
 {
 	CBlockLock Lock(&m_DecoderLock);
 
-	// èëÇ´èoÇµÉXÉåÉbÉhèIóπ
+	// Êõ∏„ÅçÂá∫„Åó„Çπ„É¨„ÉÉ„ÉâÁµÇ‰∫Ü
 	if (m_hThread) {
 		m_EndEvent.Set();
 		if (::WaitForSingleObject(m_hThread, 10000) != WAIT_OBJECT_0) {
-			Trace(CTracer::TYPE_WARNING, TEXT("ÉtÉ@ÉCÉãèëÇ´èoÇµÉXÉåÉbÉhÇ™âûìöÇµÇ»Ç¢ÇΩÇﬂã≠êßèIóπÇµÇ‹Ç∑ÅB"));
+			Trace(CTracer::TYPE_WARNING, TEXT("„Éï„Ç°„Ç§„É´Êõ∏„ÅçÂá∫„Åó„Çπ„É¨„ÉÉ„Éâ„ÅåÂøúÁ≠î„Åó„Å™„ÅÑ„Åü„ÇÅÂº∑Âà∂ÁµÇ‰∫Ü„Åó„Åæ„Åô„ÄÇ"));
 			::TerminateThread(m_hThread, -1);
 		}
 		::CloseHandle(m_hThread);
 		m_hThread = nullptr;
 	}
 
-	// ÉtÉ@ÉCÉãÇï¬Ç∂ÇÈ
+	// „Éï„Ç°„Ç§„É´„ÇíÈñâ„Åò„Çã
 	if (m_pWriter) {
 		m_pWriter->SetPreAllocationUnit(0);
-		FlushBuffer();
+		if (!FlushBuffer()) {
+			m_WriteErrorCount++;
+			Trace(CTracer::TYPE_ERROR, TEXT("Èå≤ÁîªÁµÇ‰∫ÜÊôÇ„Å´Êú™Êõ∏„ÅçËæº„Åø„ÅÆ TS „Éá„Éº„Çø„Çí‰øùÂ≠ò„Åß„Åç„Åæ„Åõ„Çì„Åß„Åó„Åü„ÄÇ"));
+		}
 		m_pWriter->Close();
 		delete m_pWriter;
 		m_pWriter = nullptr;
 	}
 
-	// ÉoÉbÉtÉ@âï˙
+	// „Éê„ÉÉ„Éï„Ç°Ëß£Êîæ
 	if (m_pWriteBuffer) {
 		delete [] m_pWriteBuffer;
 		m_pWriteBuffer = nullptr;
@@ -630,28 +636,28 @@ bool CTsRecorder::GetWriteStatistics(WriteStatistics *pStatistics) const
 
 ULONGLONG CTsRecorder::GetInputSize() const
 {
-	// ì¸óÕÇ≥ÇÍÇΩÉTÉCÉYÇï‘Ç∑
+	// ÂÖ•Âäõ„Åï„Çå„Åü„Çµ„Ç§„Ç∫„ÇíËøî„Åô
 	return m_InputSize;
 }
 
 
 ULONGLONG CTsRecorder::GetOutputSize() const
 {
-	// èoóÕÇµÇΩTSÉTÉCÉYÇï‘Ç∑
+	// Âá∫Âäõ„Åó„ÅüTS„Çµ„Ç§„Ç∫„ÇíËøî„Åô
 	return m_OutputSize;
 }
 
 
 ULONGLONG CTsRecorder::GetOutputCount() const
 {
-	// èoóÕÇµÇΩâÒêîÇï‘Ç∑
+	// Âá∫Âäõ„Åó„ÅüÂõûÊï∞„ÇíËøî„Åô
 	return m_OutputCount;
 }
 
 
 bool CTsRecorder::IsWriteSizeAvailable() const
 {
-	// èëÇ´èoÇµçœÇ›ÉTÉCÉYÇ™éÊìæÇ≈Ç´ÇÈÇ©Çï‘Ç∑
+	// Êõ∏„ÅçÂá∫„ÅóÊ∏à„Åø„Çµ„Ç§„Ç∫„ÅåÂèñÂæó„Åß„Åç„Çã„Åã„ÇíËøî„Åô
 	if (!m_pWriter)
 		return false;
 	return m_pWriter->IsWriteSizeAvailable();
@@ -660,7 +666,7 @@ bool CTsRecorder::IsWriteSizeAvailable() const
 
 ULONGLONG CTsRecorder::GetWriteSize() const
 {
-	// èëÇ´èoÇµçœÇ›ÉTÉCÉYÇï‘Ç∑
+	// Êõ∏„ÅçÂá∫„ÅóÊ∏à„Åø„Çµ„Ç§„Ç∫„ÇíËøî„Åô
 	if (!m_pWriter)
 		return 0;
 	return m_pWriter->GetWriteSize();
@@ -669,7 +675,7 @@ ULONGLONG CTsRecorder::GetWriteSize() const
 
 DWORD CTsRecorder::GetWriteErrorCount() const
 {
-	// èëÇ´èoÇµÉGÉâÅ[âÒêîÇï‘Ç∑
+	// Êõ∏„ÅçÂá∫„Åó„Ç®„É©„ÉºÂõûÊï∞„ÇíËøî„Åô
 	return m_WriteErrorCount;
 }
 
@@ -704,12 +710,20 @@ bool CTsRecorder::Resume()
 }
 
 
+bool CTsRecorder::HasWriteError()
+{
+	CBlockLock Lock(&m_WriterLock);
+	return m_bWriteError;
+}
+
+
 bool CTsRecorder::SetBufferSize(DWORD Size)
 {
 	if (m_pWriter || Size < 188)
 		return false;
 
-	m_BufferSize = Size;
+	// Every full write ends on a TS packet boundary, including before a relay.
+	m_BufferSize = Size / 188 * 188;
 
 	return true;
 }
@@ -856,11 +870,14 @@ bool CTsRecorder::PushData(const BYTE *pData, SIZE_T DataSize)
 		try {
 			Block.pData = new BYTE[m_QueueBlockSize];
 		} catch (...) {
+			ReportQueueDrop();
 			return false;
 		}
 	} else {
 		Block = m_WriteQueue.front();
 		m_WriteQueue.pop_front();
+		if (Block.Size > Block.Offset)
+			ReportQueueDrop();
 	}
 	Block.Size = DataSize;
 	Block.Offset = 0;
@@ -871,94 +888,92 @@ bool CTsRecorder::PushData(const BYTE *pData, SIZE_T DataSize)
 }
 
 
+void CTsRecorder::ReportQueueDrop()
+{
+	if (m_pWriter && !m_bPause && !m_bQueueDropReported) {
+		m_bQueueDropReported = true;
+		Trace(CTracer::TYPE_ERROR, TEXT("Èå≤Áîª„ÅÆÊõ∏„ÅçËæº„ÅøÂæÖ„Å°„Ç≠„É•„Éº„Å´ TS „Éá„Éº„Çø„Çí‰øùÊåÅ„Åß„Åç„Åö„ÄÅ‰∏ÄÈÉ®„ÅÆ„Éá„Éº„Çø„ÇíÁ†¥Ê£Ñ„Åó„Åæ„Åó„Åü„ÄÇ"));
+	}
+}
+
+
 bool CTsRecorder::FlushBuffer()
 {
 	if (!m_pWriter)
 		return false;
 
-	TRACE(TEXT("CTsRecorder::FlushBuffer()\n"));
-
 	const DWORD StartTime = ::GetTickCount();
-
 	while (!m_WriteQueue.empty()) {
-		if (::GetTickCount() - StartTime >= 10000) {
-			Trace(CTracer::TYPE_WARNING, TEXT("èëÇ´èoÇµë“ÇøÉfÅ[É^ÇëSÇƒèëÇ´èoÇ∑ÇÃÇ…éûä‘Ç™ä|Ç©ÇËâﬂÇ¨ÇƒÇ¢ÇÈÇΩÇﬂíÜé~ÇµÇ‹Ç∑ÅB"));
+		if (::GetTickCount() - StartTime >= 10000)
 			return false;
-		}
 
 		QueueBlock &Block = m_WriteQueue.front();
-		DWORD Size = (DWORD)(Block.Size - Block.Offset), Written = 0;
-		DWORD Error = WriteData(Block.pData + Block.Offset, Size, &Written);
+		const DWORD Size = static_cast<DWORD>(Block.Size - Block.Offset);
+		DWORD Written = 0;
+		const DWORD Error = WriteData(Block.pData + Block.Offset, Size, &Written);
 		if (Written < Size) {
 			Block.Offset += Written;
 		} else {
 			delete [] Block.pData;
 			m_WriteQueue.pop_front();
 		}
-		if (Error != ERROR_SUCCESS) {
-			m_WriteErrorCount++;
+		if (Error != ERROR_SUCCESS)
 			return false;
-		}
 	}
 
-	if (m_pWriteBuffer && m_BufferUsed) {
-		const DWORD Written = m_pWriter->Write(m_pWriteBuffer, m_BufferUsed);
-		if (Written) {
-			m_OutputSize += Written;
-			m_OutputCount++;
-		}
-		if (Written < m_BufferUsed) {
-			m_WriteErrorCount++;
+	while (m_BufferUsed > 0) {
+		if (::GetTickCount() - StartTime >= 10000 || FlushWriteBuffer() != ERROR_SUCCESS)
 			return false;
-		}
 	}
-
 	return true;
+}
+
+
+DWORD CTsRecorder::WriteToFile(const BYTE *pData, DWORD DataSize, DWORD *pWrittenSize)
+{
+	const DWORD Written = m_pWriter->Write(pData, DataSize);
+	if (Written > DataSize) {
+		*pWrittenSize = 0;
+		return ERROR_WRITE_FAULT;
+	}
+	*pWrittenSize = Written;
+	if (Written > 0) {
+		m_OutputSize += Written;
+		m_OutputCount++;
+	}
+
+	const DWORD Error = m_pWriter->GetLastErrorCode();
+	return !Written && Error == ERROR_SUCCESS ? ERROR_WRITE_FAULT : Error;
+}
+
+
+DWORD CTsRecorder::FlushWriteBuffer()
+{
+	DWORD Written;
+	const DWORD Error = WriteToFile(m_pWriteBuffer, m_BufferUsed, &Written);
+	m_BufferUsed -= Written;
+	if (Written > 0 && m_BufferUsed > 0)
+		std::memmove(m_pWriteBuffer, m_pWriteBuffer + Written, m_BufferUsed);
+	return Error;
 }
 
 
 DWORD CTsRecorder::WriteData(const BYTE *pData, DWORD DataSize, DWORD *pWrittenSize)
 {
 	CBlockLock Lock(&m_WriterLock);
+	*pWrittenSize = 0;
+	if (!m_pWriter)
+		return ERROR_INVALID_HANDLE;
+	if (!m_pWriteBuffer)
+		return DataSize > 0 ? WriteToFile(pData, DataSize, pWrittenSize) : ERROR_SUCCESS;
+	if (m_BufferUsed == 0 && DataSize >= m_BufferSize)
+		return WriteToFile(pData, m_BufferSize, pWrittenSize);
 
-	if (!m_pWriteBuffer) {
-		*pWrittenSize = m_pWriter->Write(pData, DataSize);
-		return m_pWriter->GetLastErrorCode();
-	}
-
-	if (m_BufferUsed == 0 && DataSize >= m_BufferSize) {
-		*pWrittenSize = m_pWriter->Write(pData, m_BufferSize);
-		return m_pWriter->GetLastErrorCode();
-	}
-
-	const DWORD Remain = m_BufferSize - m_BufferUsed;
-	if (Remain) {
-		const DWORD CopySize = min(Remain, DataSize);
-		::CopyMemory(m_pWriteBuffer + m_BufferUsed, pData, CopySize);
-		m_BufferUsed += CopySize;
-		*pWrittenSize = CopySize;
-		if (m_BufferUsed < m_BufferSize)
-			return ERROR_SUCCESS;
-	} else {
-		*pWrittenSize = 0;
-	}
-
-	const DWORD Written = m_pWriter->Write(m_pWriteBuffer, m_BufferUsed);
-	if (Written) {
-		m_OutputSize += Written;
-		m_OutputCount++;
-	}
-	if (Written < m_BufferUsed) {
-		if (Written) {
-			m_BufferUsed -= Written;
-			std::memmove(m_pWriteBuffer, m_pWriteBuffer + Written, m_BufferUsed);
-		}
-		return m_pWriter->GetLastErrorCode();
-	}
-
-	m_BufferUsed = 0;
-
-	return ERROR_SUCCESS;
+	const DWORD CopySize = min(m_BufferSize - m_BufferUsed, DataSize);
+	::CopyMemory(m_pWriteBuffer + m_BufferUsed, pData, CopySize);
+	m_BufferUsed += CopySize;
+	*pWrittenSize = CopySize;
+	return m_BufferUsed == m_BufferSize ? FlushWriteBuffer() : ERROR_SUCCESS;
 }
 
 
@@ -969,7 +984,7 @@ unsigned int __stdcall CTsRecorder::WriteThread(LPVOID lpParameter)
 	try {
 		pThis->WriteMain();
 	} catch (...) {
-		pThis->Trace(CTracer::TYPE_ERROR, TEXT("ÉtÉ@ÉCÉãèëÇ´èoÇµÉXÉåÉbÉhÇ≈ó·äOÇ™î≠ê∂ÇµÇ‹ÇµÇΩÅB"));
+		pThis->Trace(CTracer::TYPE_ERROR, TEXT("„Éï„Ç°„Ç§„É´Êõ∏„ÅçÂá∫„Åó„Çπ„É¨„ÉÉ„Éâ„Åß‰æãÂ§ñ„ÅåÁô∫Áîü„Åó„Åæ„Åó„Åü„ÄÇ"));
 	}
 
 	return 0;
@@ -993,7 +1008,17 @@ void CTsRecorder::WriteMain()
 			m_QueueLock.Unlock();
 
 			DWORD Size = (DWORD)(Block.Size - Block.Offset), Written = 0;
-			DWORD Error = WriteData(Block.pData + Block.Offset, Size, &Written);
+			bool NotifyError = false;
+			DWORD Error;
+			{
+				CBlockLock Lock(&m_WriterLock);
+				Error = WriteData(Block.pData + Block.Offset, Size, &Written);
+				if (Error != ERROR_SUCCESS) {
+					m_WriteErrorCount++;
+					NotifyError = !m_bWriteError;
+					m_bWriteError = true;
+				}
+			}
 
 			Wait = 0;
 
@@ -1013,15 +1038,10 @@ void CTsRecorder::WriteMain()
 			}
 			m_QueueLock.Unlock();
 
-			if (Error != ERROR_SUCCESS) {
-				m_WriteErrorCount++;
-				if (!m_bWriteError) {
-					m_bWriteError = true;
-					SendDecoderEvent(EVENT_WRITE_ERROR, &Error);
-				} else if (!Written) {
-					Wait = 50;
-				}
-			}
+			if (NotifyError)
+				SendDecoderEvent(EVENT_WRITE_ERROR, &Error);
+			else if (Error != ERROR_SUCCESS && !Written)
+				Wait = 50;
 		} else {
 			m_QueueLock.Unlock();
 			Wait = 50;

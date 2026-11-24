@@ -12,6 +12,7 @@ namespace TSTaskCentre
 		bool Parse(LPCWSTR pszCommandLine);
 
 		TSTask::BoolSettingValue m_Minimize;
+		TSTask::BoolSettingValue m_DockBottom;
 
 		int m_LoggingLevel;
 		TSTask::BoolSettingValue m_LogOutputToFile;

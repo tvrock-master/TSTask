@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTask.h"
 #include "CoreMessageHandler.h"
 #include "../Common/DebugDef.h"
@@ -66,7 +66,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnHello(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ˆ¥AƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"æŒ¨æ‹¶ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		pResponse->SetProperty(MESSAGE_PROPERTY_Message,L"Hello! I'm " APP_NAME_W L" (ver." APP_VERSION_TEXT_W L" " APP_PLATFORM_W L").");
 		pResponse->SetPropertyInt(MESSAGE_PROPERTY_TaskID,m_AppCore.GetTaskID());
@@ -77,7 +77,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnEndTask(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒ^ƒXƒNI—¹ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ã‚¿ã‚¹ã‚¯çµ‚äº†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		pServer->SetQuitSignal();
 
@@ -88,12 +88,12 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnLoadBonDriver(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"BonDriverƒ[ƒhƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"BonDriverãƒ­ãƒ¼ãƒ‰ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		String BonDriverPath;
 
 		if (!BasicMessage::LoadBonDriver::GetProperties(pMessage,&BonDriverPath)) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚©‚çBonDriver‚ÌƒpƒX‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‹ã‚‰BonDriverã®ãƒ‘ã‚¹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚");
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_NoProperty);
 			return true;
 		}
@@ -118,7 +118,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnUnloadBonDriver(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"BonDriver‰ğ•úƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"BonDriverè§£æ”¾ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.UnloadBonDriver()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -132,7 +132,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetBonDriver(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"BonDriveræ“¾ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"BonDriverå–å¾—ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		String Name;
 
@@ -148,7 +148,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnOpenTuner(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒ`ƒ…[ƒi[ƒI[ƒvƒ“‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚ªãƒ¼ãƒ—ãƒ³ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.OpenTuner()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -162,7 +162,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnCloseTuner(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒ`ƒ…[ƒi[ƒNƒ[ƒY‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚¯ãƒ­ãƒ¼ã‚ºã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.CloseTuner()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -176,12 +176,12 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnSetChannel(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒ`ƒƒƒ“ƒlƒ‹İ’è‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ãƒãƒ£ãƒ³ãƒãƒ«è¨­å®šã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		SetChannelInfo Info;
 
 		if (!BasicMessage::SetChannel::GetProperties(pMessage,&Info)) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚©‚çƒvƒƒpƒeƒB‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‹ã‚‰ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚");
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_NoProperty);
 			return true;
 		}
@@ -221,7 +221,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetChannel(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒ`ƒƒƒ“ƒlƒ‹æ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ãƒãƒ£ãƒ³ãƒãƒ«å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		ChannelInfo Channel;
 
@@ -238,12 +238,12 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnSetService(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒT[ƒrƒXİ’è‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ã‚µãƒ¼ãƒ“ã‚¹è¨­å®šã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		CMessageProperty::IntType ServiceID;
 
 		if (!pMessage->GetProperty(MESSAGE_PROPERTY_ServiceID,&ServiceID)) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚©‚çƒT[ƒrƒXID‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‹ã‚‰ã‚µãƒ¼ãƒ“ã‚¹IDã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚");
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_NoProperty);
 			return true;
 		}
@@ -260,7 +260,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetService(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒT[ƒrƒXæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ã‚µãƒ¼ãƒ“ã‚¹å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		ServiceInfo Info;
 		if (!m_Core.GetServiceInfo(&Info)
@@ -276,7 +276,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetServiceList(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"ƒT[ƒrƒXƒŠƒXƒgæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"ã‚µãƒ¼ãƒ“ã‚¹ãƒªã‚¹ãƒˆå–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		ServiceList List;
 		if (!m_Core.GetServiceList(&List)
@@ -292,7 +292,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnStartRecording(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"˜^‰æŠJn‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"éŒ²ç”»é–‹å§‹ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		RecordingSettings Settings;
 
@@ -318,7 +318,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnStopRecording(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"˜^‰æ’â~‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"éŒ²ç”»åœæ­¢ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.StopRecording()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -332,7 +332,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnChangeRecordingFile(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_INFO,L"˜^‰æƒtƒ@ƒCƒ‹•ÏX‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_INFO,L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«å¤‰æ›´ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		String FileName;
 
@@ -353,7 +353,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetRecordingInfo(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"˜^‰æî•ñæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"éŒ²ç”»æƒ…å ±å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		RecordingInfo Info;
 
@@ -370,7 +370,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetStreamStatistics(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€î•ñæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ æƒ…å ±å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		StreamStatistics Statistics;
 
@@ -387,7 +387,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnResetErrorStatistics(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒGƒ‰[ƒJƒEƒ“ƒgƒŠƒZƒbƒg‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¨ãƒ©ãƒ¼ã‚«ã‚¦ãƒ³ãƒˆãƒªã‚»ãƒƒãƒˆã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.ResetErrorStatistics()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -401,7 +401,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetEventInfo(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"”Ô‘gî•ñæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ç•ªçµ„æƒ…å ±å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		bool fNext=false;
 		pMessage->GetProperty(L"Next",&fNext);
@@ -421,7 +421,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetLog(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒƒOæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ãƒ­ã‚°å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		LogList List;
 		if (!m_AppCore.GetLog(&List)
@@ -437,7 +437,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetBonDriverChannelList(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"BonDriver‚Ìƒ`ƒƒƒ“ƒlƒ‹ƒŠƒXƒgæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"BonDriverã®ãƒãƒ£ãƒ³ãƒãƒ«ãƒªã‚¹ãƒˆå–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		BonDriverTuningSpaceList SpaceList;
 
@@ -454,7 +454,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetScannedChannelList(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒLƒƒƒ“‚³‚ê‚½ƒ`ƒƒƒ“ƒlƒ‹ƒŠƒXƒgæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ã‚­ãƒ£ãƒ³ã•ã‚ŒãŸãƒãƒ£ãƒ³ãƒãƒ«ãƒªã‚¹ãƒˆå–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		CTuningSpaceList TuningSpaceList;
 
@@ -471,7 +471,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnCreateStreamPool(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹ì¬‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ä½œæˆã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		String Name;
 		TaskUtility::GetStreamPoolName(m_AppCore.GetTaskID(),&Name);
@@ -487,7 +487,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnCloseStreamPool(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€ƒv[ƒ‹ƒNƒ[ƒY‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ¼ãƒ«ã‚¯ãƒ­ãƒ¼ã‚ºã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.CloseStreamPool()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -501,7 +501,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetTvRockInfo(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"TvRockî•ñæ“¾‚ÌƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"TvRockæƒ…å ±å–å¾—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		int DeviceID=m_AppCore.GetTvRockDeviceID();
 		if (DeviceID>=0)
@@ -514,7 +514,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnStartStreaming(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒOŠJnƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°é–‹å§‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		StreamingInfo Info;
 
@@ -536,7 +536,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnStopStreaming(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO’â~ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°åœæ­¢ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		if (!m_Core.StopStreaming()) {
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
@@ -550,7 +550,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetStreamingInfo(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒOî•ñæ“¾ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°æƒ…å ±å–å¾—ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		StreamingInfo Info;
 
@@ -567,7 +567,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetStreamingSettings(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒOİ’èæ“¾ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°è¨­å®šå–å¾—ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		StreamingInfo Info;
 
@@ -584,7 +584,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnGetSetting(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"İ’èæ“¾ƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"è¨­å®šå–å¾—ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		String Name;
 		if (!pMessage->GetProperty(MESSAGE_PROPERTY_Name,&Name)) {
@@ -601,7 +601,7 @@ namespace TSTask
 			m_AppCore.GetCurSettings().BonDriver.GetLoadDirectoryAbsolute(&Directory);
 			pResponse->SetProperty(MESSAGE_PROPERTY_Value,Directory);
 		} else {
-			OutLog(LOG_WARNING,L"–¢’m‚Ìİ’è \"%s\" ‚ª—v‹‚³‚ê‚Ü‚µ‚½B",Name.c_str());
+			OutLog(LOG_WARNING,L"æœªçŸ¥ã®è¨­å®š \"%s\" ãŒè¦æ±‚ã•ã‚Œã¾ã—ãŸã€‚",Name.c_str());
 			pResponse->SetProperty(MESSAGE_PROPERTY_Result,MESSAGE_RESULT_Failed);
 			return true;
 		}
@@ -613,7 +613,7 @@ namespace TSTask
 
 	bool CCoreMessageHandler::OnIniSettingsChanged(CMessageServer *pServer,const CMessage *pMessage,CMessage *pResponse)
 	{
-		OutLog(LOG_VERBOSE,L"INI ƒtƒ@ƒCƒ‹XVƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		OutLog(LOG_VERBOSE,L"INI ãƒ•ã‚¡ã‚¤ãƒ«æ›´æ–°ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		m_AppCore.ReloadSettings();
 

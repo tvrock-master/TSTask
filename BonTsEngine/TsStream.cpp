@@ -1,4 +1,4 @@
-// TsStream.cpp: TSƒXƒgƒŠ[ƒ€ƒ‰ƒbƒp[ƒNƒ‰ƒX‚ÌƒCƒ“ƒvƒŠƒƒ“ƒe[ƒVƒ‡ƒ“
+ï»¿// TsStream.cpp: TSã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ©ãƒƒãƒ‘ãƒ¼ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ãƒ—ãƒªãƒ¡ãƒ³ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -15,7 +15,7 @@
 
 
 //////////////////////////////////////////////////////////////////////
-// CTsPacketƒNƒ‰ƒX‚Ì\’z/Á–Å
+// CTsPacketã‚¯ãƒ©ã‚¹ã®æ§‹ç¯‰/æ¶ˆæ»…
 //////////////////////////////////////////////////////////////////////
 
 CTsPacket::CTsPacket()
@@ -26,7 +26,7 @@ CTsPacket::CTsPacket()
 	GetBuffer(TS_PACKETSIZE);
 #endif
 
-	// ‹ó‚ÌƒpƒPƒbƒg‚ğ¶¬‚·‚é
+	// ç©ºã®ãƒ‘ã‚±ãƒƒãƒˆã‚’ç”Ÿæˆã™ã‚‹
 	::ZeroMemory(&m_Header, sizeof(m_Header));
 	::ZeroMemory(&m_AdaptationField, sizeof(m_AdaptationField));
 }
@@ -44,7 +44,7 @@ CTsPacket::~CTsPacket()
 CTsPacket & CTsPacket::operator = (const CTsPacket &Operand)
 {
 	if (&Operand != this) {
-		// ƒCƒ“ƒXƒ^ƒ“ƒX‚ÌƒRƒs[
+		// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ã‚³ãƒ”ãƒ¼
 		CMediaData::operator = (Operand);
 
 		m_Header = Operand.m_Header;
@@ -58,7 +58,7 @@ CTsPacket & CTsPacket::operator = (const CTsPacket &Operand)
 
 DWORD CTsPacket::ParsePacket(BYTE *pContinuityCounter)
 {
-	// TSƒpƒPƒbƒgƒwƒbƒ_‰ğÍ
+	// TSãƒ‘ã‚±ãƒƒãƒˆãƒ˜ãƒƒãƒ€è§£æ
 	m_Header.bySyncByte					= m_pData[0];							// +0
 	m_Header.bTransportErrorIndicator	= (m_pData[1] & 0x80U) != 0;	// +1 bit7
 	m_Header.bPayloadUnitStartIndicator	= (m_pData[1] & 0x40U) != 0;	// +1 bit6
@@ -68,14 +68,14 @@ DWORD CTsPacket::ParsePacket(BYTE *pContinuityCounter)
 	m_Header.byAdaptationFieldCtrl		= (m_pData[3] & 0x30U) >> 4;			// +3 bit5-4
 	m_Header.byContinuityCounter		= m_pData[3] & 0x0FU;					// +3 bit3-0
 
-	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh‰ğÍ
+	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰è§£æ
 	::ZeroMemory(&m_AdaptationField, sizeof(m_AdaptationField));
 
 	if (m_Header.byAdaptationFieldCtrl & 0x02) {
-		// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh‚ ‚è
+		// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚ã‚Š
 		m_AdaptationField.byAdaptationFieldLength = m_pData[4];							// +4
 		if (m_AdaptationField.byAdaptationFieldLength > 0) {
-			// ƒtƒB[ƒ‹ƒh’·ˆÈ~‚ ‚è
+			// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰é•·ä»¥é™ã‚ã‚Š
 			m_AdaptationField.bDiscontinuityIndicator	= (m_pData[5] & 0x80U) != 0;	// +5 bit7
 			m_AdaptationField.bRamdomAccessIndicator	= (m_pData[5] & 0x40U) != 0;	// +5 bit6
 			m_AdaptationField.bEsPriorityIndicator		= (m_pData[5] & 0x20U) != 0;	// +5 bit5
@@ -92,18 +92,18 @@ DWORD CTsPacket::ParsePacket(BYTE *pContinuityCounter)
 		}
 	}
 
-	// ƒpƒPƒbƒg‚ÌƒtƒH[ƒ}ƒbƒg“K‡«‚ğƒ`ƒFƒbƒN‚·‚é
-	if(m_Header.bySyncByte != 0x47U)return EC_FORMAT;								// “¯ŠúƒoƒCƒg•s³
-	if(m_Header.bTransportErrorIndicator)return EC_TRANSPORT;						// ƒrƒbƒgŒë‚è‚ ‚è
-	if((m_Header.wPID >= 0x0002U) && (m_Header.wPID <= 0x000FU))return EC_FORMAT;	// –¢’è‹`PID”ÍˆÍ
-	if(m_Header.byTransportScramblingCtrl == 0x01U)return EC_FORMAT;				// –¢’è‹`ƒXƒNƒ‰ƒ“ƒuƒ‹§Œä’l
-	if(m_Header.byAdaptationFieldCtrl == 0x00U)return EC_FORMAT;					// –¢’è‹`ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh§Œä’l
-	if((m_Header.byAdaptationFieldCtrl == 0x02U) && (m_AdaptationField.byAdaptationFieldLength > 183U))return EC_FORMAT;	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh’·ˆÙí
-	if((m_Header.byAdaptationFieldCtrl == 0x03U) && (m_AdaptationField.byAdaptationFieldLength > 182U))return EC_FORMAT;	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh’·ˆÙí
+	// ãƒ‘ã‚±ãƒƒãƒˆã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆé©åˆæ€§ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
+	if(m_Header.bySyncByte != 0x47U)return EC_FORMAT;								// åŒæœŸãƒã‚¤ãƒˆä¸æ­£
+	if(m_Header.bTransportErrorIndicator)return EC_TRANSPORT;						// ãƒ“ãƒƒãƒˆèª¤ã‚Šã‚ã‚Š
+	if((m_Header.wPID >= 0x0002U) && (m_Header.wPID <= 0x000FU))return EC_FORMAT;	// æœªå®šç¾©PIDç¯„å›²
+	if(m_Header.byTransportScramblingCtrl == 0x01U)return EC_FORMAT;				// æœªå®šç¾©ã‚¹ã‚¯ãƒ©ãƒ³ãƒ–ãƒ«åˆ¶å¾¡å€¤
+	if(m_Header.byAdaptationFieldCtrl == 0x00U)return EC_FORMAT;					// æœªå®šç¾©ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰åˆ¶å¾¡å€¤
+	if((m_Header.byAdaptationFieldCtrl == 0x02U) && (m_AdaptationField.byAdaptationFieldLength > 183U))return EC_FORMAT;	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰é•·ç•°å¸¸
+	if((m_Header.byAdaptationFieldCtrl == 0x03U) && (m_AdaptationField.byAdaptationFieldLength > 182U))return EC_FORMAT;	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰é•·ç•°å¸¸
 
 	if(!pContinuityCounter || m_Header.wPID == 0x1FFFU)return EC_VALID;
 
-	// ˜A‘±«ƒ`ƒFƒbƒN
+	// é€£ç¶šæ€§ãƒã‚§ãƒƒã‚¯
 	const BYTE byOldCounter = pContinuityCounter[m_Header.wPID];
 	const BYTE byNewCounter = (m_Header.byAdaptationFieldCtrl & 0x01U)? m_Header.byContinuityCounter : 0x10U;
 	pContinuityCounter[m_Header.wPID] = byNewCounter;
@@ -121,50 +121,50 @@ DWORD CTsPacket::ParsePacket(BYTE *pContinuityCounter)
 
 BYTE * CTsPacket::GetPayloadData(void)
 {
-	// ƒyƒCƒ[ƒhƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 	switch (m_Header.byAdaptationFieldCtrl) {
-	case 1U :	// ƒyƒCƒ[ƒh‚Ì‚İ
+	case 1U :	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã®ã¿
 		return &m_pData[4];
 
-	case 3U :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒhAƒyƒCƒ[ƒh‚ ‚è
+	case 3U :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã€ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚ã‚Š
 		return &m_pData[m_AdaptationField.byAdaptationFieldLength + 5U];
 
-	default :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh‚Ì‚İ or —áŠO
+	default :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®ã¿ or ä¾‹å¤–
 		return NULL;
 	}
 }
 
 const BYTE * CTsPacket::GetPayloadData(void) const
 {
-	// ƒyƒCƒ[ƒhƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 	switch (m_Header.byAdaptationFieldCtrl) {
-	case 1U :	// ƒyƒCƒ[ƒh‚Ì‚İ
+	case 1U :	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã®ã¿
 		return &m_pData[4];
 
-	case 3U :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒhAƒyƒCƒ[ƒh‚ ‚è
+	case 3U :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã€ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚ã‚Š
 		return &m_pData[m_AdaptationField.byAdaptationFieldLength + 5U];
 
-	default :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh‚Ì‚İ or —áŠO
+	default :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®ã¿ or ä¾‹å¤–
 		return NULL;
 	}
 }
 
 const BYTE CTsPacket::GetPayloadSize(void) const
 {
-	// ƒyƒCƒ[ƒhƒTƒCƒY‚ğ•Ô‚·
+	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚µã‚¤ã‚ºã‚’è¿”ã™
 	switch(m_Header.byAdaptationFieldCtrl){
-	case 1U :	// ƒyƒCƒ[ƒh‚Ì‚İ
+	case 1U :	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã®ã¿
 		return (TS_PACKETSIZE - 4U);
 
-	case 3U :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒhAƒyƒCƒ[ƒh‚ ‚è
+	case 3U :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã€ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚ã‚Š
 		return (TS_PACKETSIZE - m_AdaptationField.byAdaptationFieldLength - 5U);
 
-	default :	// ƒAƒ_ƒvƒe[ƒVƒ‡ƒ“ƒtƒB[ƒ‹ƒh‚Ì‚İ or —áŠO
+	default :	// ã‚¢ãƒ€ãƒ—ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®ã¿ or ä¾‹å¤–
 		return 0U;
 	}
 }
 
-// ƒoƒbƒtƒ@‚É‘‚«‚İ
+// ãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã¿
 void CTsPacket::StoreToBuffer(void *pBuffer)
 {
 	BYTE *p=static_cast<BYTE*>(pBuffer);
@@ -176,7 +176,7 @@ void CTsPacket::StoreToBuffer(void *pBuffer)
 	::CopyMemory(p,&m_AdaptationField,sizeof(m_AdaptationField));
 }
 
-// ƒoƒbƒtƒ@‚©‚ç“Ç‚İ‚İ
+// ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰èª­ã¿è¾¼ã¿
 void CTsPacket::RestoreFromBuffer(const void *pBuffer)
 {
 	const BYTE *p=static_cast<const BYTE*>(pBuffer);
@@ -213,7 +213,7 @@ void *CTsPacket::ReAllocate(void *pBuffer, size_t Size)
 
 
 //////////////////////////////////////////////////////////////////////
-// CPsiSectionƒNƒ‰ƒX‚Ì\’z/Á–Å
+// CPsiSectionã‚¯ãƒ©ã‚¹ã®æ§‹ç¯‰/æ¶ˆæ»…
 //////////////////////////////////////////////////////////////////////
 
 CPsiSection::CPsiSection()
@@ -238,7 +238,7 @@ CPsiSection::CPsiSection(const CPsiSection &Operand)
 CPsiSection & CPsiSection::operator = (const CPsiSection &Operand)
 {
 	if (&Operand != this) {
-		// ƒCƒ“ƒXƒ^ƒ“ƒX‚ÌƒRƒs[
+		// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ã‚³ãƒ”ãƒ¼
 		CMediaData::operator = (Operand);
 		m_Header = Operand.m_Header;
 	}
@@ -248,9 +248,9 @@ CPsiSection & CPsiSection::operator = (const CPsiSection &Operand)
 
 const bool CPsiSection::operator == (const CPsiSection &Operand) const
 {
-	// ƒZƒNƒVƒ‡ƒ“‚Ì“à—e‚ğ”äŠr‚·‚é
+	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®å†…å®¹ã‚’æ¯”è¼ƒã™ã‚‹
 	if (GetPayloadSize() != Operand.GetPayloadSize()) {
-		// ƒTƒCƒY‚ªˆÙ‚È‚é
+		// ã‚µã‚¤ã‚ºãŒç•°ãªã‚‹
 		return false;
 	}
 
@@ -258,23 +258,23 @@ const bool CPsiSection::operator == (const CPsiSection &Operand) const
 	const BYTE *pDstData = Operand.GetPayloadData();
 
 	if (!pSrcData && !pDstData) {
-		// ‚¢‚¸‚ê‚àNULL
+		// ã„ãšã‚Œã‚‚NULL
 		return true;
 	}
 
 	if (!pSrcData || !pDstData) {
-		// ˆê•û‚¾‚¯NULL
+		// ä¸€æ–¹ã ã‘NULL
 		return false;
 	}
 
 #if 0
-	// ƒoƒCƒiƒŠ”äŠr
+	// ãƒã‚¤ãƒŠãƒªæ¯”è¼ƒ
 	for (DWORD dwPos = 0 ; dwPos < GetPayloadSize() ; dwPos++) {
 		if (pSrcData[dwPos] != pDstData[dwPos])
 			return false;
 	}
 
-	// ˆê’v‚·‚é
+	// ä¸€è‡´ã™ã‚‹
 	return true;
 #else
 	return memcmp(pSrcData, pDstData, GetPayloadSize()) == 0;
@@ -285,18 +285,18 @@ const bool CPsiSection::ParseHeader(const bool bIsExtended, const bool bIgnoreSe
 {
 	const DWORD dwHeaderSize = (bIsExtended)? 8UL : 3UL;
 
-	// ƒwƒbƒ_ƒTƒCƒYƒ`ƒFƒbƒN
+	// ãƒ˜ãƒƒãƒ€ã‚µã‚¤ã‚ºãƒã‚§ãƒƒã‚¯
 	if (m_dwDataSize < dwHeaderSize)
 		return false;
 
-	// •W€Œ`®ƒwƒbƒ_‰ğÍ
+	// æ¨™æº–å½¢å¼ãƒ˜ãƒƒãƒ€è§£æ
 	m_Header.byTableID					= m_pData[0];							// +0
 	m_Header.bSectionSyntaxIndicator	= (m_pData[1] & 0x80U) != 0;			// +1 bit7
 	m_Header.bPrivateIndicator			= (m_pData[1] & 0x40U) != 0;			// +1 bit6
 	m_Header.wSectionLength = ((WORD)(m_pData[1] & 0x0FU) << 8) | (WORD)m_pData[2];		// +1 bit5-0, +2
 
 	if(m_Header.bSectionSyntaxIndicator && bIsExtended){
-		// Šg’£Œ`®‚Ìƒwƒbƒ_‰ğÍ
+		// æ‹¡å¼µå½¢å¼ã®ãƒ˜ãƒƒãƒ€è§£æ
 		m_Header.wTableIdExtension		= (WORD)m_pData[3] << 8 | (WORD)m_pData[4];		// +3, +4
 		m_Header.byVersionNo			= (m_pData[5] & 0x3EU) >> 1;			// +5 bit5-1
 		m_Header.bCurrentNextIndicator	= (m_pData[5] & 0x01U) != 0;			// +5 bit0
@@ -304,31 +304,31 @@ const bool CPsiSection::ParseHeader(const bool bIsExtended, const bool bIgnoreSe
 		m_Header.byLastSectionNumber	= m_pData[7];							// +7
 		}
 
-	// ƒwƒbƒ_‚ÌƒtƒH[ƒ}ƒbƒg“K‡«‚ğƒ`ƒFƒbƒN‚·‚é
+	// ãƒ˜ãƒƒãƒ€ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆé©åˆæ€§ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 	if (m_Header.byTableID == 0xFF)
 		return false;
 	if((m_pData[1] & 0x30U) != 0x30U)
-		return false;									// ŒÅ’èƒrƒbƒgˆÙí
+		return false;									// å›ºå®šãƒ“ãƒƒãƒˆç•°å¸¸
 	else if(m_Header.wSectionLength > 4093U)
-		return false;									// ƒZƒNƒVƒ‡ƒ“’·ˆÙí
+		return false;									// ã‚»ã‚¯ã‚·ãƒ§ãƒ³é•·ç•°å¸¸
 	else if(m_Header.bSectionSyntaxIndicator){
-		// Šg’£Œ`®‚ÌƒGƒ‰[ƒ`ƒFƒbƒN
+		// æ‹¡å¼µå½¢å¼ã®ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯
 		if(!bIsExtended)
-			return false;								// –Ú“I‚Ìƒwƒbƒ_‚Å‚Í‚È‚¢
+			return false;								// ç›®çš„ã®ãƒ˜ãƒƒãƒ€ã§ã¯ãªã„
 		else if((m_pData[5] & 0xC0U) != 0xC0U)
-			return false;								// ŒÅ’èƒrƒbƒgˆÙí
+			return false;								// å›ºå®šãƒ“ãƒƒãƒˆç•°å¸¸
 		else if(!bIgnoreSectionNumber
 				&& m_Header.bySectionNumber > m_Header.byLastSectionNumber)
-			return false;	// ƒZƒNƒVƒ‡ƒ“”Ô†ˆÙí
+			return false;	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ç•ªå·ç•°å¸¸
 		else if(m_Header.wSectionLength < 9U)
-			return false;								// ƒZƒNƒVƒ‡ƒ“’·ˆÙí
+			return false;								// ã‚»ã‚¯ã‚·ãƒ§ãƒ³é•·ç•°å¸¸
 		}
 	else{
-		// •W€Œ`®‚ÌƒGƒ‰[ƒ`ƒFƒbƒN	
+		// æ¨™æº–å½¢å¼ã®ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯	
 		if(bIsExtended)
-			return false;								// –Ú“I‚Ìƒwƒbƒ_‚Å‚Í‚È‚¢
+			return false;								// ç›®çš„ã®ãƒ˜ãƒƒãƒ€ã§ã¯ãªã„
 		else if(m_Header.wSectionLength < 4U)
-			return false;								// ƒZƒNƒVƒ‡ƒ“’·ˆÙí
+			return false;								// ã‚»ã‚¯ã‚·ãƒ§ãƒ³é•·ç•°å¸¸
 		}
 
 	return true;
@@ -336,14 +336,14 @@ const bool CPsiSection::ParseHeader(const bool bIsExtended, const bool bIgnoreSe
 
 void CPsiSection::Reset(void)
 {
-	// ƒf[ƒ^‚ğƒNƒŠƒA‚·‚é
+	// ãƒ‡ãƒ¼ã‚¿ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 	ClearSize();
 	::ZeroMemory(&m_Header, sizeof(m_Header));
 }
 
 BYTE * CPsiSection::GetPayloadData(void) const
 {
-	// ƒyƒCƒ[ƒhƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 	const DWORD dwHeaderSize = (m_Header.bSectionSyntaxIndicator)? 8UL : 3UL;
 
 	return m_dwDataSize > dwHeaderSize ? &m_pData[dwHeaderSize] : NULL;
@@ -351,92 +351,92 @@ BYTE * CPsiSection::GetPayloadData(void) const
 
 const WORD CPsiSection::GetPayloadSize(void) const
 {
-	// ƒyƒCƒ[ƒhƒTƒCƒY‚ğ•Ô‚·(ÀÛ‚É•Û‚µ‚Ä‚é@¦ƒZƒNƒVƒ‡ƒ“’·‚æ‚è­‚È‚­‚È‚é‚±‚Æ‚à‚ ‚é)
+	// ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚µã‚¤ã‚ºã‚’è¿”ã™(å®Ÿéš›ã«ä¿æŒã—ã¦ã‚‹ã€€â€»ã‚»ã‚¯ã‚·ãƒ§ãƒ³é•·ã‚ˆã‚Šå°‘ãªããªã‚‹ã“ã¨ã‚‚ã‚ã‚‹)
 	const DWORD dwHeaderSize = (m_Header.bSectionSyntaxIndicator)? 8UL : 3UL;
 
 	if(m_dwDataSize <= dwHeaderSize)return 0U;
 	else if(m_Header.bSectionSyntaxIndicator){
-		// Šg’£ƒZƒNƒVƒ‡ƒ“
+		// æ‹¡å¼µã‚»ã‚¯ã‚·ãƒ§ãƒ³
 		return (m_dwDataSize >= (m_Header.wSectionLength + 3UL))? (m_Header.wSectionLength - 9U) : ((WORD)m_dwDataSize - 8U);
 		}
 	else{
-		// •W€ƒZƒNƒVƒ‡ƒ“
+		// æ¨™æº–ã‚»ã‚¯ã‚·ãƒ§ãƒ³
 		return (m_dwDataSize >= (m_Header.wSectionLength + 3UL))? m_Header.wSectionLength : ((WORD)m_dwDataSize - 3U);
 		}
 }
 
 const BYTE CPsiSection::GetTableID(void) const
 {
-	// ƒe[ƒuƒ‹ID‚ğ•Ô‚·
+	// ãƒ†ãƒ¼ãƒ–ãƒ«IDã‚’è¿”ã™
 	return m_Header.byTableID;
 }
 
 const bool CPsiSection::IsExtendedSection(void) const
 {
-	// ƒZƒNƒVƒ‡ƒ“ƒVƒ“ƒ^ƒbƒNƒXƒCƒ“ƒWƒP[ƒ^‚ğ•Ô‚·
+	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã‚·ãƒ³ã‚¿ãƒƒã‚¯ã‚¹ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ã‚’è¿”ã™
 	return m_Header.bSectionSyntaxIndicator;
 }
 
 const bool CPsiSection::IsPrivate(void) const
 {
-	// ƒvƒ‰ƒCƒx[ƒgƒCƒ“ƒWƒP[ƒ^‚ğ•Ô‚·
+	// ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ã‚’è¿”ã™
 	return m_Header.bPrivateIndicator;
 }
 
 const WORD CPsiSection::GetSectionLength(void) const
 {
-	// ƒZƒNƒVƒ‡ƒ“’·‚ğ•Ô‚·
+	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³é•·ã‚’è¿”ã™
 	return m_Header.wSectionLength;
 }
 
 const WORD CPsiSection::GetTableIdExtension(void) const
 {
-	// ƒe[ƒuƒ‹IDŠg’£‚ğ•Ô‚·
+	// ãƒ†ãƒ¼ãƒ–ãƒ«IDæ‹¡å¼µã‚’è¿”ã™
 	return m_Header.wTableIdExtension;
 }
 
 const BYTE CPsiSection::GetVersionNo(void) const
 {
-	// ƒo[ƒWƒ‡ƒ“”Ô†‚ğ•Ô‚·
+	// ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·ã‚’è¿”ã™
 	return m_Header.byVersionNo;
 }
 
 const bool CPsiSection::IsCurrentNext(void) const
 {
-	// ƒJƒŒƒ“ƒgƒlƒNƒXƒgƒCƒ“ƒWƒP[ƒ^‚ğ•Ô‚·
+	// ã‚«ãƒ¬ãƒ³ãƒˆãƒã‚¯ã‚¹ãƒˆã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ã‚’è¿”ã™
 	return m_Header.bCurrentNextIndicator;
 }
 
 const BYTE CPsiSection::GetSectionNumber(void) const
 {
-	// ƒZƒNƒVƒ‡ƒ“”Ô†‚ğ•Ô‚·
+	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ç•ªå·ã‚’è¿”ã™
 	return m_Header.bySectionNumber;
 }
 
 const BYTE CPsiSection::GetLastSectionNumber(void) const
 {
-	// ƒ‰ƒXƒgƒZƒNƒVƒ‡ƒ“”Ô†‚ğ•Ô‚·
+	// ãƒ©ã‚¹ãƒˆã‚»ã‚¯ã‚·ãƒ§ãƒ³ç•ªå·ã‚’è¿”ã™
 	return m_Header.byLastSectionNumber;
 }
 
 
 /////////////////////////////////////////////////////////////////////////////
-// TS PIDƒ}ƒbƒv‘ÎÛƒNƒ‰ƒX
+// TS PIDãƒãƒƒãƒ—å¯¾è±¡ã‚¯ãƒ©ã‚¹
 /////////////////////////////////////////////////////////////////////////////
 
 void CTsPidMapTarget::OnPidMapped(const WORD wPID, const PVOID pParam)
 {
-	// ƒ}ƒbƒsƒ“ƒO‚³‚ê‚½
+	// ãƒãƒƒãƒ”ãƒ³ã‚°ã•ã‚ŒãŸ
 }
 
 void CTsPidMapTarget::OnPidUnmapped(const WORD wPID)
 {
-	// ƒ}ƒbƒv‰ğœ‚³‚ê‚½
+	// ãƒãƒƒãƒ—è§£é™¤ã•ã‚ŒãŸ
 }
 
 
 /////////////////////////////////////////////////////////////////////////////
-// TS PIDƒ}ƒbƒvŠÇ—ƒNƒ‰ƒX
+// TS PIDãƒãƒƒãƒ—ç®¡ç†ã‚¯ãƒ©ã‚¹
 /////////////////////////////////////////////////////////////////////////////
 
 CTsPidMapManager::CTsPidMapManager()
@@ -454,12 +454,12 @@ const bool CTsPidMapManager::StorePacket(const CTsPacket *pPacket)
 {
 	const WORD wPID = pPacket->GetPID();
 
-	if(wPID > 0x1FFFU)return false;					// PID”ÍˆÍŠO
+	if(wPID > 0x1FFFU)return false;					// PIDç¯„å›²å¤–
 
-	if(!m_PidMap[wPID].pMapTarget)return false;		// PIDƒ}ƒbƒvƒ^[ƒQƒbƒg‚È‚µ
+	if(!m_PidMap[wPID].pMapTarget)return false;		// PIDãƒãƒƒãƒ—ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãªã—
 
 	if(m_PidMap[wPID].pMapTarget->StorePacket(pPacket)){
-		// ƒ^[ƒQƒbƒg‚ÌXV‚ª‚ ‚Á‚½‚Æ‚«‚ÍƒR[ƒ‹ƒoƒbƒN‚ğŒÄ‚Ño‚·
+		// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®æ›´æ–°ãŒã‚ã£ãŸã¨ãã¯ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’å‘¼ã³å‡ºã™
 
 		if(m_PidMap[wPID].pMapCallback){
 			m_PidMap[wPID].pMapCallback(wPID, m_PidMap[wPID].pMapTarget, this, m_PidMap[wPID].pMapParam);
@@ -473,10 +473,10 @@ const bool CTsPidMapManager::MapTarget(const WORD wPID, CTsPidMapTarget *pMapTar
 {
 	if((wPID > 0x1FFFU) || (!pMapTarget))return false;
 
-	// Œ»İ‚Ìƒ^[ƒQƒbƒg‚ğƒAƒ“ƒ}ƒbƒv
+	// ç¾åœ¨ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ã‚¢ãƒ³ãƒãƒƒãƒ—
 	UnmapTarget(wPID);
 
-	// V‚µ‚¢ƒ^[ƒQƒbƒg‚ğƒ}ƒbƒv
+	// æ–°ã—ã„ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ãƒãƒƒãƒ—
 	m_PidMap[wPID].pMapTarget = pMapTarget;
 	m_PidMap[wPID].pMapCallback = pMapCallback;
 	m_PidMap[wPID].pMapParam = pMapParam;
@@ -493,7 +493,7 @@ const bool CTsPidMapManager::UnmapTarget(const WORD wPID)
 
 	if(!m_PidMap[wPID].pMapTarget)return false;
 
-	// Œ»İ‚Ìƒ^[ƒQƒbƒg‚ğƒAƒ“ƒ}ƒbƒv
+	// ç¾åœ¨ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ã‚¢ãƒ³ãƒãƒƒãƒ—
 	CTsPidMapTarget *pTarget = m_PidMap[wPID].pMapTarget;
 	::ZeroMemory(&m_PidMap[wPID], sizeof(m_PidMap[wPID]));
 	m_wMapCount--;
@@ -505,7 +505,7 @@ const bool CTsPidMapManager::UnmapTarget(const WORD wPID)
 
 void CTsPidMapManager::UnmapAllTarget(void)
 {
-	// ‘Sƒ^[ƒQƒbƒg‚ğƒAƒ“ƒ}ƒbƒv
+	// å…¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ã‚¢ãƒ³ãƒãƒƒãƒ—
 	for (WORD wPID = 0x0000U ; wPID <= 0x1FFFU ; wPID++) {
 		UnmapTarget(wPID);
 	}
@@ -513,25 +513,25 @@ void CTsPidMapManager::UnmapAllTarget(void)
 
 CTsPidMapTarget * CTsPidMapManager::GetMapTarget(const WORD wPID) const
 {
-	// ƒ}ƒbƒv‚³‚ê‚Ä‚¢‚éƒ^[ƒQƒbƒg‚ğ•Ô‚·
+	// ãƒãƒƒãƒ—ã•ã‚Œã¦ã„ã‚‹ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¿”ã™
 	return (wPID <= 0x1FFFU)? m_PidMap[wPID].pMapTarget : NULL;
 }
 
 const WORD CTsPidMapManager::GetMapCount(void) const
 {
-	// ƒ}ƒbƒv‚³‚ê‚Ä‚¢‚éPID‚Ì‘”‚ğ•Ô‚·
+	// ãƒãƒƒãƒ—ã•ã‚Œã¦ã„ã‚‹PIDã®ç·æ•°ã‚’è¿”ã™
 	return m_wMapCount;
 }
 
 
 /////////////////////////////////////////////////////////////////////////////
-// PSIƒZƒNƒVƒ‡ƒ“’ŠoƒNƒ‰ƒX
+// PSIã‚»ã‚¯ã‚·ãƒ§ãƒ³æŠ½å‡ºã‚¯ãƒ©ã‚¹
 /////////////////////////////////////////////////////////////////////////////
 
 CPsiSectionParser::CPsiSectionParser(IPsiSectionHandler *pPsiSectionHandler,
 									 const bool bTargetExt, const bool bIgnoreSectionNumber)
 	: m_pPsiSectionHandler(pPsiSectionHandler)
-	, m_PsiSection(0x10002UL)		// PSIƒZƒNƒVƒ‡ƒ“Å‘åƒTƒCƒY‚Ìƒoƒbƒtƒ@Šm•Û
+	, m_PsiSection(0x10002UL)		// PSIã‚»ã‚¯ã‚·ãƒ§ãƒ³æœ€å¤§ã‚µã‚¤ã‚ºã®ãƒãƒƒãƒ•ã‚¡ç¢ºä¿
 	, m_bTargetExt(bTargetExt)
 	, m_bIgnoreSectionNumber(bIgnoreSectionNumber)
 	, m_bIsStoring(false)
@@ -548,7 +548,7 @@ CPsiSectionParser::CPsiSectionParser(const CPsiSectionParser &Operand)
 CPsiSectionParser & CPsiSectionParser::operator = (const CPsiSectionParser &Operand)
 {
 	if (&Operand != this) {
-		// ƒCƒ“ƒXƒ^ƒ“ƒX‚ÌƒRƒs[
+		// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ã‚³ãƒ”ãƒ¼
 		m_pPsiSectionHandler = Operand.m_pPsiSectionHandler;
 		m_bTargetExt = Operand.m_bTargetExt;
 		m_PsiSection = Operand.m_PsiSection;
@@ -571,13 +571,13 @@ void CPsiSectionParser::StorePacket(const CTsPacket *pPacket)
 	BYTE byPos, bySize;
 
 	if (pPacket->m_Header.bPayloadUnitStartIndicator) {
-		// [ƒwƒbƒ_’f•Ğ | ƒyƒCƒ[ƒh’f•Ğ] + [ƒXƒ^ƒbƒtƒBƒ“ƒOƒoƒCƒg] + ƒwƒbƒ_æ“ª + [ƒwƒbƒ_’f•Ğ] + [ƒyƒCƒ[ƒh’f•Ğ] + [ƒXƒ^ƒbƒtƒBƒ“ƒOƒoƒCƒg]
+		// [ãƒ˜ãƒƒãƒ€æ–­ç‰‡ | ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰æ–­ç‰‡] + [ã‚¹ã‚¿ãƒƒãƒ•ã‚£ãƒ³ã‚°ãƒã‚¤ãƒˆ] + ãƒ˜ãƒƒãƒ€å…ˆé ­ + [ãƒ˜ãƒƒãƒ€æ–­ç‰‡] + [ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰æ–­ç‰‡] + [ã‚¹ã‚¿ãƒƒãƒ•ã‚£ãƒ³ã‚°ãƒã‚¤ãƒˆ]
 		const BYTE byUnitStartPos = pData[0] + 1U;
 		if (byUnitStartPos >= byPayloadSize)
 			return;
 
 		if (byUnitStartPos > 1U) {
-			// ƒ†ƒjƒbƒgŠJnˆÊ’u‚ªæ“ª‚Å‚Í‚È‚¢ê‡(’f•Ğ‚ª‚ ‚éê‡)
+			// ãƒ¦ãƒ‹ãƒƒãƒˆé–‹å§‹ä½ç½®ãŒå…ˆé ­ã§ã¯ãªã„å ´åˆ(æ–­ç‰‡ãŒã‚ã‚‹å ´åˆ)
 			byPos = 1U;
 			bySize = byUnitStartPos - byPos;
 			if (m_bIsStoring) {
@@ -590,7 +590,7 @@ void CPsiSectionParser::StorePacket(const CTsPacket *pPacket)
 			}
 		}
 
-		// ƒ†ƒjƒbƒgŠJnˆÊ’u‚©‚çV‹KƒZƒNƒVƒ‡ƒ“‚ÌƒXƒgƒA‚ğŠJn‚·‚é
+		// ãƒ¦ãƒ‹ãƒƒãƒˆé–‹å§‹ä½ç½®ã‹ã‚‰æ–°è¦ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®ã‚¹ãƒˆã‚¢ã‚’é–‹å§‹ã™ã‚‹
 		m_PsiSection.Reset();
 		m_bIsStoring = false;
 
@@ -610,7 +610,7 @@ void CPsiSectionParser::StorePacket(const CTsPacket *pPacket)
 				break;
 		}
 	} else {
-		// [ƒwƒbƒ_’f•Ğ] + ƒyƒCƒ[ƒh + [ƒXƒ^ƒbƒtƒBƒ“ƒOƒoƒCƒg]
+		// [ãƒ˜ãƒƒãƒ€æ–­ç‰‡] + ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ + [ã‚¹ã‚¿ãƒƒãƒ•ã‚£ãƒ³ã‚°ãƒã‚¤ãƒˆ]
 		byPos = 0U;
 		bySize = byPayloadSize;
 		if (!m_bIsStoring) {
@@ -626,7 +626,7 @@ void CPsiSectionParser::StorePacket(const CTsPacket *pPacket)
 
 void CPsiSectionParser::Reset(void)
 {
-	// ó‘Ô‚ğ‰Šú‰»‚·‚é
+	// çŠ¶æ…‹ã‚’åˆæœŸåŒ–ã™ã‚‹
 	m_bIsStoring = false;
 	m_wStoreSize = 0U;
 	m_dwCrcErrorCount = 0UL;
@@ -635,13 +635,13 @@ void CPsiSectionParser::Reset(void)
 
 const DWORD CPsiSectionParser::GetCrcErrorCount(void) const
 {
-	// CRCƒGƒ‰[‰ñ”‚ğ•Ô‚·
+	// CRCã‚¨ãƒ©ãƒ¼å›æ•°ã‚’è¿”ã™
 	return m_dwCrcErrorCount;
 }
 
 const bool CPsiSectionParser::StoreHeader(const BYTE *pPayload, BYTE *pbyRemain)
 {
-	// ƒwƒbƒ_‚ğ‰ğÍ‚µ‚ÄƒZƒNƒVƒ‡ƒ“‚ÌƒXƒgƒA‚ğŠJn‚·‚é
+	// ãƒ˜ãƒƒãƒ€ã‚’è§£æã—ã¦ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®ã‚¹ãƒˆã‚¢ã‚’é–‹å§‹ã™ã‚‹
 	if (m_bIsStoring) {
 		*pbyRemain = 0;
 		return false;
@@ -651,24 +651,24 @@ const bool CPsiSectionParser::StoreHeader(const BYTE *pPayload, BYTE *pbyRemain)
 	const BYTE byHeaderRemain = byHeaderSize - (BYTE)m_PsiSection.GetSize();
 
 	if (*pbyRemain >= byHeaderRemain) {
-		// ƒwƒbƒ_ƒXƒgƒAŠ®—¹Aƒwƒbƒ_‚ğ‰ğÍ‚µ‚ÄƒyƒCƒ[ƒh‚ÌƒXƒgƒA‚ğŠJn‚·‚é
+		// ãƒ˜ãƒƒãƒ€ã‚¹ãƒˆã‚¢å®Œäº†ã€ãƒ˜ãƒƒãƒ€ã‚’è§£æã—ã¦ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã®ã‚¹ãƒˆã‚¢ã‚’é–‹å§‹ã™ã‚‹
 		m_PsiSection.AddData(pPayload, byHeaderRemain);
 		if (m_PsiSection.ParseHeader(m_bTargetExt, m_bIgnoreSectionNumber)) {
-			// ƒwƒbƒ_ƒtƒH[ƒ}ƒbƒgOKAƒwƒbƒ_‚Ì‚İ‚ÌCRC‚ğŒvZ‚·‚é
+			// ãƒ˜ãƒƒãƒ€ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆOKã€ãƒ˜ãƒƒãƒ€ã®ã¿ã®CRCã‚’è¨ˆç®—ã™ã‚‹
 			m_wStoreSize = m_PsiSection.GetSectionLength() + 3U;
 			m_dwStoreCrc = CCrcCalculator::CalcCrc32(m_PsiSection.GetData(), byHeaderSize);
 			m_bIsStoring = true;
 			*pbyRemain = byHeaderRemain;
 			return true;
 		} else {
-			// ƒwƒbƒ_ƒGƒ‰[
+			// ãƒ˜ãƒƒãƒ€ã‚¨ãƒ©ãƒ¼
 			m_PsiSection.Reset();
 			*pbyRemain = byHeaderRemain;
 			TRACE(TEXT("PSI header format error\n"));
 			return false;
 		}
 	} else {
-		// ƒwƒbƒ_ƒXƒgƒA–¢Š®—¹AŸ‚Ìƒf[ƒ^‚ğ‘Ò‚Â
+		// ãƒ˜ãƒƒãƒ€ã‚¹ãƒˆã‚¢æœªå®Œäº†ã€æ¬¡ã®ãƒ‡ãƒ¼ã‚¿ã‚’å¾…ã¤
 		m_PsiSection.AddData(pPayload, *pbyRemain);
 		return false;
 	}
@@ -676,7 +676,7 @@ const bool CPsiSectionParser::StoreHeader(const BYTE *pPayload, BYTE *pbyRemain)
 
 const bool CPsiSectionParser::StorePayload(const BYTE *pPayload, BYTE *pbyRemain)
 {
-	// ƒZƒNƒVƒ‡ƒ“‚ÌƒXƒgƒA‚ğŠ®—¹‚·‚é
+	// ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®ã‚¹ãƒˆã‚¢ã‚’å®Œäº†ã™ã‚‹
 	if (!m_bIsStoring) {
 		*pbyRemain = 0;
 		return false;
@@ -686,29 +686,29 @@ const bool CPsiSectionParser::StorePayload(const BYTE *pPayload, BYTE *pbyRemain
 	const WORD wStoreRemain = m_wStoreSize - (WORD)m_PsiSection.GetSize();
 
 	if (wStoreRemain <= (WORD)byRemain) {
-		// ƒXƒgƒAŠ®—¹
+		// ã‚¹ãƒˆã‚¢å®Œäº†
 		m_PsiSection.AddData(pPayload, wStoreRemain);
 
 		if (!CCrcCalculator::CalcCrc32(pPayload, wStoreRemain, m_dwStoreCrc)) {
-			// CRC³íAƒnƒ“ƒhƒ‰‚ÉƒZƒNƒVƒ‡ƒ“‚ğ“n‚·
+			// CRCæ­£å¸¸ã€ãƒãƒ³ãƒ‰ãƒ©ã«ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã‚’æ¸¡ã™
 			if (m_pPsiSectionHandler)
 				m_pPsiSectionHandler->OnPsiSection(this, &m_PsiSection);
 			//TRACE(TEXT("[%02X] PSI Stored: %lu / %lu\n"), m_PsiSection.GetTableID(), m_PsiSection.GetSize(), (DWORD)m_wStoreSize);
 		} else {
-			// CRCˆÙí
+			// CRCç•°å¸¸
 			//if (m_dwCrcErrorCount < 0xFFFFFFFFUL)
 				m_dwCrcErrorCount++;
 			//TRACE(TEXT("[%02X] PSI CRC Error: %lu / %lu\n"), m_PsiSection.GetTableID(), m_PsiSection.GetSize(), (DWORD)m_wStoreSize);
 		}
 
-		// ó‘Ô‚ğ‰Šú‰»‚µAŸ‚ÌƒZƒNƒVƒ‡ƒ“óM‚É”õ‚¦‚é
+		// çŠ¶æ…‹ã‚’åˆæœŸåŒ–ã—ã€æ¬¡ã®ã‚»ã‚¯ã‚·ãƒ§ãƒ³å—ä¿¡ã«å‚™ãˆã‚‹
 		m_PsiSection.Reset();
 		m_bIsStoring = false;
 
 		*pbyRemain = (BYTE)wStoreRemain;
 		return true;
 	} else {
-		// ƒXƒgƒA–¢Š®—¹AŸ‚ÌƒyƒCƒ[ƒh‚ğ‘Ò‚Â
+		// ã‚¹ãƒˆã‚¢æœªå®Œäº†ã€æ¬¡ã®ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰ã‚’å¾…ã¤
 		m_PsiSection.AddData(pPayload, byRemain);
 		m_dwStoreCrc = CCrcCalculator::CalcCrc32(pPayload, byRemain, m_dwStoreCrc);
 		return false;
@@ -717,7 +717,7 @@ const bool CPsiSectionParser::StorePayload(const BYTE *pPayload, BYTE *pbyRemain
 
 
 /////////////////////////////////////////////////////////////////////////////
-// PCR’ŠÛ‰»ƒNƒ‰ƒX
+// PCRæŠ½è±¡åŒ–ã‚¯ãƒ©ã‚¹
 /////////////////////////////////////////////////////////////////////////////
 
 CTsClockRef::CTsClockRef()
@@ -733,7 +733,7 @@ CTsClockRef::CTsClockRef(const CTsClockRef &Operand)
 CTsClockRef & CTsClockRef::operator = (const CTsClockRef &Operand)
 {
 	if (&Operand != this) {
-		// ƒCƒ“ƒXƒ^ƒ“ƒX‚ÌƒRƒs[
+		// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ã‚³ãƒ”ãƒ¼
 		m_llHrcUnitFreq = Operand.m_llHrcUnitFreq;
 		m_llHrcLastTime = Operand.m_llHrcLastTime;
 		m_llCurPcrCount = Operand.m_llCurPcrCount;
@@ -748,26 +748,26 @@ const bool CTsClockRef::StorePacket(const CTsPacket *pPacket, const WORD wPcrPID
 	if(pPacket->GetPID() != wPcrPID)return false;
 	if(!pPacket->m_AdaptationField.bPcrFlag)return false;
 
-	// 33bit 90KHz PCR‚ğŒvZ
+	// 33bit 90KHz PCRã‚’è¨ˆç®—
 	const LONGLONG llCurPcrCount = GetPcrFromHex(pPacket->m_AdaptationField.pOptionData);
 
 	if(llCurPcrCount < 0LL){
-		// PCR‚È‚µ(ƒGƒ‰[)
-		TRACE(TEXT("PCR‚È‚µ(ƒGƒ‰[)\n"));
+		// PCRãªã—(ã‚¨ãƒ©ãƒ¼)
+		TRACE(TEXT("PCRãªã—(ã‚¨ãƒ©ãƒ¼)\n"));
 		return true;
 		}
 	else if(!m_llCurPcrCount){
-		// PCR PLL‰Šú‰»
+		// PCR PLLåˆæœŸåŒ–
 		InitPcrPll(llCurPcrCount);
-		TRACE(TEXT("PLL‰Šú‰»\n"));
+		TRACE(TEXT("PLLåˆæœŸåŒ–\n"));
 		}
 	else if(pPacket->m_AdaptationField.bDiscontinuityIndicator){
-		// PCR PLLÄ“¯Šú
+		// PCR PLLå†åŒæœŸ
 		SyncPcrPll(llCurPcrCount);
-		TRACE(TEXT("PLLÄ“¯Šú\n"));
+		TRACE(TEXT("PLLå†åŒæœŸ\n"));
 		}
 	else{
-		// PCR PLLˆ—
+		// PCR PLLå‡¦ç†
 		ProcPcrPll(llCurPcrCount);
 		}
 
@@ -781,44 +781,44 @@ void CTsClockRef::Reset(void)
 
 const LONGLONG CTsClockRef::GetGlobalPcr(void) const
 {
-	// Œ»İ‚©‚çƒOƒ[ƒoƒ‹PCR‚ğæ“¾‚·‚é
+	// ç¾åœ¨æ™‚åˆ»ã‹ã‚‰ã‚°ãƒ­ãƒ¼ãƒãƒ«PCRã‚’å–å¾—ã™ã‚‹
 	LONGLONG llHrcCurTime;
 	::QueryPerformanceCounter((LARGE_INTEGER *)&llHrcCurTime);
 
-	// ÅŒã‚ÉXV‚³‚ê‚½PCR + XV‚©‚ç‚ÌŒo‰ßŠÔ = Œ»İ‚ÌPCR
+	// æœ€å¾Œã«æ›´æ–°ã•ã‚ŒãŸPCR + æ›´æ–°ã‹ã‚‰ã®çµŒéæ™‚é–“ = ç¾åœ¨ã®PCR
 	return (m_llGlobalPcrCount + (LONGLONG)(((double)(llHrcCurTime - m_llHrcLastTime) * 90000.0) / (double)m_llHrcUnitFreq));
 }
 
 const LONGLONG CTsClockRef::GetCurrentPcr(void) const
 {
-	// Œ»İ‚©‚çPCR‚ğæ“¾‚·‚é
+	// ç¾åœ¨æ™‚åˆ»ã‹ã‚‰PCRã‚’å–å¾—ã™ã‚‹
 	LONGLONG llHrcCurTime;
 	::QueryPerformanceCounter((LARGE_INTEGER *)&llHrcCurTime);
 
-	// ÅŒã‚ÉXV‚³‚ê‚½PCR + XV‚©‚ç‚ÌŒo‰ßŠÔ = Œ»İ‚ÌPCR
+	// æœ€å¾Œã«æ›´æ–°ã•ã‚ŒãŸPCR + æ›´æ–°ã‹ã‚‰ã®çµŒéæ™‚é–“ = ç¾åœ¨ã®PCR
 	return (m_llCurPcrCount + (LONGLONG)(((double)(llHrcCurTime - m_llHrcLastTime) * 90000.0) / (double)m_llHrcUnitFreq));
 }
 
 const LONGLONG CTsClockRef::PtsToGlobalPcr(const LONGLONG llPts) const
 {
-	// PTS‚ğPCR‚É•ÏŠ·‚·‚é
+	// PTSã‚’PCRã«å¤‰æ›ã™ã‚‹
 	if(llPts > m_llCurPcrCount){
-		// ƒOƒ[ƒoƒ‹PCR‚ÉPCR‚ÌƒIƒtƒZƒbƒg‚ğ‰ÁZ‚µ‚½’l‚ğ•Ô‚·
+		// ã‚°ãƒ­ãƒ¼ãƒãƒ«PCRã«PCRã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åŠ ç®—ã—ãŸå€¤ã‚’è¿”ã™
 		return m_llGlobalPcrCount + (llPts - m_llCurPcrCount);
 		}
 	else{
-		// Šù‚É‚ğ‰ß‚¬‚Ä‚¢‚é(ƒGƒ‰[ or ‘å•‚Èˆ—’x‚ê)
+		// æ—¢ã«æ™‚åˆ»ã‚’éãã¦ã„ã‚‹(ã‚¨ãƒ©ãƒ¼ or å¤§å¹…ãªå‡¦ç†é…ã‚Œ)
 		LONGLONG llHrcCurTime;
 		::QueryPerformanceCounter((LARGE_INTEGER *)&llHrcCurTime);
 
-		// ÅŒã‚ÉXV‚³‚ê‚½PCR + XV‚©‚ç‚ÌŒo‰ßŠÔ = Œ»İ‚ÌPCR
+		// æœ€å¾Œã«æ›´æ–°ã•ã‚ŒãŸPCR + æ›´æ–°ã‹ã‚‰ã®çµŒéæ™‚é–“ = ç¾åœ¨ã®PCR
 		return (m_llGlobalPcrCount + (LONGLONG)(((double)(llHrcCurTime - m_llHrcLastTime) * 90000.0) / (double)m_llHrcUnitFreq));		
 		}
 }
 
 void CTsClockRef::InitPcrPll(const LONGLONG llCurPcr)
 {
-	// PLL‚ğ‰Šú‰»‚·‚é
+	// PLLã‚’åˆæœŸåŒ–ã™ã‚‹
 	::QueryPerformanceFrequency((LARGE_INTEGER *)&m_llHrcUnitFreq);
 	::QueryPerformanceCounter((LARGE_INTEGER *)&m_llHrcLastTime);
 
@@ -831,40 +831,40 @@ void CTsClockRef::InitPcrPll(const LONGLONG llCurPcr)
 
 void CTsClockRef::ProcPcrPll(const LONGLONG llCurPcr)
 {
-	// PLL‚ğˆ—‚·‚é
+	// PLLã‚’å‡¦ç†ã™ã‚‹
 	ULONGLONG llHrcCurTime;
 	::QueryPerformanceCounter((LARGE_INTEGER *)&llHrcCurTime);
 
-	// ƒ[ƒJƒ‹PCR‚ğŒvZ‚·‚é(‚•ª‰ğ”\ƒ^ƒCƒ}‚É‚æ‚éÀüŠú‚ÌÏ•ª’l)
+	// ãƒ­ãƒ¼ã‚«ãƒ«PCRã‚’è¨ˆç®—ã™ã‚‹(é«˜åˆ†è§£èƒ½ã‚¿ã‚¤ãƒã«ã‚ˆã‚‹å®Ÿå‘¨æœŸã®ç©åˆ†å€¤)
 	m_llCurPcrCount += (LONGLONG)(((double)(llHrcCurTime - m_llHrcLastTime) * 90000.0) / (double)m_llHrcUnitFreq);	// 50ms
 	m_llHrcLastTime = llHrcCurTime;
 
-	// ƒ[ƒJƒ‹PCR‚ÆƒXƒgƒŠ[ƒ€PCR‚ÌˆÊ‘Š·‚ÉLPF‚ğ{‚·(ƒtƒB[ƒhƒoƒbƒNƒQƒCƒ“ = -40dBA’è” = –ñ5.5s)
+	// ãƒ­ãƒ¼ã‚«ãƒ«PCRã¨ã‚¹ãƒˆãƒªãƒ¼ãƒ PCRã®ä½ç›¸å·®ã«LPFã‚’æ–½ã™(ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ã‚²ã‚¤ãƒ³ = -40dBã€æ™‚å®šæ•° = ç´„5.5s)
 	m_lfPllFeedBack = m_lfPllFeedBack * 0.99 + (double)(m_llCurPcrCount - llCurPcr) * 0.01;
 
-	// ƒ[ƒJƒ‹PCR‚ÉˆÊ‘Š·‚ğƒtƒB[ƒhƒoƒbƒN‚·‚é
+	// ãƒ­ãƒ¼ã‚«ãƒ«PCRã«ä½ç›¸å·®ã‚’ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ã™ã‚‹
 	m_llCurPcrCount -= (LONGLONG)m_lfPllFeedBack;
 
-	// ƒOƒ[ƒoƒ‹PCR‚ğXV‚·‚é
+	// ã‚°ãƒ­ãƒ¼ãƒãƒ«PCRã‚’æ›´æ–°ã™ã‚‹
 	m_llGlobalPcrCount = m_llCurPcrCount - m_llBasePcrCount;
 }
 
 void CTsClockRef::SyncPcrPll(const LONGLONG llCurPcr)
 {
-	// PCR•s˜A‘±”­¶‚ÉPLL‚ğÄ“¯Šú‚·‚é
+	// PCRä¸é€£ç¶šç™ºç”Ÿæ™‚ã«PLLã‚’å†åŒæœŸã™ã‚‹
 	::QueryPerformanceCounter((LARGE_INTEGER *)&m_llHrcLastTime);
 
-	// PLL‰Šú’lİ’è
+	// PLLåˆæœŸå€¤è¨­å®š
 	m_llCurPcrCount = llCurPcr;
 	m_lfPllFeedBack = 0.0;
 
-	// ƒOƒ[ƒoƒ‹PCR‚ÌŠî“_Äİ’è
+	// ã‚°ãƒ­ãƒ¼ãƒãƒ«PCRã®åŸºç‚¹å†è¨­å®š
 	m_llBasePcrCount = llCurPcr;
 }
 
 inline const LONGLONG CTsClockRef::GetPcrFromHex(const BYTE *pPcrData)
 {
-	// PCR‚ğ‰ğÍ‚·‚é(42bit 27MHz)
+	// PCRã‚’è§£æã™ã‚‹(42bit 27MHz)
 	LONGLONG llCurPcrCount = 0LL;
 	llCurPcrCount |= (LONGLONG)pPcrData[0] << 34;
 	llCurPcrCount |= (LONGLONG)pPcrData[1] << 26;
@@ -874,6 +874,6 @@ inline const LONGLONG CTsClockRef::GetPcrFromHex(const BYTE *pPcrData)
 	llCurPcrCount |= (LONGLONG)(pPcrData[4] & 0x01U) << 8;
 	llCurPcrCount |= (LONGLONG)pPcrData[5];
 
-	// 33bit 90KHz‚ÉƒVƒtƒg‚·‚é(42bit‚Å‚Í‰‰ZŒë·‚ª’~Ï‚µ‚Äg‚¢•¨‚É‚È‚ç‚È‚¢)
+	// 33bit 90KHzã«ã‚·ãƒ•ãƒˆã™ã‚‹(42bitã§ã¯æ¼”ç®—èª¤å·®ãŒè“„ç©ã—ã¦ä½¿ã„ç‰©ã«ãªã‚‰ãªã„)
 	return llCurPcrCount >> 9;
 }

@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "ClientManager.h"
@@ -33,11 +34,11 @@ namespace TSTask
 		if (m_TaskID==INVALID_TASK_ID)
 			return;
 
-		OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒgƒ}ƒl[ƒWƒƒ[‚ÌI—¹ˆ—‚ğs‚¢‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®çµ‚äº†å‡¦ç†ã‚’è¡Œã„ã¾ã™ã€‚");
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return;
 		}
 
@@ -52,16 +53,16 @@ namespace TSTask
 
 	bool CClientManager::AddClient(TaskID ID)
 	{
-		OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒg%u‚ğ’Ç‰Á‚µ‚Ü‚·B",ID);
+		OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ%uã‚’è¿½åŠ ã—ã¾ã™ã€‚",ID);
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		if (m_ClientList.find(ID)!=m_ClientList.end())
-			return false;
+			return true;
 
 		CClient *pClient=new CClient(ID);
 
@@ -77,11 +78,11 @@ namespace TSTask
 
 	bool CClientManager::RemoveClient(TaskID ID)
 	{
-		OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒg%u‚ğíœ‚µ‚Ü‚·B",ID);
+		OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ%uã‚’å‰Šé™¤ã—ã¾ã™ã€‚",ID);
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -98,12 +99,12 @@ namespace TSTask
 
 	bool CClientManager::BroadcastMessage(CMessage &Message)
 	{
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒW(%s)‚ğ“o˜^‚³‚ê‚½ƒNƒ‰ƒCƒAƒ“ƒg‚É‘—M‚µ‚Ü‚·B",
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸(%s)ã‚’ç™»éŒ²ã•ã‚ŒãŸã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«é€ä¿¡ã—ã¾ã™ã€‚",
 			   Message.GetName());
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -259,7 +260,7 @@ namespace TSTask
 	bool CClientManager::CClient::SendQueueMessage(const CMessage &Message)
 	{
 		if (m_TaskID==INVALID_TASK_ID) {
-			OutLog(LOG_VERBOSE,L"ƒ^ƒXƒN‚ªŠù‚É‘¶İ‚µ‚È‚¢‚½‚ßƒƒbƒZ[ƒW(%s)‚Í‘—M‚³‚ê‚Ü‚¹‚ñB",
+			OutLog(LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯ãŒæ—¢ã«å­˜åœ¨ã—ãªã„ãŸã‚ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸(%s)ã¯é€ä¿¡ã•ã‚Œã¾ã›ã‚“ã€‚",
 				   Message.GetName());
 			return false;
 		}

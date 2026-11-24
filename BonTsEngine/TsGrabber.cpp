@@ -1,4 +1,4 @@
-// TsGrabber.cpp: CTsGrabber ƒNƒ‰ƒX‚ÌƒCƒ“ƒvƒŠƒƒ“ƒe[ƒVƒ‡ƒ“
+ï»¿// TsGrabber.cpp: CTsGrabber ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ãƒ—ãƒªãƒ¡ãƒ³ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,7 +12,7 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 //////////////////////////////////////////////////////////////////////
-// \’z/Á–Å
+// æ§‹ç¯‰/æ¶ˆæ»…
 //////////////////////////////////////////////////////////////////////
 
 CTsGrabber::CTsGrabber(IEventHandler *pEventHandler)
@@ -28,7 +28,7 @@ void CTsGrabber::Reset(void)
 {
 	CBlockLock Lock(&m_DecoderLock);
 
-	// ƒR[ƒ‹ƒoƒbƒN‚É’Ê’m‚·‚é
+	// ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«é€šçŸ¥ã™ã‚‹
 	for (std::vector<ITsHandler*>::iterator i=m_TsHandlerList.begin();i!=m_TsHandlerList.end();i++)
 		(*i)->OnReset();
 }
@@ -43,12 +43,12 @@ const bool CTsGrabber::InputMedia(CMediaData *pMediaData, const DWORD dwInputInd
 
 	CTsPacket *pTsPacket = dynamic_cast<CTsPacket *>(pMediaData);
 
-	// “ü—ÍƒƒfƒBƒAƒf[ƒ^‚ÍŒİŠ·«‚ª‚È‚¢
+	// å…¥åŠ›ãƒ¡ãƒ‡ã‚£ã‚¢ãƒ‡ãƒ¼ã‚¿ã¯äº’æ›æ€§ãŒãªã„
 	if (!pTsPacket)
 		return false;
 	*/
 
-	// ƒR[ƒ‹ƒoƒbƒN‚É’Ê’m‚·‚é
+	// ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«é€šçŸ¥ã™ã‚‹
 	CTsPacket *pTsPacket = static_cast<CTsPacket *>(pMediaData);
 	bool bOutput = true;
 	for (std::vector<ITsHandler*>::iterator i=m_TsHandlerList.begin();i!=m_TsHandlerList.end();i++) {
@@ -56,7 +56,7 @@ const bool CTsGrabber::InputMedia(CMediaData *pMediaData, const DWORD dwInputInd
 			bOutput = false;
 	}
 
-	// ‰ºˆÊƒfƒR[ƒ_‚Éƒf[ƒ^‚ğ“n‚·
+	// ä¸‹ä½ãƒ‡ã‚³ãƒ¼ãƒ€ã«ãƒ‡ãƒ¼ã‚¿ã‚’æ¸¡ã™
 	if (bOutput)
 		OutputMedia(pMediaData);
 

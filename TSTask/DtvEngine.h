@@ -1,4 +1,5 @@
-// DtvEngine.h: CDtvEngine ƒNƒ‰ƒX‚ÌƒCƒ“ƒ^[ƒtƒFƒCƒX
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
+// DtvEngine.h: CDtvEngine ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -17,10 +18,11 @@
 #include "../BonTsEngine/MediaTee.h"
 #include "../BonTsEngine/TsNetworkSender.h"
 #endif
+#include "TSTaskTSProcessor.h"
 
 
 //////////////////////////////////////////////////////////////////////
-// ƒfƒWƒ^ƒ‹TVƒGƒ“ƒWƒ“ƒNƒ‰ƒX
+// ãƒ‡ã‚¸ã‚¿ãƒ«TVã‚¨ãƒ³ã‚¸ãƒ³ã‚¯ãƒ©ã‚¹
 //////////////////////////////////////////////////////////////////////
 
 class CDtvEngine : protected CMediaDecoder::IEventHandler, public CBonBaseClass
@@ -93,10 +95,11 @@ public:
 	unsigned __int64 GetPcrTimeStamp();
 
 //protected:
-	// CMediaDecoder ‚©‚ç”h¶‚µ‚½ƒƒfƒBƒAƒfƒR[ƒ_ƒNƒ‰ƒX
+	// CMediaDecoder ã‹ã‚‰æ´¾ç”Ÿã—ãŸãƒ¡ãƒ‡ã‚£ã‚¢ãƒ‡ã‚³ãƒ¼ãƒ€ã‚¯ãƒ©ã‚¹
 	CBonSrcDecoder m_BonSrcDecoder;
 	CTsPacketParser m_TsPacketParser;
 	CTsAnalyzer m_TsAnalyzer;
+	CTVTestTSProcessor m_TSProcessor;
 	CTsPacketCounter m_TsPacketCounter;
 	CTsGrabber m_TsGrabber;
 	CTsRecorder m_TsRecorder;

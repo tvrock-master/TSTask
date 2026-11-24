@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "Theme.h"
@@ -50,7 +51,7 @@ namespace TSTaskCentre
 			L"solid",
 			L"gradient",
 		};
-		static_assert(_countof(g_FillTypeList)==FILL_TRAILER,"“h‚è‚Â‚Ô‚µƒ^ƒCƒv‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+		static_assert(_countof(g_FillTypeList)==FILL_TRAILER,"Fill type count does not match FILL_TRAILER.");
 
 		static const LPCWSTR g_BorderTypeList[] = {
 			L"none",
@@ -58,13 +59,13 @@ namespace TSTaskCentre
 			L"sunken",
 			L"raised",
 		};
-		static_assert(_countof(g_BorderTypeList)==BORDER_TRAILER,"˜g‚ÌƒXƒ^ƒCƒ‹‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+		static_assert(_countof(g_BorderTypeList)==BORDER_TRAILER,"Border type count does not match BORDER_TRAILER.");
 
 		static const LPCWSTR g_GlowTypeList[] = {
 			L"none",
 			L"fadeout",
 		};
-		static_assert(_countof(g_GlowTypeList)==GLOW_TRAILER,"ŒõÊ‚ÌƒXƒ^ƒCƒ‹‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+		static_assert(_countof(g_GlowTypeList)==GLOW_TRAILER,"Glow type count does not match GLOW_TRAILER.");
 
 		static const LPCWSTR g_AntiAliasingTypeList[] = {
 			L"default",
@@ -72,7 +73,7 @@ namespace TSTaskCentre
 			L"antialias",
 			L"antialias-hinting",
 		};
-		static_assert(_countof(g_AntiAliasingTypeList)==ANTIALIASING_TRAILER,"ƒAƒ“ƒ`ƒGƒCƒŠƒAƒVƒ“ƒO‚Ìƒ^ƒCƒv‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+		static_assert(_countof(g_AntiAliasingTypeList)==ANTIALIASING_TRAILER,"Antialiasing type count does not match ANTIALIASING_TRAILER.");
 
 		LPCWSTR GetFillTypeText(FillType Type)
 		{

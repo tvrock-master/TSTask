@@ -9,6 +9,7 @@ namespace TSTaskCentre
 
 	CTSTaskCentreCommandLine::CTSTaskCentreCommandLine()
 		: m_Minimize(TSTask::BOOL_DEFAULT)
+		, m_DockBottom(TSTask::BOOL_DEFAULT)
 
 		, m_LoggingLevel(-1)
 		, m_LogOutputToFile(TSTask::BOOL_DEFAULT)
@@ -25,6 +26,7 @@ namespace TSTaskCentre
 			return false;
 
 		Parser.GetOption(L"min",&m_Minimize);
+		Parser.GetOption(L"dockbottom",&m_DockBottom);
 
 		Parser.GetOption(L"loglevel",&m_LoggingLevel);
 		Parser.GetOption(L"log",&m_LogOutputToFile);

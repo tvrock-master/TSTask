@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TaskRecordingSettingsDialog.h"
 #include "MiscDialog.h"
@@ -103,7 +103,7 @@ namespace TSTaskCentre
 					TSTask::String Folder;
 
 					GetItemString(IDC_TASK_SETTINGS_RECORDING_FOLDER,&Folder);
-					if (BrowseFolderDialog(hDlg,&Folder,L"˜^‰æƒtƒ@ƒCƒ‹‚Ì•Û‘¶æƒtƒHƒ‹ƒ_"))
+					if (BrowseFolderDialog(hDlg,&Folder,L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜å…ˆãƒ•ã‚©ãƒ«ãƒ€"))
 						SetItemString(IDC_TASK_SETTINGS_RECORDING_FOLDER,Folder);
 				}
 				return TRUE;
@@ -167,7 +167,7 @@ namespace TSTaskCentre
 
 					if (Sel>=0)
 						GetFolderListItem(Sel,&Folder);
-					if (BrowseFolderDialog(hDlg,&Folder,L"—\”õ‚Ì˜^‰ææƒtƒHƒ‹ƒ_")) {
+					if (BrowseFolderDialog(hDlg,&Folder,L"äºˆå‚™ã®éŒ²ç”»å…ˆãƒ•ã‚©ãƒ«ãƒ€")) {
 						LVITEM lvi;
 						lvi.mask=LVIF_TEXT;
 						lvi.iSubItem=0;
@@ -336,7 +336,7 @@ namespace TSTaskCentre
 								*/
 								COLORREF OldTextColor=::SetTextColor(hdc,::GetSysColor(COLOR_GRAYTEXT));
 								::DrawText(hdc,
-										   TEXT("‚±‚±‚ðƒ_ƒuƒ‹ƒNƒŠƒbƒN‚µ‚ÄV‚µ‚¢ƒtƒHƒ‹ƒ_‚ð“ü—Í"),-1,
+										   TEXT("ã“ã“ã‚’ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯ã—ã¦æ–°ã—ã„ãƒ•ã‚©ãƒ«ãƒ€ã‚’å…¥åŠ›"),-1,
 										   &pnmlvcd->nmcd.rc,
 										   DT_CENTER | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
 								::SetTextColor(hdc,OldTextColor);
@@ -363,7 +363,7 @@ namespace TSTaskCentre
 			if (PreAllocateSize>TSTask::CRecordingSettings::PRE_ALLOCATE_SIZE_MAX/PRE_ALLOCATE_SIZE_UNIT) {
 				TSTask::String Message;
 				TSTask::StringUtility::Format(Message,
-					L"ƒtƒ@ƒCƒ‹—Ìˆæ‚ÌŽ–‘OŠm•Û’PˆÊ‚Í %u %s ˆÈ‰º‚ÅŽw’è‚µ‚Ä‚­‚¾‚³‚¢B",
+					L"ãƒ•ã‚¡ã‚¤ãƒ«é ˜åŸŸã®äº‹å‰ç¢ºä¿å˜ä½ã¯ %u %s ä»¥ä¸‹ã§æŒ‡å®šã—ã¦ãã ã•ã„ã€‚",
 					(UINT)(TSTask::CRecordingSettings::PRE_ALLOCATE_SIZE_MAX/PRE_ALLOCATE_SIZE_UNIT),
 					PRE_ALLOCATE_SIZE_UNIT_TEXT);
 				OnSettingError(IDC_TASK_SETTINGS_RECORDING_PRE_ALLOCATE_SIZE,Message.c_str());
@@ -376,7 +376,7 @@ namespace TSTaskCentre
 				|| WriteBufferSize>TSTask::CRecordingSettings::WRITE_BUFFER_SIZE_MAX/WRITE_SIZE_UNIT) {
 			TSTask::String Message;
 			TSTask::StringUtility::Format(Message,
-				L"ƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«o‚µ’PˆÊ‚Í %u %s ‚©‚ç %u %s ‚Ì”ÍˆÍ‚ÅŽw’è‚µ‚Ä‚­‚¾‚³‚¢B",
+				L"ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãå‡ºã—å˜ä½ã¯ %u %s ã‹ã‚‰ %u %s ã®ç¯„å›²ã§æŒ‡å®šã—ã¦ãã ã•ã„ã€‚",
 				(TSTask::CRecordingSettings::WRITE_BUFFER_SIZE_MIN+WRITE_SIZE_UNIT-1)/WRITE_SIZE_UNIT,
 				WRITE_SIZE_UNIT_TEXT,
 				TSTask::CRecordingSettings::WRITE_BUFFER_SIZE_MAX/WRITE_SIZE_UNIT,
@@ -462,7 +462,7 @@ namespace TSTaskCentre
 		int ItemCount=ListView_GetItemCount(hwndList);
 
 		SetItemText(IDC_TASK_SETTINGS_RECORDING_FOLDER_LIST_BROWSE,
-					Sel>=0?TEXT("ŽQÆ..."):TEXT("’Ç‰Á..."));
+					Sel>=0?TEXT("å‚ç…§..."):TEXT("è¿½åŠ ..."));
 		EnableItem(IDC_TASK_SETTINGS_RECORDING_FOLDER_LIST_UP,Sel>0 && Sel<ItemCount-1);
 		EnableItem(IDC_TASK_SETTINGS_RECORDING_FOLDER_LIST_DOWN,Sel>=0 && Sel+1<ItemCount-1);
 		EnableItem(IDC_TASK_SETTINGS_RECORDING_FOLDER_LIST_REMOVE,Sel>=0 && Sel<ItemCount-1);

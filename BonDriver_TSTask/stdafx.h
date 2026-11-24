@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #ifndef WINVER
 #define WINVER 0x0600
@@ -8,7 +8,7 @@
 #define _WIN32_WINNT 0x0600
 #endif
 
-// Winsock2 ‚Æƒwƒbƒ_‚ªŠ±Â‚µ‚È‚¢‚æ‚¤‚É‚·‚é
+// Winsock2 ã¨ãƒ˜ãƒƒãƒ€ãŒå¹²æ¸‰ã—ãªã„ã‚ˆã†ã«ã™ã‚‹
 #define _WINSOCKAPI_
 
 #include <cstdlib>
@@ -27,12 +27,12 @@
 
 #undef _WINSOCKAPI_
 
-// Œx‚Ì–³Œøİ’è
-#pragma warning(disable: 4355) // warning C4355: "'this' : ƒx[ƒX ƒƒ“ƒo‰Šú‰»ƒŠƒXƒg‚Åg—p‚³‚ê‚Ü‚µ‚½B"
-//#pragma warning(disable: 4995) // warning C4995: –¼‘O‚ª”ğ‚¯‚ç‚ê‚½ #pragma ‚Æ‚µ‚Ä‹Lq‚³‚ê‚Ä‚¢‚Ü‚·B
+// è­¦å‘Šã®ç„¡åŠ¹è¨­å®š
+#pragma warning(disable: 4355) // warning C4355: "'this' : ãƒ™ãƒ¼ã‚¹ ãƒ¡ãƒ³ãƒåˆæœŸåŒ–ãƒªã‚¹ãƒˆã§ä½¿ç”¨ã•ã‚Œã¾ã—ãŸã€‚"
+//#pragma warning(disable: 4995) // warning C4995: åå‰ãŒé¿ã‘ã‚‰ã‚ŒãŸ #pragma ã¨ã—ã¦è¨˜è¿°ã•ã‚Œã¦ã„ã¾ã™ã€‚
 //#pragma warning(disable: 4996) // warning C4996: "This function or variable may be unsafe."
 
-// ƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒŠƒ“ƒN
+// ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒªãƒ³ã‚¯
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "advapi32.lib")

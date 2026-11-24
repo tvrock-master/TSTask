@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "SendMessageDialog.h"
 #include "resource.h"
@@ -49,7 +49,7 @@ namespace TSTaskCentre
 						TSTask::CMessage SendMessage,ReceiveMessage;
 
 						if (!Translator.Parse(&SendMessage,Message.c_str())) {
-							::MessageBox(hDlg,TEXT("ƒƒbƒZ[ƒW‚ğ•ÏŠ·‚Å‚«‚Ü‚¹‚ñB"),nullptr,
+							::MessageBox(hDlg,TEXT("ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å¤‰æ›ã§ãã¾ã›ã‚“ã€‚"),nullptr,
 										 MB_OK | MB_ICONEXCLAMATION);
 							return TRUE;
 						}
@@ -58,18 +58,18 @@ namespace TSTaskCentre
 
 						if (IsItemChecked(IDC_MESSAGE_BROADCAST)) {
 							if (!m_Manager.BroadcastMessage(&SendMessage)) {
-								::MessageBox(hDlg,TEXT("ƒƒbƒZ[ƒW‚Ì‘—MƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B"),nullptr,
+								::MessageBox(hDlg,TEXT("ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®é€ä¿¡ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚"),nullptr,
 											 MB_OK | MB_ICONEXCLAMATION);
 							}
 						} else {
 							if (!m_Manager.SendMessage(m_TaskID,&SendMessage,&ReceiveMessage)) {
-								::MessageBox(hDlg,TEXT("ƒƒbƒZ[ƒW‚Ì‘—MƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B"),nullptr,
+								::MessageBox(hDlg,TEXT("ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®é€ä¿¡ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚"),nullptr,
 											 MB_OK | MB_ICONEXCLAMATION);
 								return TRUE;
 							}
 
 							if (!Translator.Format(&ReceiveMessage,&Message)) {
-								::MessageBox(hDlg,TEXT("•ÔM‚ğƒtƒH[ƒ}ƒbƒg‚Å‚«‚Ü‚¹‚ñB"),nullptr,
+								::MessageBox(hDlg,TEXT("è¿”ä¿¡ã‚’ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã§ãã¾ã›ã‚“ã€‚"),nullptr,
 											 MB_OK | MB_ICONEXCLAMATION);
 								return TRUE;
 							}

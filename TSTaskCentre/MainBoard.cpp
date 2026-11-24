@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include <dwmapi.h>
 #include "TSTaskCentre.h"
@@ -40,7 +41,8 @@ namespace TSTaskCentre
 	enum
 	{
 		TIMER_ID_UPDATE_STATUS=1,
-		TIMER_ID_UPDATE_INFORMATION_BAR
+		TIMER_ID_UPDATE_INFORMATION_BAR,
+		TIMER_ID_TASK_STARTUP
 	};
 
 	const LPCTSTR CMainBoard::m_pszWindowClass=APP_NAME_W TEXT("_MainBoard");
@@ -184,7 +186,7 @@ namespace TSTaskCentre
 							   0,m_pszWindowClass,APP_NAME_W,m_hinst))
 			return false;
 
-		// Œã‚ÅƒXƒ^ƒCƒ‹‚ð•Ï‚¦‚È‚¢‚ÆƒVƒXƒeƒ€ƒƒjƒ…[‚ªo‚È‚¢
+		// å¾Œã§ã‚¹ã‚¿ã‚¤ãƒ«ã‚’å¤‰ãˆãªã„ã¨ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒå‡ºãªã„
 		SetStyle(GetStyle() & ~WS_CAPTION);
 
 		::SetWindowPos(m_hwnd,nullptr,0,0,m_WindowPosition.Width,m_WindowPosition.Height,
@@ -198,84 +200,221 @@ namespace TSTaskCentre
 		if (m_hwnd==nullptr)
 			return false;
 
-		MoveToMonitorInside();
+		if (m_fDockBottom)
+			AdjustSize();
+		else
+			MoveToMonitorInside();
 
-		return ::ShowWindow(m_hwnd,CmdShow)!=FALSE;
+		const bool fWasVisible=::ShowWindow(m_hwnd,CmdShow)!=FALSE;
+		if (m_fDockBottom)
+			AdjustSize();
+		return fWasVisible;
 	}
 
 	bool CMainBoard::CreateTSTaskBar(TSTask::TaskID ID)
 	{
 		TSTask::String Caption;
 		TSTask::TaskUtility::TaskIDToString(ID,&Caption);
-		int DeviceID=-1;
-		m_Core.GetTSTaskManager().GetTvRockInfo(ID,&DeviceID);
-		if (DeviceID>=0) {
-			WCHAR szDID[4];
-			TSTask::FormatString(szDID,_countof(szDID),L":%c",L'A'+DeviceID);
-			Caption+=szDID;
-		}
-
-		CTSTaskBar::ThemeInfo Theme=m_Theme.TSTaskBar;
-		if (DeviceID>=0)
-			Theme.CaptionStyle=m_Theme.TvRockCaptionStyles[DeviceID%_countof(m_Theme.TvRockCaptionStyles)];
-
-		if (!m_TSTaskBarBase.CreateTSTaskBar(ID,Caption.c_str(),Theme))
+		if (!m_TSTaskBarBase.CreateTSTaskBar(ID,Caption.c_str(),m_Theme.TSTaskBar))
 			return false;
 
 		if (m_fAdjustSize)
 			AdjustSize();
-
 		Redraw(nullptr,RDW_UPDATENOW | RDW_ALLCHILDREN);
-
-		UpdateTSTaskBar(ID);
-
 		m_fEndAllTaskByUser=false;
-
 		return true;
 	}
 
 	bool CMainBoard::RemoveTSTaskBar(TSTask::TaskID ID)
 	{
+		const auto Startup=m_TaskStartup.find(ID);
+		if (Startup!=m_TaskStartup.end())
+			Startup->second->Cancelled=true;
+
 		if (!m_TSTaskBarBase.RemoveTSTaskBar(ID))
 			return false;
 
-		if (m_fAdjustSize && m_TSTaskBarBase.GetTSTaskBarCount()>0)
+		if (m_fAdjustSize && (m_fDockBottom || m_TSTaskBarBase.GetTSTaskBarCount()>0))
 			AdjustSize();
 
 		if (!m_fEndAllTaskByUser
 				&& m_Core.GetSettings().General.GetExitWhenAllTaskEnded()
 				&& m_TSTaskBarBase.GetTSTaskBarCount()==0) {
-			TSTask::OutLog(TSTask::LOG_INFO,L"‘S‚Ä‚Ìƒ^ƒXƒN‚ªI—¹‚µ‚½‚Ì‚Å" APP_NAME_W L"‚ðI—¹‚µ‚Ü‚·B");
+			TSTask::OutLog(TSTask::LOG_INFO,L"å…¨ã¦ã®ã‚¿ã‚¹ã‚¯ãŒçµ‚äº†ã—ãŸã®ã§" APP_NAME_W L"ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
 			PostMessage(WM_COMMAND,CM_EXIT,0);
 		}
 
 		return true;
 	}
 
-	bool CMainBoard::SendCreateTSTaskBar(TSTask::TaskID ID)
+	bool CMainBoard::NotifyTaskStarted(TSTask::TaskID ID)
 	{
-		if (m_hwnd==nullptr)
-			return false;
-
-		DWORD_PTR Result=0;
-		if (::SendMessageTimeout(m_hwnd,WM_APP_CREATE_TS_TASK_BAR,ID,0,
-								 SMTO_NORMAL,10000,&Result)==0)
-			return false;
-
-		return Result!=0;
+		return PostMessage(WM_APP_CREATE_TS_TASK_BAR,ID,0);
 	}
 
-	bool CMainBoard::SendRemoveTSTaskBar(TSTask::TaskID ID)
+	bool CMainBoard::NotifyTaskEnded(TSTask::TaskID ID)
 	{
-		if (m_hwnd==nullptr)
+		return PostMessage(WM_APP_REMOVE_TS_TASK_BAR,ID,0);
+	}
+
+	void CMainBoard::StopTaskStartup()
+	{
+		for (auto &Task:m_TaskStartup)
+			Task.second->Cancelled=true;
+
+		m_TaskStartup.clear();
+	}
+
+	bool CMainBoard::IsTaskReady(TSTask::TaskID ID)
+	{
+		return m_TSTaskBarBase.GetTSTaskBar(ID)!=nullptr
+			&& m_TaskStartup.find(ID)==m_TaskStartup.end();
+	}
+
+	void CMainBoard::StartTaskStartup(TSTask::TaskID ID)
+	{
+		auto &Startup=m_TaskStartup[ID];
+		if (Startup && Startup->Work.valid())
+			return;
+		if (!Startup || Startup->Cancelled)
+			Startup=std::make_unique<TaskStartup>();
+
+		Startup->NeedsRefresh=false;
+		try {
+			Startup->Work=std::async(std::launch::async,ReadTaskStartup,
+									 m_Core.GetTaskID(),ID,std::ref(*Startup));
+		} catch (const std::system_error &) {
+			TSTask::OutLog(TSTask::LOG_ERROR,L"ã‚¿ã‚¹ã‚¯(%u)ã®ç™»éŒ²ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚",ID);
+			return;
+		}
+		::SetTimer(m_hwnd,TIMER_ID_TASK_STARTUP,USER_TIMER_MINIMUM,nullptr);
+	}
+
+	void CMainBoard::PollTaskStartup(bool Retry)
+	{
+		bool Running=false;
+		for (auto it=m_TaskStartup.begin();it!=m_TaskStartup.end();) {
+			const auto Current=it++;
+			const auto ID=Current->first;
+			auto &Startup=*Current->second;
+			if (Startup.Work.valid()
+					&& Startup.Work.wait_for(std::chrono::seconds(0))!=std::future_status::ready) {
+				Running=true;
+				continue;
+			}
+
+			const bool Finished=Startup.Work.valid();
+			const bool Success=Finished && Startup.Work.get();
+			if (Startup.Cancelled) {
+				m_TaskStartup.erase(Current);
+				if (m_TSTaskBarBase.GetTSTaskBar(ID)!=nullptr) {
+					StartTaskStartup(ID);
+					Running=true;
+				}
+				continue;
+			}
+
+			if (Success) {
+				ApplyTaskStartup(ID,Startup);
+				if (Startup.NeedsRefresh) {
+					StartTaskStartup(ID);
+					Running=true;
+					continue;
+				}
+				if (m_Core.GetTSTaskManager().AdoptTask(ID,Startup.Manager)) {
+					const auto ToolEvents=std::move(Startup.ToolEvents);
+					m_TaskStartup.erase(Current);
+					for (const auto Event:ToolEvents)
+						m_Core.ExecuteTaskToolOnEvent(ID,Event);
+					continue;
+				}
+			}
+
+			if (Finished || Retry) {
+				if (!TSTask::TaskUtility::IsServerTaskExists(ID)) {
+					RemoveTSTaskBar(ID);
+					m_TaskStartup.erase(Current);
+				} else if (Retry) {
+					StartTaskStartup(ID);
+					Running=true;
+				}
+			}
+		}
+		if (!Running)
+			::KillTimer(m_hwnd,TIMER_ID_TASK_STARTUP);
+	}
+
+	static bool ReadChannelStatus(CTSTaskManager &Manager,TSTask::TaskID ID,TSTask::ChannelInfo *pChannel)
+	{
+		if (!Manager.GetChannel(ID,pChannel))
 			return false;
 
-		DWORD_PTR Result=0;
-		if (::SendMessageTimeout(m_hwnd,WM_APP_REMOVE_TS_TASK_BAR,ID,0,
-								 SMTO_NORMAL,10000,&Result)==0)
+		TSTask::ServiceInfo Service;
+		if (((pChannel->ServiceID!=0 && pChannel->ServiceID!=pChannel->ScannedServiceID)
+					|| pChannel->ChannelName.empty())
+				&& Manager.GetService(ID,&Service)
+				&& !Service.ServiceName.empty())
+			pChannel->ChannelName=std::move(Service.ServiceName);
+
+		return true;
+	}
+
+	bool CMainBoard::ReadTaskStartup(TSTask::TaskID ClientID,TSTask::TaskID ID,TaskStartup &Startup)
+	{
+		// The startup manager keeps pipe waits off the live manager's lock.
+		auto &Manager=Startup.Manager;
+		if (Startup.Cancelled || !Manager.AddTask(ClientID,ID))
 			return false;
 
-		return Result!=0;
+		if (!Startup.Cancelled)
+			Manager.GetTvRockInfo(ID,&Startup.DeviceID);
+		if (!Startup.Cancelled && !Manager.GetBonDriver(ID,nullptr,&Startup.TunerName,true))
+			Startup.TunerName.clear();
+		if (!Startup.Cancelled && !ReadChannelStatus(Manager,ID,&Startup.Channel))
+			Startup.Channel={};
+		if (!Startup.Cancelled)
+			Startup.HasRecording=Manager.GetRecordingInfo(ID,&Startup.Recording);
+		if (!Startup.Cancelled)
+			Startup.HasStreaming=Manager.GetStreamingInfo(ID,&Startup.Streaming);
+		if (!Startup.Cancelled && !Manager.GetEventInfo(ID,&Startup.Event))
+			Startup.Event={};
+		if (!Startup.Cancelled && !Manager.GetStreamStatistics(ID,&Startup.Statistics))
+			Startup.Statistics={};
+		if (!Startup.Cancelled)
+			Startup.HasClock=Manager.GetTotTime(ID,&Startup.Clock);
+
+		TSTask::TaskInfo Info;
+		return !Startup.Cancelled && Manager.GetTaskInfo(ID,&Info)
+			&& Info.State==TSTask::TASK_STATE_RUNNING && Info.ProcessID!=0;
+	}
+
+	void CMainBoard::ApplyTaskStartup(TSTask::TaskID ID,const TaskStartup &Startup)
+	{
+		auto *pBar=m_TSTaskBarBase.GetTSTaskBar(ID);
+		TSTask::String Caption;
+		TSTask::TaskUtility::TaskIDToString(ID,&Caption);
+		CTSTaskBar::ThemeInfo Theme=m_Theme.TSTaskBar;
+		if (Startup.DeviceID>=0) {
+			WCHAR szDID[4];
+			TSTask::FormatString(szDID,_countof(szDID),L":%c",L'A'+Startup.DeviceID);
+			Caption+=szDID;
+			Theme.CaptionStyle=m_Theme.TvRockCaptionStyles[Startup.DeviceID%_countof(m_Theme.TvRockCaptionStyles)];
+		}
+		pBar->SetCaptionText(Caption.c_str());
+		pBar->SetTheme(Theme);
+		pBar->SetTunerName(Startup.TunerName.c_str());
+		pBar->SetTuningSpaceName(Startup.Channel.SpaceName.c_str());
+		pBar->SetChannelName(Startup.Channel.ChannelName.c_str());
+		const auto &Statistics=Startup.Statistics;
+		pBar->SetSignalStatus(Statistics.SignalLevel,Statistics.BitRate);
+		pBar->SetErrorStatistics(Statistics.ErrorPacketCount,
+								 Statistics.DiscontinuityCount,Statistics.ScramblePacketCount);
+		pBar->SetClockTime(Startup.HasClock?CTSTaskBar::CLOCK_TOT:CTSTaskBar::CLOCK_INVALID,Startup.Clock);
+		if (Startup.HasRecording)
+			pBar->SetRecordingInfo(Startup.Recording);
+		pBar->SetStreamingInfo(Startup.HasStreaming?&Startup.Streaming:nullptr);
+		const auto &Event=Startup.Event;
+		pBar->SetEventInfo(Event.EventName.c_str(),Event.StartTime.wYear!=0?&Event.StartTime:nullptr,Event.Duration);
 	}
 
 	bool CMainBoard::AdjustSize()
@@ -286,6 +425,16 @@ namespace TSTaskCentre
 		if (::IsZoomed(m_hwnd) || ::IsIconic(m_hwnd)) {
 			m_fAdjustSizeOnRestore=true;
 			return true;
+		}
+
+		if (m_fDockBottom)
+			return AdjustDockedSize();
+
+		if (m_UndockedPosition.Width>0) {
+			const Position Pos=m_UndockedPosition;
+			m_UndockedPosition={};
+			SetPosition(Pos);
+			MoveToMonitorInside();
 		}
 
 		if (m_TSTaskBarBase.GetTSTaskBarCount()==0) {
@@ -318,6 +467,47 @@ namespace TSTaskCentre
 		return true;
 	}
 
+	bool CMainBoard::AdjustDockedSize()
+	{
+		RECT Current;
+		GetPosition(&Current);
+
+		// The window rectangle includes the invisible resize border.
+		RECT Visible=Current;
+		RECT DwmBounds;
+		if (SUCCEEDED(::DwmGetWindowAttribute(m_hwnd,DWMWA_EXTENDED_FRAME_BOUNDS,&DwmBounds,sizeof(DwmBounds)))
+				&& !::IsRectEmpty(&DwmBounds)
+				&& DwmBounds.left>=Current.left && DwmBounds.right<=Current.right
+				&& DwmBounds.top>=Current.top && DwmBounds.bottom<=Current.bottom)
+			Visible=DwmBounds;
+
+		MONITORINFO Monitor={sizeof(Monitor)};
+		if (!::GetMonitorInfo(::MonitorFromRect(&Visible,MONITOR_DEFAULTTONEAREST),&Monitor))
+			return false;
+
+		if (m_UndockedPosition.Width<=0)
+			GetPosition(&m_UndockedPosition);
+
+		const RECT &Work=Monitor.rcWork;
+		const int Left=Work.left-(Visible.left-Current.left);
+		const int Right=Work.right+(Current.right-Visible.right);
+		const int Bottom=Work.bottom+(Current.bottom-Visible.bottom);
+		const int MaxHeight=Bottom-Work.top+(Visible.top-Current.top);
+
+		RECT Frame{};
+		CalcPositionFromClientRect(&Frame);
+		const int TaskWidth=max(0,Right-Left-(Frame.right-Frame.left)-m_CaptionWidth);
+		const int TaskHeight=m_TSTaskBarBase.GetTSTaskBarCount()>0?
+			m_TSTaskBarBase.CalcHeight(TaskWidth):m_Core.ScaleDPI(32);
+		const int InfoHeight=m_fShowInformationBar?m_InformationBar.GetHeight():0;
+		const int Height=min(TaskHeight+InfoHeight+Frame.bottom-Frame.top,MaxHeight);
+		const RECT Docked={Left,Bottom-Height,Right,Bottom};
+
+		if (::EqualRect(&Current,&Docked))
+			return SendSizeMessage();
+		return SetPosition(Docked);
+	}
+
 	bool CMainBoard::SetTheme(const ThemeInfo &Theme)
 	{
 		m_Theme=Theme;
@@ -330,7 +520,7 @@ namespace TSTaskCentre
 		for (int i=0;(ID=m_TSTaskBarBase.GetTaskID(i))!=TSTask::INVALID_TASK_ID;i++) {
 			CTSTaskBar::ThemeInfo Theme=m_Theme.TSTaskBar;
 			int DeviceID=-1;
-			if (m_Core.GetTSTaskManager().GetTvRockInfo(ID,&DeviceID) && DeviceID>=0)
+			if (IsTaskReady(ID) && m_Core.GetTSTaskManager().GetTvRockInfo(ID,&DeviceID) && DeviceID>=0)
 				Theme.CaptionStyle=m_Theme.TvRockCaptionStyles[DeviceID%_countof(m_Theme.TvRockCaptionStyles)];
 			m_TSTaskBarBase.SetTSTaskBarTheme(ID,Theme);
 		}
@@ -531,10 +721,13 @@ namespace TSTaskCentre
 			}
 		}
 
+		const bool fDockChanged=m_fDockBottom!=Settings.GetDockBottom();
+		m_fDockBottom=Settings.GetDockBottom();
 		if (m_hwnd!=nullptr) {
-			if (TSTaskBarCount>0
-					&& (m_TSTaskBarBase.GetHeight()!=OldTSTaskBarHeight
-						|| m_InformationBar.GetHeight()!=OldInformationBarHeight))
+			if (fDockChanged || m_fDockBottom
+					|| (TSTaskBarCount>0
+						&& (m_TSTaskBarBase.GetHeight()!=OldTSTaskBarHeight
+							|| m_InformationBar.GetHeight()!=OldInformationBarHeight)))
 				AdjustSize();
 			else
 				SendSizeMessage();
@@ -548,8 +741,9 @@ namespace TSTaskCentre
 		if (pSettings==nullptr)
 			return false;
 
-		Position Pos;
-		GetPosition(&Pos);
+		Position Pos=m_UndockedPosition;
+		if (Pos.Width<=0)
+			GetPosition(&Pos);
 		pSettings->SetPosition(Pos.Left,Pos.Top,Pos.Width,Pos.Height);
 		pSettings->SetShowTrayIcon(m_fShowTrayIcon);
 		pSettings->SetMinimizeToTray(m_fMinimizeToTray);
@@ -723,6 +917,23 @@ namespace TSTaskCentre
 			}
 			return 0;
 
+		case WM_DISPLAYCHANGE:
+		case WM_SETTINGCHANGE:
+			if (m_fDockBottom)
+				AdjustSize();
+			break;
+
+		case WM_SYSCOMMAND:
+			if (m_fDockBottom) {
+				switch (wParam & 0xFFF0) {
+				case SC_MOVE:
+				case SC_SIZE:
+				case SC_MAXIMIZE:
+					return 0;
+				}
+			}
+			break;
+
 		case WM_NCHITTEST:
 			{
 				const bool fFixedHeight=
@@ -732,6 +943,8 @@ namespace TSTaskCentre
 
 				::ScreenToClient(hwnd,&pt);
 				::GetClientRect(hwnd,&rc);
+				if (m_fDockBottom && !::PtInRect(&rc,pt))
+					return HTCAPTION;
 				if (pt.x<rc.left) {
 					if (!fFixedHeight) {
 						if (pt.y<rc.top)
@@ -807,13 +1020,20 @@ namespace TSTaskCentre
 			switch (wParam) {
 			case TIMER_ID_UPDATE_STATUS:
 				{
+					PollTaskStartup(true);
 					TSTask::TaskID ID;
 					for (int i=0;(ID=m_TSTaskBarBase.GetTaskID(i))!=TSTask::INVALID_TASK_ID;i++) {
+						if (!IsTaskReady(ID))
+							continue;
 						UpdateStatistics(ID);
 						UpdateRecordingTime(ID);
 						UpdateClockStatus(ID);
 					}
 				}
+				break;
+
+			case TIMER_ID_TASK_STARTUP:
+				PollTaskStartup(false);
 				break;
 
 			case TIMER_ID_UPDATE_INFORMATION_BAR:
@@ -825,90 +1045,40 @@ namespace TSTaskCentre
 
 		case WM_DWMCOMPOSITIONCHANGED:
 			UpdateTransparent();
+			if (m_fDockBottom)
+				AdjustSize();
 			return 0;
 
 		case WM_APP_CREATE_TS_TASK_BAR:
-			TRACE(L"WM_APP_CREATE_TS_TASK_BAR(%Iu)\n",wParam);
-			return CreateTSTaskBar(TSTask::TaskID(wParam));
+			{
+				const auto ID=static_cast<TSTask::TaskID>(wParam);
+				if (!IsTaskReady(ID)
+						&& (m_TSTaskBarBase.GetTSTaskBar(ID)!=nullptr || CreateTSTaskBar(ID)))
+					StartTaskStartup(ID);
+			}
+			return 0;
 
 		case WM_APP_REMOVE_TS_TASK_BAR:
-			TRACE(L"WM_APP_REMOVE_TS_TASK_BAR(%Iu)\n",wParam);
-			return RemoveTSTaskBar(TSTask::TaskID(wParam));
+			{
+				const auto ID=static_cast<TSTask::TaskID>(wParam);
+				if (IsTaskReady(ID))
+					m_Core.RemoveTask(ID);
+				RemoveTSTaskBar(ID);
+			}
+			return 0;
 
 		case WM_APP_BONDRIVER_LOADED:
-			TRACE(L"WM_APP_BONDRIVER_LOADED(%Iu)\n",wParam);
-			UpdateTunerStatus(TSTask::TaskID(wParam));
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_BonDriverLoaded);
-			return 0;
-
 		case WM_APP_BONDRIVER_UNLOADED:
-			TRACE(L"WM_APP_BONDRIVER_UNLOADED(%Iu)\n",wParam);
-			UpdateTunerStatus(TSTask::TaskID(wParam));
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_BonDriverUnloaded);
-			return 0;
-
 		case WM_APP_TUNER_OPENED:
-			TRACE(L"WM_APP_TUNER_OPENED(%Iu)\n",wParam);
-			UpdateTunerStatus(TSTask::TaskID(wParam));
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_TunerOpened);
-			return 0;
-
 		case WM_APP_TUNER_CLOSED:
-			TRACE(L"WM_APP_TUNER_CLOSED(%Iu)\n",wParam);
-			UpdateTunerStatus(TSTask::TaskID(wParam));
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_TunerClosed);
-			return 0;
-
 		case WM_APP_CHANNEL_CHANGED:
-			TRACE(L"WM_APP_CHANNEL_CHANGED(%Iu)\n",wParam);
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_ChannelChanged);
-			return 0;
-
 		case WM_APP_SERVICE_CHANGED:
-			TRACE(L"WM_APP_SERVICE_CHANGED(%Iu)\n",wParam);
-			UpdateChannelStatus(TSTask::TaskID(wParam));
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_ServiceChanged);
-			return 0;
-
 		case WM_APP_RECORDING_STARTED:
-			TRACE(L"WM_APP_RECORDING_STARTED(%Iu)\n",wParam);
-			UpdateRecordingStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_RecordingStarted);
-			return 0;
-
 		case WM_APP_RECORDING_STOPPED:
-			TRACE(L"WM_APP_RECORDING_STOPPED(%Iu)\n",wParam);
-			UpdateRecordingStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_RecordingStopped);
-			return 0;
-
 		case WM_APP_STREAMING_STARTED:
-			TRACE(L"WM_APP_STREAMING_STARTED(%Iu)\n",wParam);
-			UpdateStreamingStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_StreamingStarted);
-			return 0;
-
 		case WM_APP_STREAMING_STOPPED:
-			TRACE(L"WM_APP_STREAMING_STOPPED(%Iu)\n",wParam);
-			UpdateStreamingStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_StreamingStopped);
-			return 0;
-
 		case WM_APP_EVENT_CHANGED:
-			TRACE(L"WM_APP_EVENT_CHANGED(%Iu)\n",wParam);
-			UpdateEventStatus(TSTask::TaskID(wParam));
-			m_Core.ExecuteTaskToolOnEvent(TSTask::TaskID(wParam),TSTask::MESSAGE_EVENT_EventChanged);
+			OnTaskEvent(static_cast<TSTask::TaskID>(wParam),uMsg);
 			return 0;
 
 		case WM_APP_ERROR_LOG:
@@ -935,11 +1105,11 @@ namespace TSTaskCentre
 					POINT pt;
 
 					::GetCursorPos(&pt);
-					// ‚¨–ñ‘©‚ª•K—v‚È——R‚ÍˆÈ‰º‚ðŽQÆ
+					// ãŠç´„æŸãŒå¿…è¦ãªç†ç”±ã¯ä»¥ä¸‹ã‚’å‚ç…§
 					// http://support.microsoft.com/kb/135788/en-us
-					::SetForegroundWindow(hwnd);		// ‚¨–ñ‘©
+					::SetForegroundWindow(hwnd);		// ãŠç´„æŸ
 					::TrackPopupMenu(::GetSubMenu(hmenu,0),TPM_RIGHTBUTTON,pt.x,pt.y,0,hwnd,NULL);
-					::PostMessage(hwnd,WM_NULL,0,0);	// ‚¨–ñ‘©
+					::PostMessage(hwnd,WM_NULL,0,0);	// ãŠç´„æŸ
 					::DestroyMenu(hmenu);
 				}
 				break;
@@ -1017,19 +1187,19 @@ namespace TSTaskCentre
 			bool fDontAskAgain=false;
 			TSTask::String Message;
 			if (TaskCount>0)
-				TSTask::StringUtility::Format(Message,L"%dŒÂ‚Ìƒ^ƒXƒN‚ª“®ì’†‚Å‚·B\r\n",TaskCount);
+				TSTask::StringUtility::Format(Message,L"%då€‹ã®ã‚¿ã‚¹ã‚¯ãŒå‹•ä½œä¸­ã§ã™ã€‚\r\n",TaskCount);
 			if (fEndTasks) {
 				if (TaskCount>0)
-					Message+=APP_NAME_W L" ‚Æ‘S‚Ä‚Ìƒ^ƒXƒN‚ðI—¹‚³‚¹‚Ü‚·‚©?";
+					Message+=APP_NAME_W L" ã¨å…¨ã¦ã®ã‚¿ã‚¹ã‚¯ã‚’çµ‚äº†ã•ã›ã¾ã™ã‹?";
 				else
-					Message+=APP_NAME_W L" ‚ðI—¹‚µ‚Ü‚·‚©?";
+					Message+=APP_NAME_W L" ã‚’çµ‚äº†ã—ã¾ã™ã‹?";
 			} else {
-				Message+=APP_NAME_W L" ‚ðI—¹‚µ‚Ü‚·‚©?";
+				Message+=APP_NAME_W L" ã‚’çµ‚äº†ã—ã¾ã™ã‹?";
 				if (TaskCount>0)
-					Message+=L"\r\n(" APP_NAME_W L" ‚ðI—¹‚µ‚Ä‚àAƒ^ƒXƒN‚Í“®ì‚µ‚½‚Ü‚Ü‚É‚È‚è‚Ü‚·)";
+					Message+=L"\r\n(" APP_NAME_W L" ã‚’çµ‚äº†ã—ã¦ã‚‚ã€ã‚¿ã‚¹ã‚¯ã¯å‹•ä½œã—ãŸã¾ã¾ã«ãªã‚Šã¾ã™)";
 			}
 			int Result=ShowMessage(CMessageDialog::TYPE_QUESTION,
-								   Message.c_str(),L"I—¹‚ÌŠm”F",
+								   Message.c_str(),L"çµ‚äº†ã®ç¢ºèª",
 								   CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL,
 								   &fDontAskAgain);
 			if (fDontAskAgain) {
@@ -1055,8 +1225,8 @@ namespace TSTaskCentre
 				bool fDontAskAgain=false;
 				int Result=
 					ShowMessage(CMessageDialog::TYPE_QUESTION,
-								L"Œ»Ý˜^‰æ’†‚Å‚·Bƒ`ƒƒƒ“ƒlƒ‹‚ð•ÏX‚µ‚Ü‚·‚©?",
-								L"ƒ`ƒƒƒ“ƒlƒ‹•ÏX‚ÌŠm”F",
+								L"ç¾åœ¨éŒ²ç”»ä¸­ã§ã™ã€‚ãƒãƒ£ãƒ³ãƒãƒ«ã‚’å¤‰æ›´ã—ã¾ã™ã‹?",
+								L"ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´ã®ç¢ºèª",
 								CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL,
 								&fDontAskAgain);
 				if (fDontAskAgain)
@@ -1154,6 +1324,8 @@ namespace TSTaskCentre
 
 				if (fExit && !ConfirmClose(true))
 					return;
+				if (m_TSTaskBarBase.GetTSTaskBarCount()!=m_Core.GetTaskCount())
+					return;
 
 				m_fEndAllTaskByUser=true;
 				bool fSuccess=true;
@@ -1189,10 +1361,11 @@ namespace TSTaskCentre
 						MF_BYCOMMAND | (m_fTranslucent?MF_CHECKED:MF_UNCHECKED));
 		::CheckMenuItem(hmenu,CM_INFORMATION_BAR,
 						MF_BYCOMMAND | (m_fShowInformationBar?MF_CHECKED:MF_UNCHECKED));
-		::EnableMenuItem(hmenu,CM_END_ALL_TASKS,
-						 MF_BYCOMMAND | (m_TSTaskBarBase.GetTSTaskBarCount()>0?MF_ENABLED:MF_GRAYED));
-		::EnableMenuItem(hmenu,CM_END_ALL_TASKS_AND_EXIT,
-						 MF_BYCOMMAND | (m_TSTaskBarBase.GetTSTaskBarCount()>0?MF_ENABLED:MF_GRAYED));
+		const int TaskCount=m_TSTaskBarBase.GetTSTaskBarCount();
+		const UINT EndTaskFlags=MF_BYCOMMAND
+			| (TaskCount>0 && TaskCount==m_Core.GetTaskCount()?MF_ENABLED:MF_GRAYED);
+		::EnableMenuItem(hmenu,CM_END_ALL_TASKS,EndTaskFlags);
+		::EnableMenuItem(hmenu,CM_END_ALL_TASKS_AND_EXIT,EndTaskFlags);
 
 		::TrackPopupMenu(::GetSubMenu(hmenu,0),TPM_RIGHTBUTTON,x,y,0,m_hwnd,nullptr);
 		::DestroyMenu(hmenu);
@@ -1250,6 +1423,9 @@ namespace TSTaskCentre
 
 	void CMainBoard::OnCaptionRButtonUp(TSTask::TaskID ID,int x,int y)
 	{
+		if (!IsTaskReady(ID))
+			return;
+
 		HMENU hmenu=::LoadMenu(m_hinst,MAKEINTRESOURCE(IDM_TASK));
 		HMENU hmenuPopup=::GetSubMenu(hmenu,0);
 		POINT pt={x,y};
@@ -1302,7 +1478,7 @@ namespace TSTaskCentre
 
 					if (!TSTaskManager.GetSetting(ID,L"General.IniFilePath",&Path)) {
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"INI ƒtƒ@ƒCƒ‹‚ÌƒpƒX‚ðŽæ“¾‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"INI ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 						break;
 					}
 
@@ -1310,7 +1486,7 @@ namespace TSTaskCentre
 					TSTask::CSettings Settings;
 
 					if (TSTask::PathUtility::IsExists(Path)) {
-						TSTask::OutLog(TSTask::LOG_VERBOSE,L"TSTask ‚ÌÝ’è‚ð \"%s\" ‚©‚ç“Ç‚Ýž‚Ý‚Ü‚·B",Path.c_str());
+						TSTask::OutLog(TSTask::LOG_VERBOSE,L"TSTask ã®è¨­å®šã‚’ \"%s\" ã‹ã‚‰èª­ã¿è¾¼ã¿ã¾ã™ã€‚",Path.c_str());
 						if (Settings.Open(Path.c_str(),TSTask::CSettings::OPEN_READ)) {
 							TSTaskSettings.Load(Settings);
 							Settings.Close();
@@ -1320,17 +1496,17 @@ namespace TSTaskCentre
 						TSTask::GetModuleDirectory(nullptr,&DefaultIniPath);
 						TSTask::PathUtility::Append(&DefaultIniPath,L"TSTask.default.ini");
 						TSTask::OutLog(TSTask::LOG_INFO,
-										L"INI ƒtƒ@ƒCƒ‹ \"%s\" ‚ª‘¶Ý‚µ‚È‚¢‚½‚ßAƒfƒtƒHƒ‹ƒg‚ÌÝ’è‚ð \"%s\" ‚©‚çƒRƒs[‚µ‚Ü‚·B",
+										L"INI ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ãŒå­˜åœ¨ã—ãªã„ãŸã‚ã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è¨­å®šã‚’ \"%s\" ã‹ã‚‰ã‚³ãƒ”ãƒ¼ã—ã¾ã™ã€‚",
 										Path.c_str(),DefaultIniPath.c_str());
 						if (!::CopyFile(DefaultIniPath.c_str(),Path.c_str(),TRUE)) {
-							TSTask::OutSystemErrorLog(::GetLastError(),L"ƒtƒ@ƒCƒ‹‚ðƒRƒs[‚Å‚«‚Ü‚¹‚ñB");
+							TSTask::OutSystemErrorLog(::GetLastError(),L"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼ã§ãã¾ã›ã‚“ã€‚");
 						}
 					}
 
 					CTSTaskSettingsDialog Dialog(m_Core,TSTaskSettings);
 
 					if (Dialog.Show(m_hwnd,m_hinst)) {
-						TSTask::OutLog(TSTask::LOG_INFO,L"TSTask ‚ÌÝ’è‚ð \"%s\" ‚É•Û‘¶‚µ‚Ü‚·B",Path.c_str());
+						TSTask::OutLog(TSTask::LOG_INFO,L"TSTask ã®è¨­å®šã‚’ \"%s\" ã«ä¿å­˜ã—ã¾ã™ã€‚",Path.c_str());
 						if (Settings.Open(Path.c_str(),TSTask::CSettings::OPEN_WRITE)) {
 							TSTaskSettings.Save(Settings);
 							Settings.Flush();
@@ -1380,7 +1556,7 @@ namespace TSTaskCentre
 					ToolsSettings.GetToolInfo(Result-CM_TASK_TOOL_FIRST,&Info);
 					if (!m_Core.ExecuteTaskTool(ID,Info))
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"ƒvƒƒOƒ‰ƒ€‚ÌŽÀs‚ª‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®å®Ÿè¡ŒãŒã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					break;
 				}
 				break;
@@ -1390,6 +1566,9 @@ namespace TSTaskCentre
 
 	void CMainBoard::OnItemLButtonDown(TSTask::TaskID ID,CTSTaskBar *pTSTaskBar,int ItemID,int x,int y)
 	{
+		if (!IsTaskReady(ID))
+			return;
+
 		CTSTaskManager &TSTaskManager=m_Core.GetTSTaskManager();
 
 		switch (ItemID) {
@@ -1520,8 +1699,8 @@ namespace TSTaskCentre
 								if (TSTaskManager.GetRecordingInfo(ID,&RecInfo)
 										&& RecInfo.State==TSTask::RECORDING_STATE_RECORDING) {
 									if (ShowMessage(CMessageDialog::TYPE_QUESTION,
-													L"Œ»Ý˜^‰æ’†‚Å‚·BBonDriver‚ð•ÏX‚µ‚Ü‚·‚©?",
-													L"BonDriver•ÏX‚ÌŠm”F",
+													L"ç¾åœ¨éŒ²ç”»ä¸­ã§ã™ã€‚BonDriverã‚’å¤‰æ›´ã—ã¾ã™ã‹?",
+													L"BonDriverå¤‰æ›´ã®ç¢ºèª",
 													CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL)!=IDOK)
 										return;
 								}
@@ -1529,12 +1708,12 @@ namespace TSTaskCentre
 
 							if (!TSTaskManager.LoadBonDriver(ID,FileList[Index].c_str())) {
 								ShowMessage(CMessageDialog::TYPE_ERROR,
-											L"BonDriver‚ðƒ[ƒh‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+											L"BonDriverã‚’ãƒ­ãƒ¼ãƒ‰ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 							} else {
 								if (!TSTaskManager.OpenTuner(ID)) {
 									TSTaskManager.UnloadBonDriver(ID);
 									ShowMessage(CMessageDialog::TYPE_ERROR,
-												L"ƒ`ƒ…[ƒi[‚ðŠJ‚¯‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+												L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 								}
 							}
 						}
@@ -1724,7 +1903,7 @@ namespace TSTaskCentre
 
 				if (!TSTaskManager.GetRecordingInfo(ID,&RecInfo)) {
 					ShowMessage(CMessageDialog::TYPE_ERROR,
-								L"˜^‰æ‚Ìó‘Ô‚ðŽæ“¾‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+								L"éŒ²ç”»ã®çŠ¶æ…‹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					return;
 				}
 
@@ -1738,14 +1917,14 @@ namespace TSTaskCentre
 					if (!TSTaskManager.StartRecording(ID)) {
 #endif
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"˜^‰æ‚ðŠJŽn‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"éŒ²ç”»ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					}
 				} else {
 					if (m_Core.GetSettings().Recording.GetConfirmStop()) {
 						bool fDontAskAgain=false;
 						int Result=
 							ShowMessage(CMessageDialog::TYPE_QUESTION,
-										L"˜^‰æ‚ð’âŽ~‚µ‚Ü‚·‚©?",L"˜^‰æ’âŽ~‚ÌŠm”F",
+										L"éŒ²ç”»ã‚’åœæ­¢ã—ã¾ã™ã‹?",L"éŒ²ç”»åœæ­¢ã®ç¢ºèª",
 										CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL,
 										&fDontAskAgain);
 						if (fDontAskAgain)
@@ -1756,7 +1935,7 @@ namespace TSTaskCentre
 
 					if (!TSTaskManager.StopRecording(ID)) {
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"˜^‰æ‚ð’âŽ~‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"éŒ²ç”»ã‚’åœæ­¢ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					}
 				}
 
@@ -1771,7 +1950,7 @@ namespace TSTaskCentre
 				if (TSTaskManager.GetStreamingInfo(ID,&StreamingInfo)) {
 					if (!TSTaskManager.StopStreaming(ID)) {
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ð’âŽ~‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’åœæ­¢ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					}
 				} else {
 #if 0
@@ -1783,7 +1962,7 @@ namespace TSTaskCentre
 					if (!TSTaskManager.StartStreaming(ID)) {
 #endif
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ðŠJŽn‚Å‚«‚Ü‚¹‚ñB",L"ƒGƒ‰[");
+									L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚",L"ã‚¨ãƒ©ãƒ¼");
 					}
 				}
 
@@ -1795,6 +1974,9 @@ namespace TSTaskCentre
 
 	void CMainBoard::OnItemRButtonDown(TSTask::TaskID ID,CTSTaskBar *pTSTaskBar,int ItemID,int x,int y)
 	{
+		if (!IsTaskReady(ID))
+			return;
+
 		CTSTaskManager &TSTaskManager=m_Core.GetTSTaskManager();
 
 		switch (ItemID) {
@@ -1818,9 +2000,9 @@ namespace TSTaskCentre
 					TSTask::StringUtility::Format(Temp,L" (%d)",Info.ServiceID);
 					Text+=Temp;
 					if (Info.ServiceType==SERVICE_TYPE_DIGITALAUDIO)
-						Text+=L" [‰¹º]";
+						Text+=L" [éŸ³å£°]";
 					else if (Info.ServiceType==SERVICE_TYPE_DATA)
-						Text+=L" [ƒf[ƒ^/ƒƒ“ƒZƒO]";
+						Text+=L" [ãƒ‡ãƒ¼ã‚¿/ãƒ¯ãƒ³ã‚»ã‚°]";
 					::AppendMenu(hmenu,MF_STRING | MF_ENABLED | (fCurService && Info.ServiceID==CurService.ServiceID?MF_CHECKED:MF_UNCHECKED),
 								 i+1,Text.c_str());
 				}
@@ -1860,17 +2042,20 @@ namespace TSTaskCentre
 
 	bool CMainBoard::EndTask(TSTask::TaskID ID,bool fConfirm)
 	{
+		if (!IsTaskReady(ID))
+			return false;
+
 		CTSTaskManager &TSTaskManager=m_Core.GetTSTaskManager();
 
 		if (fConfirm && m_Core.GetSettings().MainBoard.GetConfirmTaskExit()) {
 			TSTask::String Message;
 			TSTask::StringUtility::Format(Message,
-										   L"ƒ^ƒXƒN%u‚ðI—¹‚³‚¹‚Ä‚à‚¢‚¢‚Å‚·‚©?",
+										   L"ã‚¿ã‚¹ã‚¯%uã‚’çµ‚äº†ã•ã›ã¦ã‚‚ã„ã„ã§ã™ã‹?",
 										   ID);
 			bool fDontAskAgain=false;
 			int Result=
 				ShowMessage(CMessageDialog::TYPE_QUESTION,
-							Message.c_str(),L"I—¹‚ÌŠm”F",
+							Message.c_str(),L"çµ‚äº†ã®ç¢ºèª",
 							CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL,
 							&fDontAskAgain);
 			if (fDontAskAgain)
@@ -1884,12 +2069,12 @@ namespace TSTaskCentre
 					&& RecInfo.State==TSTask::RECORDING_STATE_RECORDING) {
 				TSTask::String Message;
 				TSTask::StringUtility::Format(Message,
-											   L"Œ»Ý˜^‰æ’†‚Å‚·Bƒ^ƒXƒN%u‚ðI—¹‚³‚¹‚Ä‚à‚¢‚¢‚Å‚·‚©?",
+											   L"ç¾åœ¨éŒ²ç”»ä¸­ã§ã™ã€‚ã‚¿ã‚¹ã‚¯%uã‚’çµ‚äº†ã•ã›ã¦ã‚‚ã„ã„ã§ã™ã‹?",
 											   ID);
 				bool fDontAskAgain=false;
 				int Result=
 					ShowMessage(CMessageDialog::TYPE_QUESTION,
-								Message.c_str(),L"I—¹‚ÌŠm”F",
+								Message.c_str(),L"çµ‚äº†ã®ç¢ºèª",
 								CMessageDialog::STYLE_OK_CANCEL | CMessageDialog::STYLE_DEFAULT_CANCEL,
 								&fDontAskAgain);
 				if (fDontAskAgain)
@@ -1903,16 +2088,17 @@ namespace TSTaskCentre
 			if (TSTask::TaskUtility::IsServerTaskExists(ID)) {
 				TSTask::String Message;
 				TSTask::StringUtility::Format(Message,
-											   L"ƒ^ƒXƒN%u‚ðI—¹‚Å‚«‚Ü‚¹‚ñB‹­§I—¹‚³‚¹‚Ü‚·‚©?",
+											   L"ã‚¿ã‚¹ã‚¯%uã‚’çµ‚äº†ã§ãã¾ã›ã‚“ã€‚å¼·åˆ¶çµ‚äº†ã•ã›ã¾ã™ã‹?",
 											   ID);
 				if (ShowMessage(CMessageDialog::TYPE_WARNING,
-								Message.c_str(),L"ƒ^ƒXƒN‚ÌI—¹",
+								Message.c_str(),L"ã‚¿ã‚¹ã‚¯ã®çµ‚äº†",
 								CMessageDialog::STYLE_OK_CANCEL)==IDOK) {
 					if (TSTaskManager.TerminateTask(ID)) {
+						TSTaskManager.RemoveTask(ID);
 						RemoveTSTaskBar(ID);
 					} else {
 						ShowMessage(CMessageDialog::TYPE_ERROR,
-									L"ƒ^ƒXƒN‚ð‹­§I—¹‚Å‚«‚Ü‚¹‚ñB",L"ƒ^ƒXƒN‚Ì‹­§I—¹",
+									L"ã‚¿ã‚¹ã‚¯ã‚’å¼·åˆ¶çµ‚äº†ã§ãã¾ã›ã‚“ã€‚",L"ã‚¿ã‚¹ã‚¯ã®å¼·åˆ¶çµ‚äº†",
 									CMessageDialog::STYLE_OK);
 					}
 				}
@@ -1923,6 +2109,59 @@ namespace TSTaskCentre
 		}
 
 		return true;
+	}
+
+	void CMainBoard::OnTaskEvent(TSTask::TaskID ID,UINT Message)
+	{
+		enum { Tuner=1, Channel=2, Event=4, Recording=8, Streaming=16 };
+		static const struct {
+			UINT Message;
+			LPCWSTR Name;
+			unsigned int Updates;
+		} Events[] = {
+			{WM_APP_BONDRIVER_LOADED, TSTask::MESSAGE_EVENT_BonDriverLoaded, Tuner | Channel | Event},
+			{WM_APP_BONDRIVER_UNLOADED, TSTask::MESSAGE_EVENT_BonDriverUnloaded, Tuner | Channel | Event},
+			{WM_APP_TUNER_OPENED, TSTask::MESSAGE_EVENT_TunerOpened, Tuner | Channel | Event},
+			{WM_APP_TUNER_CLOSED, TSTask::MESSAGE_EVENT_TunerClosed, Tuner | Channel | Event},
+			{WM_APP_CHANNEL_CHANGED, TSTask::MESSAGE_EVENT_ChannelChanged, Channel | Event},
+			{WM_APP_SERVICE_CHANGED, TSTask::MESSAGE_EVENT_ServiceChanged, Channel | Event},
+			{WM_APP_RECORDING_STARTED, TSTask::MESSAGE_EVENT_RecordingStarted, Recording},
+			{WM_APP_RECORDING_STOPPED, TSTask::MESSAGE_EVENT_RecordingStopped, Recording},
+			{WM_APP_STREAMING_STARTED, TSTask::MESSAGE_EVENT_StreamingStarted, Streaming},
+			{WM_APP_STREAMING_STOPPED, TSTask::MESSAGE_EVENT_StreamingStopped, Streaming},
+			{WM_APP_EVENT_CHANGED, TSTask::MESSAGE_EVENT_EventChanged, Event},
+		};
+
+		for (const auto &Entry:Events) {
+			if (Entry.Message!=Message)
+				continue;
+
+			const auto Startup=m_TaskStartup.find(ID);
+			if (Startup!=m_TaskStartup.end()) {
+				if (!Startup->second->Cancelled) {
+					Startup->second->NeedsRefresh=true;
+					if (m_Core.GetSettings().Tools.FindTrigger(Entry.Name)>=0)
+						Startup->second->ToolEvents.push_back(Entry.Name);
+				}
+				return;
+			}
+
+			if (!IsTaskReady(ID))
+				return;
+
+			if ((Entry.Updates & Tuner)!=0)
+				UpdateTunerStatus(ID);
+			if ((Entry.Updates & Channel)!=0)
+				UpdateChannelStatus(ID);
+			if ((Entry.Updates & Recording)!=0)
+				UpdateRecordingStatus(ID);
+			if ((Entry.Updates & Streaming)!=0)
+				UpdateStreamingStatus(ID);
+			if ((Entry.Updates & Event)!=0)
+				UpdateEventStatus(ID);
+			m_Core.ExecuteTaskToolOnEvent(ID,Entry.Name);
+			return;
+		}
 	}
 
 	bool CMainBoard::UpdateTSTaskBar(TSTask::TaskID ID)
@@ -1961,18 +2200,9 @@ namespace TSTaskCentre
 			return false;
 
 		TSTask::ChannelInfo Channel;
-		if (m_Core.GetTSTaskManager().GetChannel(ID,&Channel)) {
+		if (ReadChannelStatus(m_Core.GetTSTaskManager(),ID,&Channel)) {
 			pTSTaskBar->SetTuningSpaceName(Channel.SpaceName.c_str());
-
-			TSTask::ServiceInfo Service;
-			if (((Channel.ServiceID!=0 && Channel.ServiceID!=Channel.ScannedServiceID)
-						|| Channel.ChannelName.empty())
-					&& m_Core.GetTSTaskManager().GetService(ID,&Service)
-					&& !Service.ServiceName.empty()) {
-				pTSTaskBar->SetChannelName(Service.ServiceName.c_str());
-			} else {
-				pTSTaskBar->SetChannelName(Channel.ChannelName.c_str());
-			}
+			pTSTaskBar->SetChannelName(Channel.ChannelName.c_str());
 		} else {
 			pTSTaskBar->SetTuningSpaceName(nullptr);
 			pTSTaskBar->SetChannelName(nullptr);
@@ -2276,13 +2506,16 @@ namespace TSTaskCentre
 
 	int CTSTaskBarBase::CalcHeight() const
 	{
-		SIZE sz;
-		int Height;
+		SIZE Size{};
+		GetClientSize(&Size);
+		return CalcHeight(Size.cx);
+	}
 
-		GetClientSize(&sz);
-		Height=0;
+	int CTSTaskBarBase::CalcHeight(int Width) const
+	{
+		int Height=0;
 		for (const auto &e:m_TSTaskBarList)
-			Height+=e.second->CalcHeight(sz.cx);
+			Height+=e.second->CalcHeight(Width);
 
 		return Height;
 	}

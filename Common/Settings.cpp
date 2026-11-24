@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskBase.h"
 #include "Settings.h"
@@ -160,7 +161,7 @@ namespace TSTask
 
 		wchar_t *pEnd;
 		__int64 Value=::_wcstoi64(p,&pEnd,0);
-		// TODO: ƒI[ƒo[ƒtƒ[‚ÆƒAƒ“ƒ_[ƒtƒ[‚ğƒ`ƒFƒbƒN‚·‚é
+		// TODO: ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ã¨ã‚¢ãƒ³ãƒ€ãƒ¼ãƒ•ãƒ­ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 		switch (*pEnd) {
 		case L'K':	Value*=1024;			break;
 		case L'k':	Value*=1000;			break;
@@ -206,8 +207,8 @@ namespace TSTask
 		if (IsStringEmpty(pszValueName) || pszData==nullptr || (m_OpenFlags&OPEN_WRITE)==0)
 			return false;
 
-		// •¶š—ñ‚ª ' ‚© " ‚ÅˆÍ‚Ü‚ê‚Ä‚¢‚é‚Æ“Ç‚İ‚İ‚Éœ‹‚³‚ê‚Ä‚µ‚Ü‚¤‚Ì‚ÅA
-		// —]•ª‚É " ‚ÅˆÍ‚Á‚Ä‚¨‚­B
+		// æ–‡å­—åˆ—ãŒ ' ã‹ " ã§å›²ã¾ã‚Œã¦ã„ã‚‹ã¨èª­ã¿è¾¼ã¿æ™‚ã«é™¤å»ã•ã‚Œã¦ã—ã¾ã†ã®ã§ã€
+		// ä½™åˆ†ã« " ã§å›²ã£ã¦ãŠãã€‚
 		if (pszData[0]==L'"' || pszData[0]==L'\'') {
 			String Buff;
 			Buff=L"\"";
@@ -394,6 +395,13 @@ namespace TSTask
 			return false;
 
 		return m_IniFile.GetEntries(pEntries);
+	}
+
+	bool CSettings::GetSectionEntries(LPCWSTR pszSection,EntryList *pEntries)
+	{
+		if (IsStringEmpty(pszSection) || pEntries==nullptr || (m_OpenFlags&OPEN_READ)==0)
+			return false;
+		return m_IniFile.GetSectionEntries(pszSection,pEntries);
 	}
 
 }

@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskCore.h"
@@ -37,10 +38,11 @@ namespace TSTask
 	{
 	}
 
-	bool CTSTaskCore::Initialize()
+	bool CTSTaskCore::Initialize(const std::vector<TVTestPluginSettings> &Plugins)
 	{
 		if (!m_DtvEngine.BuildEngine(this))
 			return false;
+		m_DtvEngine.m_TSProcessor.SetPlugins(Plugins);
 
 		m_fInitialized=true;
 
@@ -49,23 +51,28 @@ namespace TSTask
 
 	bool CTSTaskCore::Finalize()
 	{
-		OutLog(LOG_VERBOSE,L"Core‚ÌI—¹ˆ—‚ğs‚¢‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"Coreã®çµ‚äº†å‡¦ç†ã‚’è¡Œã„ã¾ã™ã€‚");
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
 			OutTimeoutErrorLog();
-			//return false;
+			return false;
 		}
 
+		if (!m_fInitialized)
+			return true;
 		m_fInitialized=false;
+		SetNotificationWindow(nullptr);
+		m_EngineNotifications.store(0);
 
 		StopRecording();
 
 		StopStreaming();
 		m_StreamingManager.Finalize();
-
-		m_StreamPool.End();
-		m_StreamPool.Close();
+		if (m_StreamPoolCount>0) {
+			m_StreamPoolCount=1;
+			CloseStreamPool();
+		}
 
 		CloseTuner();
 		UnloadBonDriver();
@@ -82,25 +89,25 @@ namespace TSTask
 		if (IsStringEmpty(pszFileName))
 			return false;
 
-		if (!m_fInitialized)
-			return false;
-
-		if (!UnloadBonDriver())
-			return false;
-
-		OutLog(LOG_IMPORTANT,L"BonDrvier(%s)‚ğƒ[ƒh‚µ‚Ü‚·B",pszFileName);
-
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
 			OutTimeoutErrorLog();
 			return false;
 		}
 
+		if (!m_fInitialized)
+			return false;
+
+		if (!UnloadBonDriver())
+			return false;
+
+		OutLog(LOG_IMPORTANT,L"BonDrvier(%s)ã‚’ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚",pszFileName);
+
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [pszFileName](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnBonDriverLoad(pszFileName);
 							   })) {
-			OutLog(LOG_INFO,L"BonDriver‚Ìƒ[ƒh‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"BonDriverã®ãƒ­ãƒ¼ãƒ‰ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -116,14 +123,14 @@ namespace TSTask
 			if (!PathUtility::IsFileExists(ChannelFileName)) {
 				PathUtility::RenameExtension(&ChannelFileName,L".ch1");
 				if (!PathUtility::IsFileExists(ChannelFileName)) {
-					OutLog(LOG_WARNING,L"ƒ`ƒƒƒ“ƒlƒ‹ƒtƒ@ƒCƒ‹(%s/.ch2)‚ªŒ©•t‚©‚è‚Ü‚¹‚ñB",ChannelFileName.c_str());
+					OutLog(LOG_WARNING,L"ãƒãƒ£ãƒ³ãƒãƒ«ãƒ•ã‚¡ã‚¤ãƒ«(%s/.ch2)ãŒè¦‹ä»˜ã‹ã‚Šã¾ã›ã‚“ã€‚",ChannelFileName.c_str());
 					PathUtility::RenameExtension(&ChannelFileName,L".ch2");
 				}
 			}
 			if (!m_TuningSpaceList.LoadFromFile(ChannelFileName.c_str())) {
-				OutLog(LOG_ERROR,L"ƒ`ƒƒƒ“ƒlƒ‹ƒtƒ@ƒCƒ‹ \"%s\" ‚Ì“Ç‚İ‚İ‚ª‚Å‚«‚Ü‚¹‚ñB",ChannelFileName.c_str());
+				OutLog(LOG_ERROR,L"ãƒãƒ£ãƒ³ãƒãƒ«ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã®èª­ã¿è¾¼ã¿ãŒã§ãã¾ã›ã‚“ã€‚",ChannelFileName.c_str());
 			} else {
-				OutLog(LOG_INFO,L"ƒ`ƒƒƒ“ƒlƒ‹ƒtƒ@ƒCƒ‹ \"%s\" ‚ğ“Ç‚İ‚İ‚Ü‚µ‚½B",ChannelFileName.c_str());
+				OutLog(LOG_INFO,L"ãƒãƒ£ãƒ³ãƒãƒ«ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã‚’èª­ã¿è¾¼ã¿ã¾ã—ãŸã€‚",ChannelFileName.c_str());
 				for (size_t i=0;i<m_TuningSpaceList.GetSpaceCount();i++) {
 					if (IsStringEmpty(m_TuningSpaceList.GetTuningSpaceName(i))) {
 						m_TuningSpaceList.GetTuningSpaceInfo(i)->SetName(
@@ -136,7 +143,7 @@ namespace TSTask
 			}
 		}
 
-		OutLog(LOG_VERBOSE,L"BonDriver(%s)‚ªƒ[ƒh‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B",pszFileName);
+		OutLog(LOG_VERBOSE,L"BonDriver(%s)ãŒãƒ­ãƒ¼ãƒ‰ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚",pszFileName);
 
 		for (auto e:m_EventHandlerList)
 			e->OnBonDriverLoaded(pszFileName);
@@ -146,25 +153,25 @@ namespace TSTask
 
 	bool CTSTaskCore::UnloadBonDriver()
 	{
-		if (!IsBonDriverLoaded())
-			return true;
-
-		if (!CloseTuner())
-			return false;
-
-		OutLog(LOG_IMPORTANT,L"BonDrvier‚ğƒAƒ“ƒ[ƒh‚µ‚Ü‚·B");
-
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
 			OutTimeoutErrorLog();
 			return false;
 		}
 
+		if (!IsBonDriverLoaded())
+			return true;
+
+		if (!CloseTuner())
+			return false;
+
+		OutLog(LOG_IMPORTANT,L"BonDrvierã‚’ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚");
+
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnBonDriverUnload();
 							   })) {
-			OutLog(LOG_INFO,L"BonDriver‚ÌƒAƒ“ƒ[ƒh‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"BonDriverã®ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -172,7 +179,7 @@ namespace TSTask
 
 		m_TuningSpaceList.Clear();
 
-		OutLog(LOG_VERBOSE,L"BonDriver‚ªƒAƒ“ƒ[ƒh‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"BonDriverãŒã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnBonDriverUnloaded();
@@ -206,6 +213,12 @@ namespace TSTask
 
 	bool CTSTaskCore::OpenTuner()
 	{
+		CTryBlockLock Lock(m_Lock);
+		if (!Lock.TryLock(m_LockTimeout)) {
+			OutTimeoutErrorLog();
+			return false;
+		}
+
 		if (!m_fInitialized)
 			return false;
 
@@ -215,17 +228,11 @@ namespace TSTask
 		if (!CloseTuner())
 			return false;
 
-		OutLog(LOG_IMPORTANT,L"ƒ`ƒ…[ƒi[‚ğŠJ‚«‚Ü‚·B");
-
-		CTryBlockLock Lock(m_Lock);
-		if (!Lock.TryLock(m_LockTimeout)) {
-			OutTimeoutErrorLog();
-			return false;
-		}
+		OutLog(LOG_IMPORTANT,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚’é–‹ãã¾ã™ã€‚");
 
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [](TSTask::CEventHandler *pHandler) { return pHandler->OnTunerOpen(); })) {
-			OutLog(LOG_INFO,L"ƒ`ƒ…[ƒi[ƒI[ƒvƒ“‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚ªãƒ¼ãƒ—ãƒ³ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -238,7 +245,7 @@ namespace TSTask
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒ`ƒ…[ƒi[‚ªŠJ‚©‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ãŒé–‹ã‹ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnTunerOpened();
@@ -248,20 +255,20 @@ namespace TSTask
 
 	bool CTSTaskCore::CloseTuner()
 	{
-		if (!IsTunerOpened())
-			return true;
-
-		OutLog(LOG_IMPORTANT,L"ƒ`ƒ…[ƒi[‚ğ•Â‚¶‚Ü‚·B");
-
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
 			OutTimeoutErrorLog();
 			return false;
 		}
 
+		if (!IsTunerOpened())
+			return true;
+
+		OutLog(LOG_IMPORTANT,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚’é–‰ã˜ã¾ã™ã€‚");
+
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [](TSTask::CEventHandler *pHandler) { return pHandler->OnTunerClose(); })) {
-			OutLog(LOG_INFO,L"ƒ`ƒ…[ƒi[ƒNƒ[ƒY‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚¯ãƒ­ãƒ¼ã‚ºãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -281,7 +288,7 @@ namespace TSTask
 		m_CurrentEvent.EventID=0;
 		m_CurrentEvent.Duration=0;
 
-		OutLog(LOG_VERBOSE,L"ƒ`ƒ…[ƒi[‚ª•Â‚¶‚ç‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ãŒé–‰ã˜ã‚‰ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnTunerClosed();
@@ -316,22 +323,22 @@ namespace TSTask
 
 	bool CTSTaskCore::SetFirstChannelSetDelay(unsigned int Delay)
 	{
-		OutLog(LOG_INFO,L"Å‰‚Ìƒ`ƒƒƒ“ƒlƒ‹İ’è‚Ü‚Å‚ÌÅ¬ŠÔŠu‚ğ%ums‚Éİ’è‚µ‚Ü‚·B",Delay);
+		OutLog(LOG_INFO,L"æœ€åˆã®ãƒãƒ£ãƒ³ãƒãƒ«è¨­å®šã¾ã§ã®æœ€å°é–“éš”ã‚’%umsã«è¨­å®šã—ã¾ã™ã€‚",Delay);
 
 		return m_DtvEngine.m_BonSrcDecoder.SetFirstChannelSetDelay(Delay);
 	}
 
 	bool CTSTaskCore::SetMinChannelChangeInterval(unsigned int Interval)
 	{
-		OutLog(LOG_INFO,L"Å¬ƒ`ƒƒƒ“ƒlƒ‹•ÏXŠÔŠu‚ğ%ums‚Éİ’è‚µ‚Ü‚·B",Interval);
+		OutLog(LOG_INFO,L"æœ€å°ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´é–“éš”ã‚’%umsã«è¨­å®šã—ã¾ã™ã€‚",Interval);
 
 		return m_DtvEngine.m_BonSrcDecoder.SetMinChannelChangeInterval(Interval);
 	}
 
 	bool CTSTaskCore::SetChannelByIndex(DWORD Space,DWORD Channel,WORD ServiceID,bool fForce)
 	{
-		OutLog(LOG_IMPORTANT,L"ƒ`ƒƒƒ“ƒlƒ‹‚ğİ’è‚µ‚Ü‚·B(ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ %u / ƒ`ƒƒƒ“ƒlƒ‹ %u / ƒT[ƒrƒX %u / ‹­§•ÏX %s)",
-			   Space,Channel,ServiceID,fForce?L"‚·‚é":L"‚µ‚È‚¢");
+		OutLog(LOG_IMPORTANT,L"ãƒãƒ£ãƒ³ãƒãƒ«ã‚’è¨­å®šã—ã¾ã™ã€‚(ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“ %u / ãƒãƒ£ãƒ³ãƒãƒ« %u / ã‚µãƒ¼ãƒ“ã‚¹ %u / å¼·åˆ¶å¤‰æ›´ %s)",
+			   Space,Channel,ServiceID,fForce?L"ã™ã‚‹":L"ã—ãªã„");
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -340,7 +347,7 @@ namespace TSTask
 		}
 
 		if (!fForce && m_CurrentChannel.Space==Space && m_CurrentChannel.Channel==Channel) {
-			OutLog(LOG_VERBOSE,L"w’è‚³‚ê‚½ƒ`ƒƒƒ“ƒlƒ‹‚ÍŠù‚É‘I‚Î‚ê‚Ä‚¢‚é‚½‚ßAƒT[ƒrƒX‚Ì‚İİ’è‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"æŒ‡å®šã•ã‚ŒãŸãƒãƒ£ãƒ³ãƒãƒ«ã¯æ—¢ã«é¸ã°ã‚Œã¦ã„ã‚‹ãŸã‚ã€ã‚µãƒ¼ãƒ“ã‚¹ã®ã¿è¨­å®šã—ã¾ã™ã€‚");
 			return SetService(ServiceID);
 		}
 
@@ -348,7 +355,7 @@ namespace TSTask
 							   [Space,Channel,ServiceID](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnChannelChange(Space,Channel,ServiceID);
 							   })) {
-			OutLog(LOG_INFO,L"ƒ`ƒƒƒ“ƒlƒ‹İ’è‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"ãƒãƒ£ãƒ³ãƒãƒ«è¨­å®šãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -373,19 +380,19 @@ namespace TSTask
 		if (pChannelList!=nullptr) {
 			int Index=pChannelList->Find((int)Space,(int)Channel,ServiceID);
 			if (Index>=0) {
-				OutLog(LOG_VERBOSE,L"w’è‚³‚ê‚½ƒ`ƒƒƒ“ƒlƒ‹‚Éˆê’v‚·‚éƒXƒLƒƒƒ“Ï‚İ‚Ìƒ`ƒƒƒ“ƒlƒ‹(%d)‚ªŒ©•t‚©‚è‚Ü‚µ‚½B",Index);
+				OutLog(LOG_VERBOSE,L"æŒ‡å®šã•ã‚ŒãŸãƒãƒ£ãƒ³ãƒãƒ«ã«ä¸€è‡´ã™ã‚‹ã‚¹ã‚­ãƒ£ãƒ³æ¸ˆã¿ã®ãƒãƒ£ãƒ³ãƒãƒ«(%d)ãŒè¦‹ä»˜ã‹ã‚Šã¾ã—ãŸã€‚",Index);
 				m_CurrentScannedChannel.Space=(int)Space;
 				m_CurrentScannedChannel.Channel=Index;
 				m_CurrentScannedChannel.ServiceID=m_CurrentChannel.ServiceID;
 			} else {
-				OutLog(LOG_VERBOSE,L"w’è‚³‚ê‚½ƒ`ƒƒƒ“ƒlƒ‹‚Éˆê’v‚·‚éƒXƒLƒƒƒ“Ï‚İ‚Ìƒ`ƒƒƒ“ƒlƒ‹‚Í‚ ‚è‚Ü‚¹‚ñB");
+				OutLog(LOG_VERBOSE,L"æŒ‡å®šã•ã‚ŒãŸãƒãƒ£ãƒ³ãƒãƒ«ã«ä¸€è‡´ã™ã‚‹ã‚¹ã‚­ãƒ£ãƒ³æ¸ˆã¿ã®ãƒãƒ£ãƒ³ãƒãƒ«ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚");
 			}
 		}
 
 		m_CurrentEvent.EventID=0;
 		m_CurrentEvent.Duration=0;
 
-		OutLog(LOG_VERBOSE,L"ƒ`ƒƒƒ“ƒlƒ‹‚ª•ÏX‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒãƒ£ãƒ³ãƒãƒ«ãŒå¤‰æ›´ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnChannelChanged(Space,Channel,ServiceID);
@@ -395,7 +402,7 @@ namespace TSTask
 
 	bool CTSTaskCore::SetChannelByScanned(int Space,int Channel,WORD ServiceID,bool fForce)
 	{
-		OutLog(LOG_VERBOSE,L"ƒXƒLƒƒƒ“Ï‚İ‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ğ‘I‘ğ‚µ‚Ü‚·B(ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ %d / ƒ`ƒƒƒ“ƒlƒ‹ %d / ƒT[ƒrƒX %u)",
+		OutLog(LOG_VERBOSE,L"ã‚¹ã‚­ãƒ£ãƒ³æ¸ˆã¿ã®ãƒãƒ£ãƒ³ãƒãƒ«ã‚’é¸æŠã—ã¾ã™ã€‚(ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“ %d / ãƒãƒ£ãƒ³ãƒãƒ« %d / ã‚µãƒ¼ãƒ“ã‚¹ %u)",
 			   Space,Channel,ServiceID);
 
 		if (Space<0 || Channel<0)
@@ -422,10 +429,10 @@ namespace TSTask
 
 				return true;
 			} else {
-				OutLog(LOG_ERROR,L"w’è‚³‚ê‚½ƒ`ƒƒƒ“ƒlƒ‹(%d)‚ª•s³‚Å‚·B",Channel);
+				OutLog(LOG_ERROR,L"æŒ‡å®šã•ã‚ŒãŸãƒãƒ£ãƒ³ãƒãƒ«(%d)ãŒä¸æ­£ã§ã™ã€‚",Channel);
 			}
 		} else {
-			OutLog(LOG_ERROR,L"w’è‚³‚ê‚½ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ(%d)‚ª•s³‚Å‚·B",Space);
+			OutLog(LOG_ERROR,L"æŒ‡å®šã•ã‚ŒãŸãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“(%d)ãŒä¸æ­£ã§ã™ã€‚",Space);
 		}
 
 		return false;
@@ -433,7 +440,7 @@ namespace TSTask
 
 	bool CTSTaskCore::SetChannelByIDs(WORD NetworkID,WORD TransportStreamID,WORD ServiceID,bool fForce)
 	{
-		OutLog(LOG_INFO,L"w’è‚³‚ê‚½ID‚Éˆê’v‚·‚éƒ`ƒƒƒ“ƒlƒ‹‚ğ‘I‘ğ‚µ‚Ü‚·B(NID 0x%x / TSID 0x%x / SID 0x%x)",
+		OutLog(LOG_INFO,L"æŒ‡å®šã•ã‚ŒãŸIDã«ä¸€è‡´ã™ã‚‹ãƒãƒ£ãƒ³ãƒãƒ«ã‚’é¸æŠã—ã¾ã™ã€‚(NID 0x%x / TSID 0x%x / SID 0x%x)",
 			   NetworkID,TransportStreamID,ServiceID);
 
 		if (NetworkID==0 && TransportStreamID==0 && ServiceID==0)
@@ -490,7 +497,7 @@ namespace TSTask
 			}
 		}
 
-		OutLog(LOG_ERROR,L"w’è‚³‚ê‚½ID(NID 0x%x / TSID 0x%x / SID 0x%x)‚Éˆê’v‚·‚éƒ`ƒƒƒ“ƒlƒ‹‚ª‚ ‚è‚Ü‚¹‚ñB",
+		OutLog(LOG_ERROR,L"æŒ‡å®šã•ã‚ŒãŸID(NID 0x%x / TSID 0x%x / SID 0x%x)ã«ä¸€è‡´ã™ã‚‹ãƒãƒ£ãƒ³ãƒãƒ«ãŒã‚ã‚Šã¾ã›ã‚“ã€‚",
 			   NetworkID,TransportStreamID,ServiceID);
 
 		return false;
@@ -558,7 +565,7 @@ namespace TSTask
 
 	bool CTSTaskCore::SetService(WORD ServiceID)
 	{
-		OutLog(LOG_IMPORTANT,L"ƒT[ƒrƒX‚ğİ’è‚µ‚Ü‚·B(SID 0x%x)",ServiceID);
+		OutLog(LOG_IMPORTANT,L"ã‚µãƒ¼ãƒ“ã‚¹ã‚’è¨­å®šã—ã¾ã™ã€‚(SID 0x%x)",ServiceID);
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -567,7 +574,7 @@ namespace TSTask
 		}
 
 		if (m_CurrentChannel.Space==TuningChannelInfo::SPACE_INVALID) {
-			OutLog(LOG_ERROR,L"ƒ`ƒƒƒ“ƒlƒ‹‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒãƒ£ãƒ³ãƒãƒ«ãŒé¸æŠã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -575,12 +582,12 @@ namespace TSTask
 							   [ServiceID](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnServiceChange(ServiceID);
 							   })) {
-			OutLog(LOG_INFO,L"ƒT[ƒrƒXİ’è‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"ã‚µãƒ¼ãƒ“ã‚¹è¨­å®šãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		if (!m_DtvEngine.SetServiceByID(ServiceID)) {
-			OutLog(LOG_ERROR,L"ƒT[ƒrƒX‚Ìİ’è‚ª‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ã‚µãƒ¼ãƒ“ã‚¹ã®è¨­å®šãŒã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -590,15 +597,15 @@ namespace TSTask
 		if (pChannelList!=nullptr) {
 			int Index=pChannelList->Find((int)m_CurrentChannel.Space,(int)m_CurrentChannel.Channel,ServiceID);
 			if (Index>=0) {
-				OutLog(LOG_VERBOSE,L"w’è‚³‚ê‚½ƒT[ƒrƒX‚Éˆê’v‚·‚éƒXƒLƒƒƒ“Ï‚İ‚Ìƒ`ƒƒƒ“ƒlƒ‹(%d)‚ªŒ©•t‚©‚è‚Ü‚µ‚½B",Index);
+				OutLog(LOG_VERBOSE,L"æŒ‡å®šã•ã‚ŒãŸã‚µãƒ¼ãƒ“ã‚¹ã«ä¸€è‡´ã™ã‚‹ã‚¹ã‚­ãƒ£ãƒ³æ¸ˆã¿ã®ãƒãƒ£ãƒ³ãƒãƒ«(%d)ãŒè¦‹ä»˜ã‹ã‚Šã¾ã—ãŸã€‚",Index);
 				m_CurrentScannedChannel.Channel=Index;
 				m_CurrentScannedChannel.ServiceID=ServiceID;
 			} else {
-				OutLog(LOG_VERBOSE,L"w’è‚³‚ê‚½ƒT[ƒrƒX‚Éˆê’v‚·‚éƒXƒLƒƒƒ“Ï‚İ‚Ìƒ`ƒƒƒ“ƒlƒ‹‚Í‚ ‚è‚Ü‚¹‚ñB");
+				OutLog(LOG_VERBOSE,L"æŒ‡å®šã•ã‚ŒãŸã‚µãƒ¼ãƒ“ã‚¹ã«ä¸€è‡´ã™ã‚‹ã‚¹ã‚­ãƒ£ãƒ³æ¸ˆã¿ã®ãƒãƒ£ãƒ³ãƒãƒ«ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚");
 			}
 		}
 
-		// CTSTaskCore::OnServiceChanged() ‚ªŒÄ‚Î‚ê‚é‚Ì‚ğ‘Ò‚Â
+		// CTSTaskCore::OnServiceChanged() ãŒå‘¼ã°ã‚Œã‚‹ã®ã‚’å¾…ã¤
 		/*
 		for (auto e:m_EventHandlerList)
 			e->OnServiceChanged(ServiceID);
@@ -653,18 +660,15 @@ namespace TSTask
 		return true;
 	}
 
-	bool CTSTaskCore::StartRecording(const RecordingSettings &Settings)
+	bool CTSTaskCore::StartRecording(const RecordingSettings &Settings,ULONGLONG *pRecordingID)
 	{
 		if (Settings.Directories.empty() || Settings.Directories.front().empty()
 				|| Settings.FileName.empty()) {
-			OutLog(LOG_ERROR,L"ƒtƒ@ƒCƒ‹ƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢‚½‚ß˜^‰æ‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„ãŸã‚éŒ²ç”»ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
-		if (!m_fInitialized)
-			return false;
-
-		OutLog(LOG_IMPORTANT,L"˜^‰æ‚ğŠJn‚µ‚Ü‚·B(%s)",Settings.FileName.c_str());
+		OutLog(LOG_IMPORTANT,L"éŒ²ç”»ã‚’é–‹å§‹ã—ã¾ã™ã€‚(%s)",Settings.FileName.c_str());
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -672,8 +676,10 @@ namespace TSTask
 			return false;
 		}
 
+		if (!m_fInitialized)
+			return false;
 		if (m_RecordingInfo.State!=RECORDING_STATE_NOT_RECORDING) {
-			OutLog(LOG_ERROR,L"Šù‚É˜^‰æ’†‚Ì‚½‚ßV‚µ‚¢˜^‰æ‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"æ—¢ã«éŒ²ç”»ä¸­ã®ãŸã‚æ–°ã—ã„éŒ²ç”»ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -681,35 +687,35 @@ namespace TSTask
 							   [Settings](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnRecordingStart(Settings);
 							   })) {
-			OutLog(LOG_INFO,L"˜^‰æŠJn‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"éŒ²ç”»é–‹å§‹ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		bool fCurServiceOnly=Settings.ServiceSelect==SERVICE_SELECT_CURRENT;
 #ifdef BONTSENGINE_1SEG_SUPPORT
 		if ((Settings.Streams & STREAM_1SEG)!=0) {
-			OutLog(LOG_INFO,L"ƒƒ“ƒZƒOƒT[ƒrƒX‚ğ‘I‘ğ‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"ãƒ¯ãƒ³ã‚»ã‚°ã‚µãƒ¼ãƒ“ã‚¹ã‚’é¸æŠã—ã¾ã™ã€‚");
 			m_DtvEngine.SetServiceByID(::CDtvEngine::SID_1SEG,true);
 			fCurServiceOnly=true;
 		} else
 #endif
 		if (m_CurrentChannel.ServiceID!=SERVICE_ID_INVALID) {
-			OutLog(LOG_VERBOSE,L"ƒT[ƒrƒX‚ğ‘I‘ğ‚µ‚Ü‚·B(%d)",m_CurrentChannel.ServiceID);
+			OutLog(LOG_VERBOSE,L"ã‚µãƒ¼ãƒ“ã‚¹ã‚’é¸æŠã—ã¾ã™ã€‚(%d)",m_CurrentChannel.ServiceID);
 			m_DtvEngine.SetServiceByID(m_CurrentChannel.ServiceID,true);
 		} else {
 			m_DtvEngine.SetService(::CDtvEngine::SERVICE_INVALID);
 		}
 
-		OutLog(LOG_VERBOSE,L"%sƒT[ƒrƒX‚ğ˜^‰æ‘ÎÛ‚Éİ’è‚µ‚Ü‚·B",
-			   fCurServiceOnly?L"w’è":L"‘S‚Ä‚Ì");
-		OutLog(LOG_VERBOSE,L"˜^‰æ‘ÎÛƒXƒgƒŠ[ƒ€‚ğİ’è‚µ‚Ü‚·B(0x%x) š–‹: •Û‘¶%s / ƒf[ƒ^•ú‘—: •Û‘¶%s",
+		OutLog(LOG_VERBOSE,L"%sã‚µãƒ¼ãƒ“ã‚¹ã‚’éŒ²ç”»å¯¾è±¡ã«è¨­å®šã—ã¾ã™ã€‚",
+			   fCurServiceOnly?L"æŒ‡å®š":L"å…¨ã¦ã®");
+		OutLog(LOG_VERBOSE,L"éŒ²ç”»å¯¾è±¡ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’è¨­å®šã—ã¾ã™ã€‚(0x%x) å­—å¹•: ä¿å­˜%s / ãƒ‡ãƒ¼ã‚¿æ”¾é€: ä¿å­˜%s",
 			   Settings.Streams & STREAM_ALL,
-			   (Settings.Streams & STREAM_CAPTION)?L"‚·‚é":L"‚µ‚È‚¢",
-			   (Settings.Streams & STREAM_DATA_CARROUSEL)?L"‚·‚é":L"‚µ‚È‚¢");
+			   (Settings.Streams & STREAM_CAPTION)?L"ã™ã‚‹":L"ã—ãªã„",
+			   (Settings.Streams & STREAM_DATA_CARROUSEL)?L"ã™ã‚‹":L"ã—ãªã„");
 		m_DtvEngine.SetWriteCurServiceOnly(fCurServiceOnly,GetTsSelectorStreamFlags(Settings.Streams));
 
 		for (size_t i=0;i<Settings.Directories.size();i++)
-			OutLog(LOG_VERBOSE,L"˜^‰ææƒtƒHƒ‹ƒ_%Iu : \"%s\"",i+1,Settings.Directories[i].c_str());
+			OutLog(LOG_VERBOSE,L"éŒ²ç”»å…ˆãƒ•ã‚©ãƒ«ãƒ€%Iu : \"%s\"",i+1,Settings.Directories[i].c_str());
 
 		String FilePath;
 		size_t DirIndex;
@@ -717,36 +723,18 @@ namespace TSTask
 			FilePath=Settings.Directories[DirIndex];
 
 			if (!PathUtility::IsExists(FilePath)) {
-				OutLog(LOG_INFO,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚ª‘¶İ‚µ‚È‚¢‚½‚ßì¬‚µ‚Ü‚·B",FilePath.c_str());
+				OutLog(LOG_INFO,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ãŒå­˜åœ¨ã—ãªã„ãŸã‚ä½œæˆã—ã¾ã™ã€‚",FilePath.c_str());
 				int Error=::SHCreateDirectory(nullptr,FilePath.c_str());
 				if (Error!=ERROR_SUCCESS && Error!=ERROR_ALREADY_EXISTS) {
-					OutSystemErrorLog(Error,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚ğì¬‚Å‚«‚Ü‚¹‚ñB",
+					OutSystemErrorLog(Error,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",
 									  FilePath.c_str());
-					// ˆê‰ƒtƒ@ƒCƒ‹‚ÌƒI[ƒvƒ“‚Í‚µ‚Ä‚İ‚é
+					// ä¸€å¿œãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚ªãƒ¼ãƒ—ãƒ³ã¯è©¦ã—ã¦ã¿ã‚‹
 				}
 			}
-
-#if 0
-			if (m_MinDiskFreeSpace>0) {
-				PathUtility::AppendDelimiter(&FilePath);
-				ULARGE_INTEGER FreeSpace;
-				if (::GetDiskFreeSpaceEx(FilePath.c_str(),&FreeSpace,NULL,NULL)) {
-					if (FreeSpace.QuadPart<m_MinDiskFreeSpace) {
-						OutLog(LOG_WARNING,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚Ì‹ó‚«—e—Ê‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·B(%llu MiB)",
-							   FilePath.c_str(),FreeSpace.QuadPart/(1024*1024));
-						continue;
-					}
-				} else {
-					OutLog(LOG_WARNING,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚Ì‹ó‚«—e—Ê‚ªæ“¾‚Å‚«‚Ü‚¹‚ñB(Error 0x%x)",
-						   FilePath.c_str(),::GetLastError());
-					//continue;
-				}
-			}
-#endif
 
 			PathUtility::Append(&FilePath,Settings.FileName.c_str());
 
-			OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹ \"%s\" ‚ğŠJ‚«‚Ü‚·B",FilePath.c_str());
+			OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã‚’é–‹ãã¾ã™ã€‚",FilePath.c_str());
 
 			if (m_DtvEngine.m_TsRecorder.OpenFile(FilePath.c_str()))
 				break;
@@ -761,17 +749,23 @@ namespace TSTask
 			return false;
 		}
 
+		if (++m_RecordingID==0)
+			++m_RecordingID;
+		if (pRecordingID)
+			*pRecordingID=m_RecordingID;
 		m_RecordingInfo.State=RECORDING_STATE_RECORDING;
 		m_RecordingInfo.Settings=Settings;
 		m_RecordingInfo.FilePaths.clear();
 		m_RecordingInfo.FilePaths.push_back(FilePath);
+		m_NextDiskFreeSpaceCheck=0;
+		m_fLowDiskSpaceLogged=false;
 		::GetSystemTimeAsFileTime(&m_RecordingInfo.StartTime);
 		m_RecordingInfo.StartTickCount=::GetTickCount64();
 		m_RecordingInfo.CurDirectory=(int)DirIndex;
 
 		ResetErrorStatistics();
 
-		OutLog(LOG_VERBOSE,L"˜^‰æ‚ªŠJn‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"éŒ²ç”»ãŒé–‹å§‹ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnRecordingStarted(m_RecordingInfo);
@@ -779,7 +773,7 @@ namespace TSTask
 		return true;
 	}
 
-	bool CTSTaskCore::StopRecording()
+	bool CTSTaskCore::StopRecording(ULONGLONG RecordingID)
 	{
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -787,14 +781,19 @@ namespace TSTask
 			return false;
 		}
 
+		if (RecordingID!=0 && (RecordingID!=m_RecordingID
+				|| m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING)) {
+			OutLog(LOG_VERBOSE,L"Scheduled recording has already ended.");
+			return false;
+		}
 		if (m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING)
 			return true;
 
-		OutLog(LOG_IMPORTANT,L"˜^‰æ‚ğ’â~‚µ‚Ü‚·B");
+		OutLog(LOG_IMPORTANT,L"éŒ²ç”»ã‚’åœæ­¢ã—ã¾ã™ã€‚");
 
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [](TSTask::CEventHandler *pHandler) { return pHandler->OnRecordingStop(); })) {
-			OutLog(LOG_INFO,L"˜^‰æ’â~‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"éŒ²ç”»åœæ­¢ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -804,10 +803,10 @@ namespace TSTask
 
 		::CTsRecorder::WriteStatistics Statistics;
 		m_DtvEngine.m_TsRecorder.GetWriteStatistics(&Statistics);
-		OutLog(LOG_INFO,L"˜^‰æ‚ğ’â~‚µ‚Ü‚µ‚½B(“ü—Í %llu ƒoƒCƒg / ‘‚«o‚µ %llu ƒoƒCƒg / ‘‚«o‚µ‰ñ” %llu / ‘‚«o‚µƒGƒ‰[‰ñ” %u)",
+		OutLog(LOG_INFO,L"éŒ²ç”»ã‚’åœæ­¢ã—ã¾ã—ãŸã€‚(å…¥åŠ› %llu ãƒã‚¤ãƒˆ / æ›¸ãå‡ºã— %llu ãƒã‚¤ãƒˆ / æ›¸ãå‡ºã—å›æ•° %llu / æ›¸ãå‡ºã—ã‚¨ãƒ©ãƒ¼å›æ•° %u)",
 			   Statistics.InputSize,Statistics.OutputSize,Statistics.OutputCount,Statistics.WriteErrorCount);
 
-		OutLog(LOG_VERBOSE,L"˜^‰æ‚ª’â~‚µ‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"éŒ²ç”»ãŒåœæ­¢ã—ãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnRecordingStopped();
@@ -817,7 +816,7 @@ namespace TSTask
 
 	bool CTSTaskCore::SetNextRecordingDirectory()
 	{
-		OutLog(LOG_INFO,L"˜^‰æ‚ğŸ‚ÌƒtƒHƒ‹ƒ_‚ÉØ‚è‘Ö‚¦‚Ü‚·B");
+		OutLog(LOG_INFO,L"éŒ²ç”»ã‚’æ¬¡ã®ãƒ•ã‚©ãƒ«ãƒ€ã«åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚");
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -826,12 +825,12 @@ namespace TSTask
 		}
 
 		if (m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING) {
-			OutLog(LOG_ERROR,L"˜^‰æ’†‚Å‚Í‚ ‚è‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"éŒ²ç”»ä¸­ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
 		if (m_RecordingInfo.Settings.Directories.size()<=(size_t)(m_RecordingInfo.CurDirectory+1)) {
-			OutLog(LOG_WARNING,L"Ÿ‚ÌƒtƒHƒ‹ƒ_‚ªw’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+			OutLog(LOG_WARNING,L"æ¬¡ã®ãƒ•ã‚©ãƒ«ãƒ€ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -864,20 +863,20 @@ namespace TSTask
 				ULARGE_INTEGER FreeSpace;
 				if (::GetDiskFreeSpaceEx(Directory.c_str(),&FreeSpace,NULL,NULL)) {
 					if (FreeSpace.QuadPart>=m_MinDiskFreeSpace) {
-						OutLog(LOG_INFO,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚É‹ó‚«‚ª %llu MiB ‚ ‚é‚½‚ß˜^‰ææ‚Éİ’è‚µ‚Ü‚·B",
+						OutLog(LOG_INFO,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ã«ç©ºããŒ %llu MiB ã‚ã‚‹ãŸã‚éŒ²ç”»å…ˆã«è¨­å®šã—ã¾ã™ã€‚",
 							   Directory.c_str(),FreeSpace.QuadPart/(1024*1024));
 						break;
 					}
-					OutLog(LOG_WARNING,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚Ì‹ó‚«—e—Ê‚ª•s‘«‚µ‚Ä‚¢‚Ü‚·B(%llu MiB)",
+					OutLog(LOG_WARNING,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ã®ç©ºãå®¹é‡ãŒä¸è¶³ã—ã¦ã„ã¾ã™ã€‚(%llu MiB)",
 						   Directory.c_str(),FreeSpace.QuadPart/(1024*1024));
 				} else {
-					OutLog(LOG_WARNING,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚Ì‹ó‚«—e—Ê‚ªæ“¾‚Å‚«‚Ü‚¹‚ñB(Error 0x%x)",
+					OutLog(LOG_WARNING,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ã®ç©ºãå®¹é‡ãŒå–å¾—ã§ãã¾ã›ã‚“ã€‚(Error 0x%x)",
 						   Directory.c_str(),::GetLastError());
 				}
 			}
 		}
 		if (i==m_RecordingInfo.Settings.Directories.size()) {
-			OutLog(LOG_ERROR,L"—˜—p‰Â”\‚È˜^‰ææ‚ª‚ ‚è‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"åˆ©ç”¨å¯èƒ½ãªéŒ²ç”»å…ˆãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -892,14 +891,14 @@ namespace TSTask
 							  BasePath.c_str(),PartNo,Extension.c_str());
 
 		if (PathUtility::IsExists(FilePath)) {
-			OutLog(LOG_VERBOSE,L"ƒpƒX \"%s\" ‚ªŠù‚É‘¶İ‚·‚é‚½‚ßAƒtƒ@ƒCƒ‹–¼‚ğ•ÏX‚µ‚Ü‚·B",FilePath.c_str());
+			OutLog(LOG_VERBOSE,L"ãƒ‘ã‚¹ \"%s\" ãŒæ—¢ã«å­˜åœ¨ã™ã‚‹ãŸã‚ã€ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å¤‰æ›´ã—ã¾ã™ã€‚",FilePath.c_str());
 			for (unsigned int j=1;;j++) {
 				StringUtility::Format(FilePath,L"%s.part%u(%u)%s",
 									  BasePath.c_str(),PartNo,j,Extension.c_str());
 				if (!PathUtility::IsExists(FilePath))
 					break;
 				if (j==1000) {
-					OutLog(LOG_ERROR,L"ƒ†ƒj[ƒN‚Èƒtƒ@ƒCƒ‹–¼‚ğ¶¬‚Å‚«‚Ü‚¹‚ñB");
+					OutLog(LOG_ERROR,L"ãƒ¦ãƒ‹ãƒ¼ã‚¯ãªãƒ•ã‚¡ã‚¤ãƒ«åã‚’ç”Ÿæˆã§ãã¾ã›ã‚“ã€‚");
 					return false;
 				}
 			}
@@ -916,12 +915,12 @@ namespace TSTask
 		return true;
 	}
 
-	bool CTSTaskCore::ChangeRecordingFile(LPCWSTR pszFileName)
+	bool CTSTaskCore::ChangeRecordingFile(LPCWSTR pszFileName, LPCWSTR pszExpectedFileName, ULONGLONG ExpectedStartTick)
 	{
 		if (IsStringEmpty(pszFileName))
 			return false;
 
-		OutLog(LOG_INFO,L"˜^‰æƒtƒ@ƒCƒ‹‚ğØ‚è‘Ö‚¦‚Ü‚·B(%s)",pszFileName);
+		OutLog(LOG_INFO,L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚(%s)",pszFileName);
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -930,15 +929,19 @@ namespace TSTask
 		}
 
 		if (m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING) {
-			OutLog(LOG_ERROR,L"˜^‰æ’†‚Å‚Í‚ ‚è‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"éŒ²ç”»ä¸­ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚");
 			return false;
 		}
+
+		if (pszExpectedFileName && (m_RecordingInfo.StartTickCount!=ExpectedStartTick
+				|| m_RecordingInfo.FilePaths.empty() || m_RecordingInfo.FilePaths.back()!=pszExpectedFileName))
+			return false;
 
 		if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 							   [pszFileName](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnRecordingFileChange(pszFileName);
 							   })) {
-			OutLog(LOG_INFO,L"˜^‰æƒtƒ@ƒCƒ‹‚ÌØ‚è‘Ö‚¦‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«ã®åˆ‡ã‚Šæ›¿ãˆãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -946,10 +949,10 @@ namespace TSTask
 		Directory=pszFileName;
 		PathUtility::RemoveFileName(&Directory);
 		if (!PathUtility::IsExists(Directory)) {
-			OutLog(LOG_INFO,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚ª‘¶İ‚µ‚È‚¢‚½‚ßì¬‚µ‚Ü‚·B",Directory.c_str());
+			OutLog(LOG_INFO,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ãŒå­˜åœ¨ã—ãªã„ãŸã‚ä½œæˆã—ã¾ã™ã€‚",Directory.c_str());
 			int Error=::SHCreateDirectory(nullptr,Directory.c_str());
 			if (Error!=ERROR_SUCCESS && Error!=ERROR_ALREADY_EXISTS) {
-				OutSystemErrorLog(Error,L"ƒtƒHƒ‹ƒ_ \"%s\" ‚ğì¬‚Å‚«‚Ü‚¹‚ñB",
+				OutSystemErrorLog(Error,L"ãƒ•ã‚©ãƒ«ãƒ€ \"%s\" ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",
 								  Directory.c_str());
 			}
 		}
@@ -964,13 +967,57 @@ namespace TSTask
 		}
 
 		m_RecordingInfo.FilePaths.push_back(String(pszFileName));
+		m_NextDiskFreeSpaceCheck=0;
+		m_fLowDiskSpaceLogged=false;
 
-		OutLog(LOG_VERBOSE,L"˜^‰æƒtƒ@ƒCƒ‹‚ª•ÏX‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«ãŒå¤‰æ›´ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnRecordingFileChanged(pszFileName);
 
 		return true;
+	}
+
+	void CTSTaskCore::CheckRecordingFreeSpace()
+	{
+		String FilePath;
+		ULONGLONG StartTickCount,MinFreeSpace;
+		{
+			CTryBlockLock Lock(m_Lock);
+			if (!Lock.TryLock(0) || m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING
+					|| m_MinDiskFreeSpace==0 || m_fLowDiskSpaceLogged)
+				return;
+			const ULONGLONG Now=::GetTickCount64();
+			if (Now<m_NextDiskFreeSpaceCheck)
+				return;
+			m_NextDiskFreeSpaceCheck=Now+10000;
+			FilePath=m_RecordingInfo.FilePaths.back();
+			StartTickCount=m_RecordingInfo.StartTickCount;
+			MinFreeSpace=m_MinDiskFreeSpace;
+		}
+
+		String Directory=FilePath;
+		for (auto &Character:Directory) {
+			if (Character==L'/')
+				Character=L'\\';
+		}
+		if (!PathUtility::RemoveFileName(&Directory))
+			Directory=L".";
+		PathUtility::AppendDelimiter(&Directory);
+		ULARGE_INTEGER Available;
+		if (!::GetDiskFreeSpaceEx(Directory.c_str(),&Available,nullptr,nullptr)
+				|| Available.QuadPart>=MinFreeSpace)
+			return;
+
+		CTryBlockLock Lock(m_Lock);
+		if (!Lock.TryLock(0) || m_RecordingInfo.State==RECORDING_STATE_NOT_RECORDING
+				|| m_fLowDiskSpaceLogged || m_MinDiskFreeSpace!=MinFreeSpace
+				|| m_RecordingInfo.StartTickCount!=StartTickCount
+				|| m_RecordingInfo.FilePaths.back()!=FilePath)
+			return;
+		m_fLowDiskSpaceLogged=true;
+		OutLog(LOG_WARNING,L"éŒ²ç”»å…ˆ \"%s\" ã®ç©ºãå®¹é‡ãŒå°‘ãªããªã£ã¦ã„ã¾ã™ã€‚(%llu MiB / è­¦å‘Šã—ãã„å€¤ %llu MiB)",
+			   Directory.c_str(),Available.QuadPart/(1024*1024),MinFreeSpace/(1024*1024));
 	}
 
 	bool CTSTaskCore::GetRecordingInfo(RecordingInfo *pInfo) const
@@ -1044,14 +1091,14 @@ namespace TSTask
 		if (Size<188)
 			return false;
 
-		OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«o‚µƒTƒCƒY‚ğ%uƒoƒCƒg‚Éİ’è‚µ‚Ü‚·B",Size);
+		OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãå‡ºã—ã‚µã‚¤ã‚ºã‚’%uãƒã‚¤ãƒˆã«è¨­å®šã—ã¾ã™ã€‚",Size);
 
 		return m_DtvEngine.m_TsRecorder.SetBufferSize(Size);
 	}
 
 	bool CTSTaskCore::SetMaxWritePendingSize(unsigned int Size)
 	{
-		OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«o‚µ‘Ò‚¿Å‘åƒTƒCƒY‚ğ%uƒoƒCƒg‚Éİ’è‚µ‚Ü‚·B",Size);
+		OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãå‡ºã—å¾…ã¡æœ€å¤§ã‚µã‚¤ã‚ºã‚’%uãƒã‚¤ãƒˆã«è¨­å®šã—ã¾ã™ã€‚",Size);
 
 		return m_DtvEngine.m_TsRecorder.SetMaxPendingSize(Size);
 	}
@@ -1059,18 +1106,25 @@ namespace TSTask
 	bool CTSTaskCore::SetWritePreAllocate(ULONGLONG PreAllocateSize)
 	{
 		if (PreAllocateSize>0)
-			OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹‚Ì–‘OŠm•ÛƒTƒCƒY‚ğ%lluƒoƒCƒg‚Éİ’è‚µ‚Ü‚·B",PreAllocateSize);
+			OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ«ã®äº‹å‰ç¢ºä¿ã‚µã‚¤ã‚ºã‚’%lluãƒã‚¤ãƒˆã«è¨­å®šã—ã¾ã™ã€‚",PreAllocateSize);
 		else
-			OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹‚Ì–‘OŠm•Û‚ğ–³Œø‚É‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ«ã®äº‹å‰ç¢ºä¿ã‚’ç„¡åŠ¹ã«ã—ã¾ã™ã€‚");
 
 		return m_DtvEngine.m_TsRecorder.SetPreAllocationUnit(PreAllocateSize);
 	}
 
 	bool CTSTaskCore::SetMinDiskFreeSpace(ULONGLONG MinFreeSpace)
 	{
-		OutLog(LOG_INFO,L"Å’á‹ó‚«—e—Ê‚ğ%lluƒoƒCƒg‚Éİ’è‚µ‚Ü‚·B",MinFreeSpace);
+		OutLog(LOG_INFO,L"æœ€ä½ç©ºãå®¹é‡ã‚’%lluãƒã‚¤ãƒˆã«è¨­å®šã—ã¾ã™ã€‚",MinFreeSpace);
 
+		CTryBlockLock Lock(m_Lock);
+		if (!Lock.TryLock(m_LockTimeout)) {
+			OutTimeoutErrorLog();
+			return false;
+		}
 		m_MinDiskFreeSpace=MinFreeSpace;
+		m_NextDiskFreeSpaceCheck=0;
+		m_fLowDiskSpaceLogged=false;
 
 		return true;
 	}
@@ -1120,7 +1174,7 @@ namespace TSTask
 
 	bool CTSTaskCore::ResetErrorStatistics()
 	{
-		OutLog(LOG_VERBOSE,L"ƒGƒ‰[ƒJƒEƒ“ƒg‚ğƒŠƒZƒbƒg‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ã‚¨ãƒ©ãƒ¼ã‚«ã‚¦ãƒ³ãƒˆã‚’ãƒªã‚»ãƒƒãƒˆã—ã¾ã™ã€‚");
 
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
@@ -1222,6 +1276,24 @@ namespace TSTask
 		return true;
 	}
 
+	bool CTSTaskCore::GetScannedChannelInfo(int Space,int Channel,CChannelInfo *pInfo) const
+	{
+		CTryBlockLock Lock(m_Lock);
+		if (!pInfo || Space<0 || Channel<0 || !Lock.TryLock(m_LockTimeout))
+			return false;
+		const auto *pChannel=m_TuningSpaceList.GetChannelInfo(Space,Channel);
+		if (!pChannel)
+			return false;
+		*pInfo=*pChannel;
+		return true;
+	}
+
+	int CTSTaskCore::GetScannedTuningSpaceCount() const
+	{
+		CTryBlockLock Lock(m_Lock);
+		return Lock.TryLock(m_LockTimeout) ? static_cast<int>(m_TuningSpaceList.GetSpaceCount()) : 0;
+	}
+
 	bool CTSTaskCore::StartStreaming(const StreamingInfo &Info)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
@@ -1229,24 +1301,24 @@ namespace TSTask
 				|| Info.Address.Address.empty())
 			return false;
 
-		if (!m_fInitialized)
-			return false;
-
-		if (!StopStreaming())
-			return false;
-
-		OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ğŠJn‚µ‚Ü‚·B(%s %s:%d)",
-			   Streaming::GetProtocolText(Info.Address.Protocol),
-			   Info.Address.Address.c_str(),Info.Address.Port);
-
 		CTryBlockLock Lock(m_Lock);
 		if (!Lock.TryLock(m_LockTimeout)) {
 			OutTimeoutErrorLog();
 			return false;
 		}
 
+		if (!m_fInitialized)
+			return false;
+
+		if (!StopStreaming())
+			return false;
+
+		OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’é–‹å§‹ã—ã¾ã™ã€‚(%s %s:%d)",
+			   Streaming::GetProtocolText(Info.Address.Protocol),
+			   Info.Address.Address.c_str(),Info.Address.Port);
+
 		if (!m_StreamingManager.Initialize()) {
-			OutLog(LOG_ERROR,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚Ì‰Šú‰»‚ª‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®åˆæœŸåŒ–ãŒã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -1254,13 +1326,13 @@ namespace TSTask
 							   [Info](TSTask::CEventHandler *pHandler) {
 							       return pHandler->OnStreamingStart(Info);
 							   })) {
-			OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ÌŠJn‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+			OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®é–‹å§‹ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		IPAddress IPAddr;
 		if (!Streaming::GetIPAddress(Info.Address,&IPAddr)) {
-			OutLog(LOG_ERROR,L"IPƒAƒhƒŒƒX‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"IPã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -1268,33 +1340,33 @@ namespace TSTask
 
 		if (Info.fFindUnusedPort) {
 			if (!Streaming::CreateAddressMutex(&m_StreamingMutex,Info.Address.Protocol,IPAddr,&Port)) {
-				OutLog(LOG_ERROR,L"Mutex‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+				OutLog(LOG_ERROR,L"Mutexã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 				return false;
 			}
 			if (Port!=Info.Address.Port) {
-				OutLog(LOG_INFO,L"ƒ|[ƒg”Ô†%u‚ªŠù‚Ég—p‚³‚ê‚Ä‚¢‚é‚½‚ßA%u‚É•ÏX‚µ‚Ü‚·B",Info.Address.Port,Port);
+				OutLog(LOG_INFO,L"ãƒãƒ¼ãƒˆç•ªå·%uãŒæ—¢ã«ä½¿ç”¨ã•ã‚Œã¦ã„ã‚‹ãŸã‚ã€%uã«å¤‰æ›´ã—ã¾ã™ã€‚",Info.Address.Port,Port);
 			}
 		} else {
 			if (!Streaming::CreateAddressMutex(&m_StreamingMutex,Info.Address.Protocol,IPAddr,Port)) {
-				OutLog(LOG_ERROR,L"Mutex‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+				OutLog(LOG_ERROR,L"Mutexã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 				return false;
 			}
 		}
 
-		OutLog(LOG_VERBOSE,L"‘—M‘ÎÛƒXƒgƒŠ[ƒ€‚ğİ’è‚µ‚Ü‚·B(0x%x) š–‹: ‘—M%s / ƒf[ƒ^•ú‘—: ‘—M%s",
+		OutLog(LOG_VERBOSE,L"é€ä¿¡å¯¾è±¡ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’è¨­å®šã—ã¾ã™ã€‚(0x%x) å­—å¹•: é€ä¿¡%s / ãƒ‡ãƒ¼ã‚¿æ”¾é€: é€ä¿¡%s",
 			   Info.Streams & STREAM_ALL,
-			   (Info.Streams & STREAM_CAPTION)?L"‚·‚é":L"‚µ‚È‚¢",
-			   (Info.Streams & STREAM_DATA_CARROUSEL)?L"‚·‚é":L"‚µ‚È‚¢");
+			   (Info.Streams & STREAM_CAPTION)?L"ã™ã‚‹":L"ã—ãªã„",
+			   (Info.Streams & STREAM_DATA_CARROUSEL)?L"ã™ã‚‹":L"ã—ãªã„");
 #ifdef BONTSENGINE_1SEG_SUPPORT
 		if ((Info.Streams & STREAM_1SEG)!=0) {
-			OutLog(LOG_VERBOSE,L"ƒƒ“ƒZƒOƒT[ƒrƒX‚ğ‘—M‘ÎÛ‚Éİ’è‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ãƒ¯ãƒ³ã‚»ã‚°ã‚µãƒ¼ãƒ“ã‚¹ã‚’é€ä¿¡å¯¾è±¡ã«è¨­å®šã—ã¾ã™ã€‚");
 			m_DtvEngine.SetSendStream(::CDtvEngine::SID_1SEG,GetTsSelectorStreamFlags(Info.Streams));
 		} else
 #endif
 		{
 			bool fCurServiceOnly=Info.ServiceSelect==SERVICE_SELECT_CURRENT;
-			OutLog(LOG_VERBOSE,L"%sƒT[ƒrƒX‚ğ‘—M‘ÎÛ‚Éİ’è‚µ‚Ü‚·B",
-				   fCurServiceOnly?L"w’è":L"‘S‚Ä‚Ì");
+			OutLog(LOG_VERBOSE,L"%sã‚µãƒ¼ãƒ“ã‚¹ã‚’é€ä¿¡å¯¾è±¡ã«è¨­å®šã—ã¾ã™ã€‚",
+				   fCurServiceOnly?L"æŒ‡å®š":L"å…¨ã¦ã®");
 			m_DtvEngine.SetSendCurServiceOnly(fCurServiceOnly,GetTsSelectorStreamFlags(Info.Streams));
 		}
 
@@ -1308,7 +1380,7 @@ namespace TSTask
 
 		if (!m_DtvEngine.m_TsNetworkSender.Open(&Address,1)) {
 			OutBonTsEngineErrorLog(m_DtvEngine.m_TsNetworkSender);
-			OutLog(LOG_ERROR,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			m_StreamingMutex.Close();
 			return false;
 		}
@@ -1316,7 +1388,7 @@ namespace TSTask
 		m_StreamingInfo=Info;
 		m_StreamingInfo.Address.Port=Port;
 
-		OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ªŠJn‚³‚ê‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãŒé–‹å§‹ã•ã‚ŒãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 		for (auto e:m_EventHandlerList)
 			e->OnStreamingStarted(Info);
@@ -1337,13 +1409,13 @@ namespace TSTask
 		}
 
 		if (m_DtvEngine.m_TsNetworkSender.IsOpen()) {
-			OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ğ’â~‚µ‚Ü‚·B");
+			OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã‚’åœæ­¢ã—ã¾ã™ã€‚");
 
 			if (!ListUtility::Enum(m_EventHandlerList.begin(),m_EventHandlerList.end(),
 								   [](TSTask::CEventHandler *pHandler) {
 								       return pHandler->OnStreamingStop();
 								   })) {
-				OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚Ì’â~‚ªƒLƒƒƒ“ƒZƒ‹‚³‚ê‚Ü‚µ‚½B");
+				OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®åœæ­¢ãŒã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸã€‚");
 				return false;
 			}
 
@@ -1351,7 +1423,7 @@ namespace TSTask
 
 			m_StreamingMutex.Close();
 
-			OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ª’â~‚µ‚½‚±‚Æ‚ğ’Ê’m‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãŒåœæ­¢ã—ãŸã“ã¨ã‚’é€šçŸ¥ã—ã¾ã™ã€‚");
 
 			for (auto e:m_EventHandlerList)
 				e->OnStreamingStopped();
@@ -1401,7 +1473,7 @@ namespace TSTask
 		if (Size==0)
 			return false;
 
-		OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ€‘—MƒTƒCƒY‚ğ%uƒpƒPƒbƒg(%uƒoƒCƒg)‚Éİ’è‚µ‚Ü‚·B",Size,Size*TS_PACKET_SIZE);
+		OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ é€ä¿¡ã‚µã‚¤ã‚ºã‚’%uãƒ‘ã‚±ãƒƒãƒˆ(%uãƒã‚¤ãƒˆ)ã«è¨­å®šã—ã¾ã™ã€‚",Size,Size*TS_PACKET_SIZE);
 
 		return m_DtvEngine.m_TsNetworkSender.SetSendSize(Size);
 #else
@@ -1412,7 +1484,7 @@ namespace TSTask
 	bool CTSTaskCore::SetStreamingSendWait(unsigned int Wait,bool fAdjustWait)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
-		OutLog(LOG_INFO,L"ƒXƒgƒŠ[ƒ€‘—MŠÔŠu‚ğ%ums(’²®%s)‚Éİ’è‚µ‚Ü‚·B",Wait,fAdjustWait?L"‚ ‚è":L"‚È‚µ");
+		OutLog(LOG_INFO,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ é€ä¿¡é–“éš”ã‚’%ums(èª¿æ•´%s)ã«è¨­å®šã—ã¾ã™ã€‚",Wait,fAdjustWait?L"ã‚ã‚Š":L"ãªã—");
 
 		m_DtvEngine.m_TsNetworkSender.SetSendWait(Wait);
 		m_DtvEngine.m_TsNetworkSender.SetAdjustWait(fAdjustWait);
@@ -1426,7 +1498,7 @@ namespace TSTask
 	bool CTSTaskCore::SetStreamingConnectRetryInterval(unsigned int Interval)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
-		OutLog(LOG_INFO,L"Ú‘±ƒŠƒgƒ‰ƒCŠÔŠu‚ğ%ums‚Éİ’è‚µ‚Ü‚·B",Interval);
+		OutLog(LOG_INFO,L"æ¥ç¶šãƒªãƒˆãƒ©ã‚¤é–“éš”ã‚’%umsã«è¨­å®šã—ã¾ã™ã€‚",Interval);
 
 		m_DtvEngine.m_TsNetworkSender.SetConnectRetryInterval(Interval);
 
@@ -1439,7 +1511,7 @@ namespace TSTask
 	bool CTSTaskCore::SetStreamingMaxConnectRetries(int MaxRetries)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
-		OutLog(LOG_INFO,L"Ú‘±ƒŠƒgƒ‰ƒC‰ñ”‚ğ%d‰ñ‚Éİ’è‚µ‚Ü‚·B",MaxRetries);
+		OutLog(LOG_INFO,L"æ¥ç¶šãƒªãƒˆãƒ©ã‚¤å›æ•°ã‚’%då›ã«è¨­å®šã—ã¾ã™ã€‚",MaxRetries);
 
 		return m_DtvEngine.m_TsNetworkSender.SetMaxConnectRetries(MaxRetries);
 #else
@@ -1450,7 +1522,7 @@ namespace TSTask
 	bool CTSTaskCore::SetStreamingTcpMaxSendRetries(int MaxRetries)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
-		OutLog(LOG_INFO,L"TCP‘—MƒŠƒgƒ‰ƒC‰ñ”‚ğ%d‰ñ‚Éİ’è‚µ‚Ü‚·B",MaxRetries);
+		OutLog(LOG_INFO,L"TCPé€ä¿¡ãƒªãƒˆãƒ©ã‚¤å›æ•°ã‚’%då›ã«è¨­å®šã—ã¾ã™ã€‚",MaxRetries);
 
 		return m_DtvEngine.m_TsNetworkSender.SetTcpMaxSendRetries(MaxRetries);
 #else
@@ -1461,7 +1533,7 @@ namespace TSTask
 	bool CTSTaskCore::SetStreamingTcpPrependHeader(bool fPrependHeader)
 	{
 #ifdef DTVENGINE_NETWORK_SUPPORT
-		OutLog(LOG_INFO,L"TCP‘—M‚Åƒwƒbƒ_‚ğ•t‰Á%s‚æ‚¤‚Éİ’è‚µ‚Ü‚·B",fPrependHeader?L"‚·‚é":L"‚µ‚È‚¢");
+		OutLog(LOG_INFO,L"TCPé€ä¿¡ã§ãƒ˜ãƒƒãƒ€ã‚’ä»˜åŠ %sã‚ˆã†ã«è¨­å®šã—ã¾ã™ã€‚",fPrependHeader?L"ã™ã‚‹":L"ã—ãªã„");
 
 		m_DtvEngine.m_TsNetworkSender.SetTcpPrependHeader(fPrependHeader);
 
@@ -1504,7 +1576,7 @@ namespace TSTask
 
 	bool CTSTaskCore::AddEventHandler(TSTask::CEventHandler *pEventHandler)
 	{
-		OutLog(LOG_VERBOSE,L"ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰‚ğ’Ç‰Á‚µ‚Ü‚·B(%p)",pEventHandler);
+		OutLog(LOG_VERBOSE,L"ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ ã—ã¾ã™ã€‚(%p)",pEventHandler);
 
 		if (pEventHandler==nullptr)
 			return false;
@@ -1518,14 +1590,14 @@ namespace TSTask
 		if (std::find(m_EventHandlerList.begin(),m_EventHandlerList.end(),pEventHandler)==m_EventHandlerList.end())
 			m_EventHandlerList.push_back(pEventHandler);
 		else
-			OutLog(LOG_WARNING,L"ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰(%p)‚ÍŠù‚É“o˜^‚³‚ê‚Ä‚¢‚Ü‚·B",pEventHandler);
+			OutLog(LOG_WARNING,L"ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©(%p)ã¯æ—¢ã«ç™»éŒ²ã•ã‚Œã¦ã„ã¾ã™ã€‚",pEventHandler);
 
 		return true;
 	}
 
 	bool CTSTaskCore::RemoveEventHandler(TSTask::CEventHandler *pEventHandler)
 	{
-		OutLog(LOG_VERBOSE,L"ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰‚ğíœ‚µ‚Ü‚·B(%p)",pEventHandler);
+		OutLog(LOG_VERBOSE,L"ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©ã‚’å‰Šé™¤ã—ã¾ã™ã€‚(%p)",pEventHandler);
 
 		if (pEventHandler==nullptr)
 			return false;
@@ -1538,7 +1610,7 @@ namespace TSTask
 
 		auto i=std::find(m_EventHandlerList.begin(),m_EventHandlerList.end(),pEventHandler);
 		if (i==m_EventHandlerList.end()) {
-			OutLog(LOG_WARNING,L"ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰(%p)‚ª“o˜^‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB",pEventHandler);
+			OutLog(LOG_WARNING,L"ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©(%p)ãŒç™»éŒ²ã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚",pEventHandler);
 			return false;
 		}
 
@@ -1549,7 +1621,7 @@ namespace TSTask
 
 	bool CTSTaskCore::AddTsGrabber(ITsGrabber *pGrabber)
 	{
-		OutLog(LOG_VERBOSE,L"TSƒOƒ‰ƒo[‚ğ’Ç‰Á‚µ‚Ü‚·B(%p)",pGrabber);
+		OutLog(LOG_VERBOSE,L"TSã‚°ãƒ©ãƒãƒ¼ã‚’è¿½åŠ ã—ã¾ã™ã€‚(%p)",pGrabber);
 
 		if (pGrabber==nullptr)
 			return false;
@@ -1559,7 +1631,7 @@ namespace TSTask
 
 	bool CTSTaskCore::RemoveTsGrabber(ITsGrabber *pGrabber)
 	{
-		OutLog(LOG_VERBOSE,L"TSƒOƒ‰ƒo[‚ğíœ‚µ‚Ü‚·B(%p)",pGrabber);
+		OutLog(LOG_VERBOSE,L"TSã‚°ãƒ©ãƒãƒ¼ã‚’å‰Šé™¤ã—ã¾ã™ã€‚(%p)",pGrabber);
 
 		if (pGrabber==nullptr)
 			return false;
@@ -1569,7 +1641,7 @@ namespace TSTask
 
 	void CTSTaskCore::OutTimeoutErrorLog() const
 	{
-		OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B(%u ms)",m_LockTimeout);
+		OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚(%u ms)",m_LockTimeout);
 	}
 
 	void CTSTaskCore::OutBonTsEngineErrorLog(const ::CBonErrorHandler &ErrorHandler) const
@@ -1584,48 +1656,66 @@ namespace TSTask
 		}
 	}
 
-	void CTSTaskCore::OnServiceChanged(WORD ServiceID)
+	void CTSTaskCore::QueueEngineNotification(EngineNotification Notification)
 	{
-		OutLog(LOG_VERBOSE,L"ƒT[ƒrƒX‚ª•ÏX‚³‚ê‚Ü‚µ‚½B(SID 0x%x)",ServiceID);
-
-		CTryBlockLock Lock(m_Lock);
-		if (!Lock.TryLock(m_LockTimeout)) {
-			OutTimeoutErrorLog();
-			return;
+		// Decoder threads must be able to finish while the core is changing or closing the tuner.
+		if (const HWND hwnd=m_NotificationWindow.load()) {
+			if (m_EngineNotifications.fetch_or(Notification)==0
+					&& !::PostMessageW(hwnd,NotificationMessage,0,0))
+				m_EngineNotifications.store(0);
 		}
-
-		m_CurrentChannel.ServiceID=ServiceID;
-
-		for (auto e:m_EventHandlerList)
-			e->OnServiceChanged(ServiceID);
 	}
 
-	void CTSTaskCore::OnServiceListUpdated(::CTsAnalyzer *pTsAnalyzer,bool bStreamChanged)
+	void CTSTaskCore::ProcessEngineNotifications()
 	{
-		if (bStreamChanged) {
-			OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ€‚ª•ÏX‚³‚ê‚Ü‚µ‚½B");
+		const unsigned int Notifications=m_EngineNotifications.exchange(0);
+		CBlockLock Lock(m_Lock);
+		if (!m_fInitialized)
+			return;
 
-			CTryBlockLock Lock(m_Lock);
-			if (!Lock.TryLock(m_LockTimeout)) {
-				OutTimeoutErrorLog();
-				return;
+		if (Notifications & NOTIFY_SERVICE) {
+			WORD ServiceID;
+			if (m_CurrentChannel.Space!=TuningChannelInfo::SPACE_INVALID
+					&& m_DtvEngine.GetServiceID(&ServiceID)) {
+				m_CurrentChannel.ServiceID=ServiceID;
+				for (auto e:m_EventHandlerList)
+					e->OnServiceChanged(ServiceID);
 			}
-
+		}
+		if ((Notifications & NOTIFY_STREAM) && IsTunerOpened()) {
+			OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒ ãŒå¤‰æ›´ã•ã‚Œã¾ã—ãŸã€‚");
 			for (auto e:m_EventHandlerList)
 				e->OnStreamChanged();
 		}
+		if (Notifications & NOTIFY_EVENT)
+			UpdateCurrentEvent();
+		if ((Notifications & NOTIFY_TOT) && IsTunerOpened()) {
+			for (auto e:m_EventHandlerList)
+				e->OnTotChanged();
+		}
+		if ((Notifications & NOTIFY_WRITE_ERROR) && m_RecordingInfo.State==RECORDING_STATE_RECORDING
+				&& m_DtvEngine.m_TsRecorder.HasWriteError())
+			SetNextRecordingDirectory();
 	}
 
-	void CTSTaskCore::OnEventUpdated(::CTsAnalyzer *pTsAnalyzer)
+	void CTSTaskCore::OnServiceChanged(WORD)
 	{
-		OutLog(LOG_VERBOSE,L"”Ô‘gî•ñ‚ªXV‚³‚ê‚Ü‚µ‚½B");
+		QueueEngineNotification(NOTIFY_SERVICE);
+	}
 
-		CTryBlockLock Lock(m_Lock);
-		if (!Lock.TryLock(m_LockTimeout)) {
-			OutTimeoutErrorLog();
-			return;
-		}
+	void CTSTaskCore::OnServiceListUpdated(::CTsAnalyzer *,bool bStreamChanged)
+	{
+		if (bStreamChanged)
+			QueueEngineNotification(NOTIFY_STREAM);
+	}
 
+	void CTSTaskCore::OnEventUpdated(::CTsAnalyzer *)
+	{
+		QueueEngineNotification(NOTIFY_EVENT);
+	}
+
+	void CTSTaskCore::UpdateCurrentEvent()
+	{
 		if (m_CurrentChannel.ServiceID==SERVICE_ID_INVALID)
 			return;
 
@@ -1645,25 +1735,15 @@ namespace TSTask
 		}
 	}
 
-	void CTSTaskCore::OnTotUpdated(::CTsAnalyzer *pTsAnalyzer)
+	void CTSTaskCore::OnTotUpdated(::CTsAnalyzer *)
 	{
-		//OutLog(LOG_VERBOSE,L"TOT‚ªXV‚³‚ê‚Ü‚µ‚½B");
-
-		CTryBlockLock Lock(m_Lock);
-		if (!Lock.TryLock(m_LockTimeout)) {
-			OutTimeoutErrorLog();
-			return;
-		}
-
-		for (auto e:m_EventHandlerList)
-			e->OnTotChanged();
+		QueueEngineNotification(NOTIFY_TOT);
 	}
 
-	void CTSTaskCore::OnFileWriteError(::CTsRecorder *pTsRecorder,DWORD ErrorCode)
+	void CTSTaskCore::OnFileWriteError(::CTsRecorder *,DWORD ErrorCode)
 	{
-		OutSystemErrorLog(ErrorCode,L"ƒtƒ@ƒCƒ‹‚Ì‘‚«o‚µ‚ÅƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½B");
-
-		SetNextRecordingDirectory();
+		OutSystemErrorLog(ErrorCode,L"ãƒ•ã‚¡ã‚¤ãƒ«ã®æ›¸ãå‡ºã—ã§ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚");
+		QueueEngineNotification(NOTIFY_WRITE_ERROR);
 	}
 
 	void CTSTaskCore::OnTrace(::CTracer::TraceType Type,LPCTSTR pszOutput)

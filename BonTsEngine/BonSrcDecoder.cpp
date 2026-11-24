@@ -1,4 +1,4 @@
-// BonSrcDecoder.cpp: CBonSrcDecoder ƒNƒ‰ƒX‚ÌƒCƒ“ƒvƒŠƒƒ“ƒe[ƒVƒ‡ƒ“
+ï»¿// BonSrcDecoder.cpp: CBonSrcDecoder ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ãƒ—ãƒªãƒ¡ãƒ³ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,7 +12,7 @@ typedef IBonDriver* (PFCREATEBONDRIVER)(void);
 
 
 //////////////////////////////////////////////////////////////////////
-// \’z/Á–Å
+// æ§‹ç¯‰/æ¶ˆæ»…
 //////////////////////////////////////////////////////////////////////
 
 CBonSrcDecoder::CBonSrcDecoder(IEventHandler *pEventHandler)
@@ -44,17 +44,17 @@ void CBonSrcDecoder::Reset(void)
 		return;
 
 	if (HasPendingRequest()) {
-		Trace(CTracer::TYPE_ERROR, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+		Trace(CTracer::TYPE_ERROR, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 		return;
 	}
 
-	// –¢ˆ—‚ÌƒXƒgƒŠ[ƒ€‚ğ”jŠü‚·‚é
+	// æœªå‡¦ç†ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’ç ´æ£„ã™ã‚‹
 	StreamingRequest Request;
 	Request.Type = StreamingRequest::TYPE_PURGESTREAM;
 	AddRequest(Request);
 
 	if (!WaitAllRequests(m_RequestTimeout)) {
-		Trace(CTracer::TYPE_ERROR, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ª‰“š‚µ‚Ü‚¹‚ñB"));
+		Trace(CTracer::TYPE_ERROR, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ã¾ã›ã‚“ã€‚"));
 	}
 }
 
@@ -67,41 +67,41 @@ void CBonSrcDecoder::ResetGraph(void)
 		SendDecoderEvent(EVENT_GRAPH_RESET);
 	} else {
 		if (HasPendingRequest()) {
-			Trace(CTracer::TYPE_ERROR, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+			Trace(CTracer::TYPE_ERROR, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 			return;
 		}
 
-		// –¢ˆ—‚ÌƒXƒgƒŠ[ƒ€‚ğ”jŠü‚·‚é
+		// æœªå‡¦ç†ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’ç ´æ£„ã™ã‚‹
 		StreamingRequest Request[2];
 		Request[0].Type = StreamingRequest::TYPE_PURGESTREAM;
 		Request[1].Type = StreamingRequest::TYPE_RESET;
 		AddRequests(Request, 2);
 
 		if (!WaitAllRequests(m_RequestTimeout)) {
-			Trace(CTracer::TYPE_ERROR, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ª‰“š‚µ‚Ü‚¹‚ñB"));
+			Trace(CTracer::TYPE_ERROR, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ã¾ã›ã‚“ã€‚"));
 		}
 	}
 }
 
 const bool CBonSrcDecoder::InputMedia(CMediaData *pMediaData, const DWORD dwInputIndex)
 {
-	// ƒ\[ƒXƒfƒR[ƒ_‚Ì‚½‚ß“ü—Í‚Íˆ—‚µ‚È‚¢
+	// ã‚½ãƒ¼ã‚¹ãƒ‡ã‚³ãƒ¼ãƒ€ã®ãŸã‚å…¥åŠ›ã¯å‡¦ç†ã—ãªã„
 	return false;
 }
 
 bool CBonSrcDecoder::LoadBonDriver(LPCTSTR pszFileName)
 {
 	if (m_hBonDriverLib != NULL) {
-		SetError(TEXT("Šù‚É“Ç‚İ‚Ü‚ê‚Ä‚¢‚Ü‚·B"));
+		SetError(TEXT("æ—¢ã«èª­ã¿è¾¼ã¾ã‚Œã¦ã„ã¾ã™ã€‚"));
 		return false;
 	}
 
 	if (pszFileName == NULL) {
-		SetError(TEXT("ƒtƒ@ƒCƒ‹‚ªw’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB"));
+		SetError(TEXT("ãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver \"%s\" ‚ğ“Ç‚İ‚İ‚Ü‚·..."), pszFileName);
+	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver \"%s\" ã‚’èª­ã¿è¾¼ã¿ã¾ã™..."), pszFileName);
 
 	m_hBonDriverLib = ::LoadLibrary(pszFileName);
 
@@ -110,12 +110,12 @@ bool CBonSrcDecoder::LoadBonDriver(LPCTSTR pszFileName)
 		TCHAR szText[MAX_PATH + 64];
 
 		StdUtil::snprintf(szText, _countof(szText),
-						  TEXT("\"%s\" ‚ª“Ç‚İ‚ß‚Ü‚¹‚ñB"), pszFileName);
+						  TEXT("\"%s\" ãŒèª­ã¿è¾¼ã‚ã¾ã›ã‚“ã€‚"), pszFileName);
 		SetError(szText);
 
 		switch (ErrorCode) {
 		case ERROR_MOD_NOT_FOUND:
-			SetErrorAdvise(TEXT("ƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB"));
+			SetErrorAdvise(TEXT("ãƒ•ã‚¡ã‚¤ãƒ«ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚"));
 			break;
 
 		case ERROR_BAD_EXE_FORMAT:
@@ -125,15 +125,15 @@ bool CBonSrcDecoder::LoadBonDriver(LPCTSTR pszFileName)
 #else
 				TEXT("64")
 #endif
-				TEXT("ƒrƒbƒg—p‚Ì BonDriver ‚Å‚Í‚È‚¢‚©Aƒtƒ@ƒCƒ‹‚ª”j‘¹‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚è‚Ü‚·B"));
+				TEXT("ãƒ“ãƒƒãƒˆç”¨ã® BonDriver ã§ã¯ãªã„ã‹ã€ãƒ•ã‚¡ã‚¤ãƒ«ãŒç ´æã—ã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚"));
 			break;
 
 		case ERROR_SXS_CANT_GEN_ACTCTX:
-			SetErrorAdvise(TEXT("‚±‚Ì BonDriver ‚É•K—v‚Èƒ‰ƒ“ƒ^ƒCƒ€‚ªƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ä‚¢‚È‚¢‰Â”\«‚ª‚ ‚è‚Ü‚·B"));
+			SetErrorAdvise(TEXT("ã“ã® BonDriver ã«å¿…è¦ãªãƒ©ãƒ³ã‚¿ã‚¤ãƒ ãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ãªã„å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚"));
 			break;
 
 		default:
-			StdUtil::snprintf(szText, _countof(szText), TEXT("ƒGƒ‰[ƒR[ƒh: 0x%x"), ErrorCode);
+			StdUtil::snprintf(szText, _countof(szText), TEXT("ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰: 0x%x"), ErrorCode);
 			SetErrorAdvise(szText);
 		}
 
@@ -142,7 +142,7 @@ bool CBonSrcDecoder::LoadBonDriver(LPCTSTR pszFileName)
 		return false;
 	}
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ‚ğ“Ç‚İ‚İ‚Ü‚µ‚½B"));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚’èª­ã¿è¾¼ã¿ã¾ã—ãŸã€‚"));
 
 	return true;
 }
@@ -152,10 +152,10 @@ bool CBonSrcDecoder::UnloadBonDriver()
 	if (m_hBonDriverLib != NULL) {
 		CloseTuner();
 
-		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ‚ğ‰ğ•ú‚µ‚Ü‚·..."));
+		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚’è§£æ”¾ã—ã¾ã™..."));
 		::FreeLibrary(m_hBonDriverLib);
 		m_hBonDriverLib = NULL;
-		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ‚ğ‰ğ•ú‚µ‚Ü‚µ‚½B"));
+		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚’è§£æ”¾ã—ã¾ã—ãŸã€‚"));
 	}
 
 	return true;
@@ -169,32 +169,32 @@ bool CBonSrcDecoder::IsBonDriverLoaded() const
 bool CBonSrcDecoder::OpenTuner()
 {
 	if (m_hBonDriverLib == NULL) {
-		SetError(ERR_NOTLOADED, TEXT("BonDriver‚ª“Ç‚İ‚Ü‚ê‚Ä‚¢‚Ü‚¹‚ñB"));
+		SetError(ERR_NOTLOADED, TEXT("BonDriverãŒèª­ã¿è¾¼ã¾ã‚Œã¦ã„ã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
-	// ƒI[ƒvƒ“ƒ`ƒFƒbƒN
+	// ã‚ªãƒ¼ãƒ—ãƒ³ãƒã‚§ãƒƒã‚¯
 	if (m_pBonDriver) {
-		SetError(ERR_ALREADYOPEN, TEXT("ƒ`ƒ…[ƒi‚ÍŠù‚ÉŠJ‚©‚ê‚Ä‚¢‚Ü‚·B"));
+		SetError(ERR_ALREADYOPEN, TEXT("ãƒãƒ¥ãƒ¼ãƒŠã¯æ—¢ã«é–‹ã‹ã‚Œã¦ã„ã¾ã™ã€‚"));
 		return false;
 	}
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("ƒ`ƒ…[ƒi‚ğŠJ‚¢‚Ä‚¢‚Ü‚·..."));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‹ã„ã¦ã„ã¾ã™..."));
 
-	// ƒhƒ‰ƒCƒoƒ|ƒCƒ“ƒ^‚Ìæ“¾
+	// ãƒ‰ãƒ©ã‚¤ãƒãƒã‚¤ãƒ³ã‚¿ã®å–å¾—
 	PFCREATEBONDRIVER *pfCreateBonDriver =
 		(PFCREATEBONDRIVER*)::GetProcAddress(m_hBonDriverLib, "CreateBonDriver");
 	if (pfCreateBonDriver == NULL) {
 		SetError(ERR_DRIVER,
-				 TEXT("CreateBonDriver() ‚ÌƒAƒhƒŒƒX‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB"),
-				 TEXT("w’è‚³‚ê‚½ DLL ‚ª BonDriver ‚Å‚Í‚ ‚è‚Ü‚¹‚ñB"));
+				 TEXT("CreateBonDriver() ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚"),
+				 TEXT("æŒ‡å®šã•ã‚ŒãŸ DLL ãŒ BonDriver ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 	m_pBonDriver = pfCreateBonDriver();
 	if (m_pBonDriver == NULL) {
 		SetError(ERR_DRIVER,
-				 TEXT("IBonDriver ‚ğæ“¾‚Å‚«‚Ü‚¹‚ñB"),
-				 TEXT("CreateBonDriver() ‚ÌŒÄ‚Ño‚µ‚Å NULL ‚ª•Ô‚³‚ê‚Ü‚µ‚½B"));
+				 TEXT("IBonDriver ã‚’å–å¾—ã§ãã¾ã›ã‚“ã€‚"),
+				 TEXT("CreateBonDriver() ã®å‘¼ã³å‡ºã—ã§ NULL ãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚"));
 		return false;
 	}
 
@@ -203,32 +203,32 @@ bool CBonSrcDecoder::OpenTuner()
 	BOOL bTunerOpened;
 
 	try {
-		// ƒ`ƒ…[ƒi‚ğŠJ‚­
+		// ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‹ã
 		bTunerOpened = m_pBonDriver->OpenTuner();
 
-		// ‚È‚º‚©ƒXƒŒƒbƒh‚Ì—Dæ“x‚ğ•Ï‚¦‚éBonDriver‚ª‚ ‚é‚Ì‚ÅŒ³‚É–ß‚·
+		// ãªãœã‹ã‚¹ãƒ¬ãƒƒãƒ‰ã®å„ªå…ˆåº¦ã‚’å¤‰ãˆã‚‹BonDriverãŒã‚ã‚‹ã®ã§å…ƒã«æˆ»ã™
 		::SetThreadPriority(hThread, ThreadPriority);
 
 		if (!bTunerOpened) {
 			SetError(ERR_TUNEROPEN,
-					 TEXT("ƒ`ƒ…[ƒi‚ğŠJ‚¯‚Ü‚¹‚ñB"),
-					 TEXT("BonDriver ‚Éƒ`ƒ…[ƒi‚ğŠJ‚­‚æ‚¤—v‹‚µ‚Ü‚µ‚½‚ªƒGƒ‰[‚ª•Ô‚³‚ê‚Ü‚µ‚½B"));
+					 TEXT("ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‹ã‘ã¾ã›ã‚“ã€‚"),
+					 TEXT("BonDriver ã«ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‹ãã‚ˆã†è¦æ±‚ã—ã¾ã—ãŸãŒã‚¨ãƒ©ãƒ¼ãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚"));
 			throw ERR_TUNEROPEN;
 		}
 
 		m_SetChannelCount = 0;
 		m_TunerOpenTime = ::GetTickCount();
 
-		// IBonDriver2ƒCƒ“ƒ^ƒtƒF[ƒXæ“¾
+		// IBonDriver2ã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹å–å¾—
 		m_pBonDriver2 = dynamic_cast<IBonDriver2 *>(m_pBonDriver);
 
-		// ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‹N“®
+		// ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰èµ·å‹•
 		m_EndEvent.Create();
 		m_RequestEvent.Create();
 		m_bIsPlaying = false;
 		m_hStreamRecvThread = (HANDLE)::_beginthreadex(NULL, 0, StreamingThread, this, 0, NULL);
 		if (!m_hStreamRecvThread) {
-			SetError(ERR_INTERNAL, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ğì¬‚Å‚«‚Ü‚¹‚ñB"));
+			SetError(ERR_INTERNAL, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚"));
 			throw ERR_INTERNAL;
 		}
 	} catch (...) {
@@ -242,23 +242,23 @@ bool CBonSrcDecoder::OpenTuner()
 
 	ClearError();
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("ƒ`ƒ…[ƒi‚ğŠJ‚«‚Ü‚µ‚½B"));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‹ãã¾ã—ãŸã€‚"));
 
 	return true;
 }
 
 bool CBonSrcDecoder::CloseTuner(void)
 {
-	// ƒXƒgƒŠ[ƒ€’â~
+	// ã‚¹ãƒˆãƒªãƒ¼ãƒ åœæ­¢
 	m_bIsPlaying = false;
 
 	if (m_hStreamRecvThread) {
-		// ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh’â~
-		Trace(CTracer::TYPE_INFORMATION, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ğ’â~‚µ‚Ä‚¢‚Ü‚·..."));
+		// ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰åœæ­¢
+		Trace(CTracer::TYPE_INFORMATION, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’åœæ­¢ã—ã¦ã„ã¾ã™..."));
 		m_EndEvent.Set();
 		if (::WaitForSingleObject(m_hStreamRecvThread, 5000UL) != WAIT_OBJECT_0) {
-			// ƒXƒŒƒbƒh‹­§I—¹
-			Trace(CTracer::TYPE_WARNING, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ª‰“š‚µ‚È‚¢‚½‚ß‹­§I—¹‚µ‚Ü‚·B"));
+			// ã‚¹ãƒ¬ãƒƒãƒ‰å¼·åˆ¶çµ‚äº†
+			Trace(CTracer::TYPE_WARNING, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ãªã„ãŸã‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™ã€‚"));
 			::TerminateThread(m_hStreamRecvThread, -1);
 		}
 		::CloseHandle(m_hStreamRecvThread);
@@ -270,16 +270,16 @@ bool CBonSrcDecoder::CloseTuner(void)
 	m_RequestEvent.Close();
 
 	if (m_pBonDriver) {
-		// ƒ`ƒ…[ƒi‚ğ•Â‚¶‚é
-		Trace(CTracer::TYPE_INFORMATION, TEXT("ƒ`ƒ…[ƒi‚ğ•Â‚¶‚Ä‚¢‚Ü‚·..."));
+		// ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‰ã˜ã‚‹
+		Trace(CTracer::TYPE_INFORMATION, TEXT("ãƒãƒ¥ãƒ¼ãƒŠã‚’é–‰ã˜ã¦ã„ã¾ã™..."));
 		m_pBonDriver->CloseTuner();
 
-		// ƒhƒ‰ƒCƒoƒCƒ“ƒXƒ^ƒ“ƒXŠJ•ú
-		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ‰ğ•ú‚µ‚Ä‚¢‚Ü‚·..."));
+		// ãƒ‰ãƒ©ã‚¤ãƒã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹é–‹æ”¾
+		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã‚’è§£æ”¾ã—ã¦ã„ã¾ã™..."));
 		m_pBonDriver->Release();
 		m_pBonDriver = NULL;
 		m_pBonDriver2 = NULL;
-		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ‰ğ•ú‚µ‚Ü‚µ‚½B"));
+		Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã‚’è§£æ”¾ã—ã¾ã—ãŸã€‚"));
 	}
 
 	ResetStatus();
@@ -301,13 +301,13 @@ bool CBonSrcDecoder::Play(void)
 	TRACE(TEXT("CBonSrcDecoder::Play()\n"));
 
 	if (m_pBonDriver == NULL) {
-		// ƒ`ƒ…[ƒi‚ªŠJ‚©‚ê‚Ä‚¢‚È‚¢
+		// ãƒãƒ¥ãƒ¼ãƒŠãŒé–‹ã‹ã‚Œã¦ã„ãªã„
 		SetError(ERR_NOTOPEN, NULL);
 		return false;
 	}
 
 	if (m_bIsPlaying) {
-		// Šù‚ÉÄ¶’†
+		// æ—¢ã«å†ç”Ÿä¸­
 		/*
 		SetError(ERR_ALREADYPLAYING, NULL);
 		return false;
@@ -316,15 +316,15 @@ bool CBonSrcDecoder::Play(void)
 	}
 
 	if (HasPendingRequest()) {
-		SetError(ERR_PENDING, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+		SetError(ERR_PENDING, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
 	StreamingRequest Request[2];
 
-	// –¢ˆ—‚ÌƒXƒgƒŠ[ƒ€‚ğ”jŠü‚·‚é
+	// æœªå‡¦ç†ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’ç ´æ£„ã™ã‚‹
 	Request[0].Type = StreamingRequest::TYPE_PURGESTREAM;
-	// ‰ºˆÊƒfƒR[ƒ_‚ğƒŠƒZƒbƒg‚·‚é
+	// ä¸‹ä½ãƒ‡ã‚³ãƒ¼ãƒ€ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 	Request[1].Type = StreamingRequest::TYPE_RESET;
 
 	AddRequests(Request, 2);
@@ -334,7 +334,7 @@ bool CBonSrcDecoder::Play(void)
 		return false;
 	}
 
-	// ƒXƒgƒŠ[ƒ€‚ğÄ¶ó‘Ô‚É‚·‚é
+	// ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’å†ç”ŸçŠ¶æ…‹ã«ã™ã‚‹
 	m_bIsPlaying = true;
 
 	ClearError();
@@ -347,7 +347,7 @@ bool CBonSrcDecoder::Stop(void)
 	TRACE(TEXT("CBonSrcDecoder::Stop()\n"));
 
 	if (!m_bIsPlaying) {
-		// ƒXƒgƒŠ[ƒ€‚ÍÄ¶’†‚Å‚È‚¢
+		// ã‚¹ãƒˆãƒªãƒ¼ãƒ ã¯å†ç”Ÿä¸­ã§ãªã„
 		/*
 		SetError(ERR_NOTPLAYING, NULL);
 		return false;
@@ -367,31 +367,31 @@ bool CBonSrcDecoder::SetChannel(const BYTE byChannel)
 	TRACE(TEXT("CBonSrcDecoder::SetChannel(%d)\n"), byChannel);
 
 	if (m_pBonDriver == NULL) {
-		// ƒ`ƒ…[ƒi‚ªŠJ‚©‚ê‚Ä‚¢‚È‚¢
+		// ãƒãƒ¥ãƒ¼ãƒŠãŒé–‹ã‹ã‚Œã¦ã„ãªã„
 		SetError(ERR_NOTOPEN, NULL);
 		return false;
 	}
 
 	if (HasPendingRequest()) {
-		SetError(ERR_PENDING, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+		SetError(ERR_PENDING, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
 	StreamingRequest Request[3];
 	int RequestCount = 0;
 
-	// –¢ˆ—‚ÌƒXƒgƒŠ[ƒ€‚ğ”jŠü‚·‚é
+	// æœªå‡¦ç†ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’ç ´æ£„ã™ã‚‹
 	if (m_bPurgeStreamOnChannelChange) {
 		Request[RequestCount].Type = StreamingRequest::TYPE_PURGESTREAM;
 		RequestCount++;
 	}
 
-	// ƒ`ƒƒƒ“ƒlƒ‹‚ğ•ÏX‚·‚é
+	// ãƒãƒ£ãƒ³ãƒãƒ«ã‚’å¤‰æ›´ã™ã‚‹
 	Request[RequestCount].Type = StreamingRequest::TYPE_SETCHANNEL;
 	Request[RequestCount].SetChannel.Channel = byChannel;
 	RequestCount++;
 
-	// ‰ºˆÊƒfƒR[ƒ_‚ğƒŠƒZƒbƒg‚·‚é
+	// ä¸‹ä½ãƒ‡ã‚³ãƒ¼ãƒ€ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 	Request[RequestCount].Type = StreamingRequest::TYPE_RESET;
 	RequestCount++;
 
@@ -404,8 +404,8 @@ bool CBonSrcDecoder::SetChannel(const BYTE byChannel)
 
 	if (!m_bRequestResult) {
 		SetError(ERR_TUNER,
-				 TEXT("ƒ`ƒƒƒ“ƒlƒ‹‚Ì•ÏX‚ª BonDriver ‚Éó‚¯•t‚¯‚ç‚ê‚Ü‚¹‚ñB"),
-				 TEXT("IBonDriver::SetChannel() ‚ÌŒÄ‚Ño‚µ‚ÅƒGƒ‰[‚ª•Ô‚³‚ê‚Ü‚µ‚½B"));
+				 TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ã®å¤‰æ›´ãŒ BonDriver ã«å—ã‘ä»˜ã‘ã‚‰ã‚Œã¾ã›ã‚“ã€‚"),
+				 TEXT("IBonDriver::SetChannel() ã®å‘¼ã³å‡ºã—ã§ã‚¨ãƒ©ãƒ¼ãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚"));
 		return false;
 	}
 
@@ -419,32 +419,32 @@ bool CBonSrcDecoder::SetChannel(const DWORD dwSpace, const DWORD dwChannel)
 	TRACE(TEXT("CBonSrcDecoder::SetChannel(%lu, %lu)\n"), dwSpace, dwChannel);
 
 	if (m_pBonDriver2 == NULL) {
-		// ƒ`ƒ…[ƒi‚ªŠJ‚©‚ê‚Ä‚¢‚È‚¢
+		// ãƒãƒ¥ãƒ¼ãƒŠãŒé–‹ã‹ã‚Œã¦ã„ãªã„
 		SetError(ERR_NOTOPEN, NULL);
 		return false;
 	}
 
 	if (HasPendingRequest()) {
-		SetError(ERR_PENDING, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+		SetError(ERR_PENDING, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
 	StreamingRequest Request[3];
 	int RequestCount = 0;
 
-	// –¢ˆ—‚ÌƒXƒgƒŠ[ƒ€‚ğ”jŠü‚·‚é
+	// æœªå‡¦ç†ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚’ç ´æ£„ã™ã‚‹
 	if (m_bPurgeStreamOnChannelChange) {
 		Request[RequestCount].Type = StreamingRequest::TYPE_PURGESTREAM;
 		RequestCount++;
 	}
 
-	// ƒ`ƒƒƒ“ƒlƒ‹‚ğ•ÏX‚·‚é
+	// ãƒãƒ£ãƒ³ãƒãƒ«ã‚’å¤‰æ›´ã™ã‚‹
 	Request[RequestCount].Type = StreamingRequest::TYPE_SETCHANNEL2;
 	Request[RequestCount].SetChannel2.Space = dwSpace;
 	Request[RequestCount].SetChannel2.Channel = dwChannel;
 	RequestCount++;
 
-	// ‰ºˆÊƒfƒR[ƒ_‚ğƒŠƒZƒbƒg‚·‚é
+	// ä¸‹ä½ãƒ‡ã‚³ãƒ¼ãƒ€ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 	Request[RequestCount].Type = StreamingRequest::TYPE_RESET;
 	RequestCount++;
 
@@ -457,8 +457,8 @@ bool CBonSrcDecoder::SetChannel(const DWORD dwSpace, const DWORD dwChannel)
 
 	if (!m_bRequestResult) {
 		SetError(ERR_TUNER,
-				 TEXT("ƒ`ƒƒƒ“ƒlƒ‹‚Ì•ÏX‚ª BonDriver ‚Éó‚¯•t‚¯‚ç‚ê‚Ü‚¹‚ñB"),
-				 TEXT("IBonDriver2::SetChannel() ‚ÌŒÄ‚Ño‚µ‚ÅƒGƒ‰[‚ª•Ô‚³‚ê‚Ü‚µ‚½B"));
+				 TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ã®å¤‰æ›´ãŒ BonDriver ã«å—ã‘ä»˜ã‘ã‚‰ã‚Œã¾ã›ã‚“ã€‚"),
+				 TEXT("IBonDriver2::SetChannel() ã®å‘¼ã³å‡ºã—ã§ã‚¨ãƒ©ãƒ¼ãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚"));
 		return false;
 	}
 
@@ -481,13 +481,13 @@ bool CBonSrcDecoder::SetChannelAndPlay(const DWORD dwSpace, const DWORD dwChanne
 
 bool CBonSrcDecoder::IsBonDriver2(void) const
 {
-	// IBonDriver2ƒCƒ“ƒ^ƒtƒF[ƒX‚Ìg—p‰Â”Û‚ğ•Ô‚·
+	// IBonDriver2ã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹ã®ä½¿ç”¨å¯å¦ã‚’è¿”ã™
 	return m_pBonDriver2 != NULL;
 }
 
 LPCTSTR CBonSrcDecoder::GetSpaceName(const DWORD dwSpace) const
 {
-	// ƒ`ƒ…[ƒjƒ“ƒO‹óŠÔ–¼‚ğ•Ô‚·
+	// ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ç©ºé–“åã‚’è¿”ã™
 	if (m_pBonDriver2 == NULL) {
 		//SetError(ERR_NOTOPEN, NULL);
 		return NULL;
@@ -497,7 +497,7 @@ LPCTSTR CBonSrcDecoder::GetSpaceName(const DWORD dwSpace) const
 
 LPCTSTR CBonSrcDecoder::GetChannelName(const DWORD dwSpace, const DWORD dwChannel) const
 {
-	// ƒ`ƒƒƒ“ƒlƒ‹–¼‚ğ•Ô‚·
+	// ãƒãƒ£ãƒ³ãƒãƒ«åã‚’è¿”ã™
 	if (m_pBonDriver2 == NULL) {
 		//SetError(ERR_NOTOPEN, NULL);
 		return NULL;
@@ -510,13 +510,13 @@ bool CBonSrcDecoder::PurgeStream(void)
 	TRACE(TEXT("CBonSrcDecoder::PurgeStream()\n"));
 
 	if (m_pBonDriver == NULL) {
-		// ƒ`ƒ…[ƒi‚ªŠJ‚©‚ê‚Ä‚¢‚È‚¢
+		// ãƒãƒ¥ãƒ¼ãƒŠãŒé–‹ã‹ã‚Œã¦ã„ãªã„
 		SetError(ERR_NOTOPEN, NULL);
 		return false;
 	}
 
 	if (HasPendingRequest()) {
-		SetError(ERR_PENDING, TEXT("‘O‰ñ‚Ì—v‹‚ªŠ®—¹‚µ‚È‚¢‚½‚ßV‚µ‚¢—v‹‚ğs‚¦‚Ü‚¹‚ñB"));
+		SetError(ERR_PENDING, TEXT("å‰å›ã®è¦æ±‚ãŒå®Œäº†ã—ãªã„ãŸã‚æ–°ã—ã„è¦æ±‚ã‚’è¡Œãˆã¾ã›ã‚“ã€‚"));
 		return false;
 	}
 
@@ -573,14 +573,14 @@ float CBonSrcDecoder::GetSignalLevel(void)
 {
 #if 0
 	if (m_pBonDriver == NULL) {
-		// ƒ`ƒ…[ƒi‚ªŠJ‚©‚ê‚Ä‚¢‚È‚¢
+		// ãƒãƒ¥ãƒ¼ãƒŠãŒé–‹ã‹ã‚Œã¦ã„ãªã„
 		SetError(ERR_NOTOPEN, NULL);
 		return 0.0f;
 	}
 
 	ClearError();
 
-	// M†ƒŒƒxƒ‹‚ğ•Ô‚·
+	// ä¿¡å·ãƒ¬ãƒ™ãƒ«ã‚’è¿”ã™
 	return m_pBonDriver->GetSignalLevel();
 #else
 	return m_SignalLevel;
@@ -643,7 +643,7 @@ bool CBonSrcDecoder::SetMinChannelChangeInterval(const DWORD Interval)
 
 unsigned int __stdcall CBonSrcDecoder::StreamingThread(LPVOID pParam)
 {
-	// ƒ`ƒ…[ƒi‚©‚çTSƒf[ƒ^‚ğæ‚èo‚·ƒXƒŒƒbƒh
+	// ãƒãƒ¥ãƒ¼ãƒŠã‹ã‚‰TSãƒ‡ãƒ¼ã‚¿ã‚’å–ã‚Šå‡ºã™ã‚¹ãƒ¬ãƒƒãƒ‰
 	CBonSrcDecoder *pThis = static_cast<CBonSrcDecoder *>(pParam);
 
 	::CoInitialize(NULL);
@@ -653,7 +653,7 @@ unsigned int __stdcall CBonSrcDecoder::StreamingThread(LPVOID pParam)
 	try {
 		pThis->StreamingMain();
 	} catch (...) {
-		pThis->Trace(CTracer::TYPE_ERROR, TEXT("ƒXƒgƒŠ[ƒ€ˆ—‚Å—áŠO‚ª”­¶‚µ‚Ü‚µ‚½B"));
+		pThis->Trace(CTracer::TYPE_ERROR, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å‡¦ç†ã§ä¾‹å¤–ãŒç™ºç”Ÿã—ã¾ã—ãŸã€‚"));
 	}
 
 	::CoUninitialize();
@@ -728,7 +728,7 @@ void CBonSrcDecoder::StreamingMain()
 			if (m_pBonDriver->GetTsStream(&pStreamData, &dwStreamSize, &dwStreamRemain)
 					&& pStreamData && dwStreamSize) {
 				if (m_bIsPlaying) {
-					// ÅãˆÊƒfƒR[ƒ_‚É“ü—Í‚·‚é
+					// æœ€ä¸Šä½ãƒ‡ã‚³ãƒ¼ãƒ€ã«å…¥åŠ›ã™ã‚‹
 					TsStream.SetData(pStreamData, dwStreamSize);
 					OutputMedia(&TsStream);
 				}
@@ -813,13 +813,13 @@ void CBonSrcDecoder::SetRequestTimeoutError()
 		switch (Request.Type) {
 		case StreamingRequest::TYPE_SETCHANNEL:
 		case StreamingRequest::TYPE_SETCHANNEL2:
-			pszText = TEXT("BonDriver ‚Éƒ`ƒƒƒ“ƒlƒ‹•ÏX‚ğ—v‹‚µ‚Ü‚µ‚½‚ª‰“š‚ª‚ ‚è‚Ü‚¹‚ñB");
+			pszText = TEXT("BonDriver ã«ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´ã‚’è¦æ±‚ã—ã¾ã—ãŸãŒå¿œç­”ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 			break;
 		case StreamingRequest::TYPE_PURGESTREAM:
-			pszText = TEXT("BonDriver ‚Éc‚èƒf[ƒ^‚Ì”jŠü‚ğ—v‹‚µ‚Ü‚µ‚½‚ª‰“š‚ª‚ ‚è‚Ü‚¹‚ñB");
+			pszText = TEXT("BonDriver ã«æ®‹ã‚Šãƒ‡ãƒ¼ã‚¿ã®ç ´æ£„ã‚’è¦æ±‚ã—ã¾ã—ãŸãŒå¿œç­”ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 			break;
 		case StreamingRequest::TYPE_RESET:
-			pszText = TEXT("ƒŠƒZƒbƒgˆ—‚ªŠ®—¹‚µ‚Ü‚¹‚ñB");
+			pszText = TEXT("ãƒªã‚»ãƒƒãƒˆå‡¦ç†ãŒå®Œäº†ã—ã¾ã›ã‚“ã€‚");
 			break;
 		default:
 			pszText = TEXT("Internal error (Invalid request type)");
@@ -827,7 +827,7 @@ void CBonSrcDecoder::SetRequestTimeoutError()
 
 		SetError(ERR_TIMEOUT, pszText);
 	} else {
-		SetError(ERR_TIMEOUT, TEXT("ƒXƒgƒŠ[ƒ€óMƒXƒŒƒbƒh‚ª‰“š‚µ‚Ü‚¹‚ñB"));
+		SetError(ERR_TIMEOUT, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå¿œç­”ã—ã¾ã›ã‚“ã€‚"));
 	}
 }
 

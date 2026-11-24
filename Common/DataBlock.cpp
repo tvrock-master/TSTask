@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "DataBlock.h"
 #include "DebugDef.h"
@@ -72,7 +72,7 @@ namespace TSTask
 		if (Size>m_BufferSize) {
 			void *pNewBuffer=std::realloc(m_pBuffer,Size);
 			if (pNewBuffer==nullptr) {
-				OutLog(LOG_ERROR,L"ƒƒ‚ƒŠ‚ğŠm•Û‚Å‚«‚Ü‚¹‚ñB(%Iu bytes)",Size);
+				OutLog(LOG_ERROR,L"ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã§ãã¾ã›ã‚“ã€‚(%Iu bytes)",Size);
 				return false;
 			}
 			m_pBuffer=pNewBuffer;

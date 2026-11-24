@@ -1,0 +1,14 @@
+* text=auto
+
+# C++ and resource sources use UTF-8 with Windows line endings.
+*.cpp text eol=crlf
+*.h text eol=crlf
+*.rc text eol=crlf
+
+# The legacy manual is edited as CP932.
+Doc/TSTask.txt text working-tree-encoding=CP932 eol=crlf
+
+# These configuration files use UTF-16LE with a BOM.
+Data/TSTask.default.ini text working-tree-encoding=UTF-16LE-BOM eol=crlf
+Data/TSTaskThemes/Aero.tttheme text working-tree-encoding=UTF-16LE-BOM eol=crlf
+Data/TSTaskThemes/Metro.tttheme text working-tree-encoding=UTF-16LE-BOM eol=crlf

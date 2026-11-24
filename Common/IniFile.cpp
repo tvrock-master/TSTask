@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "IniFile.h"
 #include "DebugDef.h"
@@ -27,7 +27,7 @@ namespace TSTask
 				|| (Flags & (OPEN_READ | OPEN_WRITE))==0)
 			return false;
 
-		OutLog(LOG_VERBOSE,L"INI ƒtƒ@ƒCƒ‹ \"%s\" ‚ğŠJ‚«‚Ü‚·B",pszFileName);
+		OutLog(LOG_VERBOSE,L"INI ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã‚’é–‹ãã¾ã™ã€‚",pszFileName);
 
 		String MutexName;
 		MutexName=L"TSTask_Ini_Mutex_";
@@ -35,12 +35,12 @@ namespace TSTask
 		StringUtility::Replace(MutexName,L'\\',L':');
 		if (m_Mutex.Create(MutexName.c_str())) {
 			if (m_Mutex.Wait(5000)==WAIT_TIMEOUT) {
-				OutLog(LOG_ERROR,L"INI ƒtƒ@ƒCƒ‹ \"%s\" ‚ªƒƒbƒN‚³‚ê‚½‚Ü‚Ü‚É‚È‚Á‚Ä‚¢‚Ü‚·B",pszFileName);
+				OutLog(LOG_ERROR,L"INI ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ãŒãƒ­ãƒƒã‚¯ã•ã‚ŒãŸã¾ã¾ã«ãªã£ã¦ã„ã¾ã™ã€‚",pszFileName);
 				m_Mutex.Close();
 				//return false;
 			}
 		} else {
-			OutLog(LOG_ERROR,L"INI ƒtƒ@ƒCƒ‹‚Ì Mutex \"%s\" ‚ªì¬‚Å‚«‚Ü‚¹‚ñB",MutexName.c_str());
+			OutLog(LOG_ERROR,L"INI ãƒ•ã‚¡ã‚¤ãƒ«ã® Mutex \"%s\" ãŒä½œæˆã§ãã¾ã›ã‚“ã€‚",MutexName.c_str());
 		}
 
 		DWORD DesiredAccess=0,ShareMode=0;
@@ -88,7 +88,7 @@ namespace TSTask
 				}
 			} else {
 				OutSystemErrorLog(::GetLastError(),
-								  L"ƒtƒ@ƒCƒ‹ \"%s\" ‚ğŠJ‚¯‚Ü‚¹‚ñB",
+								  L"ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",
 								  pszFileName);
 				throw __LINE__;
 			}
@@ -295,7 +295,7 @@ namespace TSTask
 
 		auto itrValue=FindValue(pSection->Entries,pszName);
 		if (itrValue==pSection->Entries.end()) {
-			TRACE(TEXT("V‹Kİ’è : %s=%s\n"),pszName,pszValue);
+			TRACE(TEXT("æ–°è¦è¨­å®š : %s=%s\n"),pszName,pszValue);
 			bool fInserted=false;
 			for (auto i=pSection->Entries.rbegin();i!=pSection->Entries.rend();i++) {
 				if (!i->Name.empty()) {
@@ -489,7 +489,7 @@ namespace TSTask
 
 	bool CIniFile::CreateSection(LPCWSTR pszName)
 	{
-		//TRACE(L"INIƒZƒNƒVƒ‡ƒ“ì¬ : [%s]\n",pszName);
+		//TRACE(L"INIã‚»ã‚¯ã‚·ãƒ§ãƒ³ä½œæˆ : [%s]\n",pszName);
 
 		m_SectionList.push_back(CSectionData(pszName));
 

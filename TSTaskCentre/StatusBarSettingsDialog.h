@@ -1,4 +1,4 @@
-#ifndef TSTASKCENTRE_STATUS_BAR_SETTINGS_DIALOG_H
+Ôªø#ifndef TSTASKCENTRE_STATUS_BAR_SETTINGS_DIALOG_H
 #define TSTASKCENTRE_STATUS_BAR_SETTINGS_DIALOG_H
 
 
@@ -20,7 +20,7 @@ namespace TSTaskCentre
 		INT_PTR DlgProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) override;
 
 	// CSettingsDialog::CPage
-		LPCWSTR GetTitle() const override { return L"ÉXÉeÅ[É^ÉXÉoÅ["; }
+		LPCWSTR GetTitle() const override { return L"„Çπ„ÉÜ„Éº„Çø„Çπ„Éê„Éº"; }
 		COLORREF GetTitleColor() const override { return RGB(0,128,192); }
 		int GetIcon() const override { return ICON_STATUS_BAR; }
 

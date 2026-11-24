@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "LogDialog.h"
 #include "resource.h"
@@ -43,8 +43,8 @@ namespace TSTaskCentre
 				m_ListView.SetImageList(himlIcons,LVSIL_SMALL);
 
 				m_ListView.InsertColumn(0,TEXT(""));
-				m_ListView.InsertColumn(1,TEXT("“ú"));
-				m_ListView.InsertColumn(2,TEXT("“à—e"));
+				m_ListView.InsertColumn(1,TEXT("æ—¥æ™‚"));
+				m_ListView.InsertColumn(2,TEXT("å†…å®¹"));
 
 				m_LogList.clear();
 				if (m_Core.GetTSTaskManager().GetLog(m_TaskID,&m_LogList) && !m_LogList.empty()) {
@@ -89,8 +89,8 @@ namespace TSTaskCentre
 				case NM_RCLICK:
 					if (pnmh->idFrom==IDC_LOG_LIST) {
 						HMENU hmenu=::CreatePopupMenu();
-						::AppendMenu(hmenu,MF_STRING | (m_ListView.GetSelectedItem()>=0?MF_ENABLED:MF_GRAYED),1,TEXT("ƒRƒs[(&C)"));
-						::AppendMenu(hmenu,MF_STRING | MF_ENABLED,2,TEXT("‚·‚×‚ÄƒRƒs[(&C)"));
+						::AppendMenu(hmenu,MF_STRING | (m_ListView.GetSelectedItem()>=0?MF_ENABLED:MF_GRAYED),1,TEXT("ã‚³ãƒ”ãƒ¼(&C)"));
+						::AppendMenu(hmenu,MF_STRING | MF_ENABLED,2,TEXT("ã™ã¹ã¦ã‚³ãƒ”ãƒ¼(&C)"));
 						POINT pt;
 						::GetCursorPos(&pt);
 						int Result=::TrackPopupMenu(hmenu,TPM_RIGHTBUTTON | TPM_RETURNCMD,pt.x,pt.y,0,hDlg,nullptr);
@@ -143,7 +143,7 @@ namespace TSTaskCentre
 					TSTask::GetModuleDirectory(nullptr,&Directory);
 					ofn.lStructSize=sizeof(ofn);
 					ofn.hwndOwner=hDlg;
-					ofn.lpstrFilter=TEXT("ƒƒOƒtƒ@ƒCƒ‹(*.log)\0*.log\0‘S‚Ä‚Ìƒtƒ@ƒCƒ‹(*.*)\0*.*\0");
+					ofn.lpstrFilter=TEXT("ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«(*.log)\0*.log\0å…¨ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«(*.*)\0*.*\0");
 					ofn.nFilterIndex=1;
 					ofn.lpstrFile=szFileName;
 					ofn.nMaxFile=_countof(szFileName);
@@ -152,7 +152,7 @@ namespace TSTaskCentre
 					ofn.lpstrDefExt=TEXT("log");
 					if (::GetSaveFileName(&ofn)) {
 						if (!SaveLog(szFileName)) {
-							::MessageBox(hDlg,L"ƒƒO‚Ì•Û‘¶‚ª‚Å‚«‚Ü‚¹‚ñB",nullptr,
+							::MessageBox(hDlg,L"ãƒ­ã‚°ã®ä¿å­˜ãŒã§ãã¾ã›ã‚“ã€‚",nullptr,
 										 MB_OK | MB_ICONEXCLAMATION);
 						}
 					}

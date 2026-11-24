@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -27,7 +28,7 @@ namespace TSTask
 			WSAData WSAData;
 			int Error=::WSAStartup(MAKEWORD(2,0),&WSAData);
 			if (Error!=0) {
-				OutLog(LOG_ERROR,L"Winsock‚Ì‰Šú‰»‚ª‚Å‚«‚Ü‚¹‚ñB(Error 0x%x)",Error);
+				OutLog(LOG_ERROR,L"Winsockã®åˆæœŸåŒ–ãŒã§ãã¾ã›ã‚“ã€‚(Error 0x%x)",Error);
 				return false;
 			}
 			m_fInitialized=true;
@@ -52,7 +53,7 @@ namespace TSTask
 			L"UDP",
 			L"TCP",
 		};
-		static_assert(_countof(g_ProtocolList)==PROTOCOL_TRAILER,"ƒvƒƒgƒRƒ‹‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+		static_assert(_countof(g_ProtocolList)==PROTOCOL_TRAILER,"Protocol count does not match PROTOCOL_TRAILER.");
 
 		LPCWSTR GetProtocolText(NetworkProtocolType Protocol)
 		{
@@ -107,7 +108,7 @@ namespace TSTask
 			pName->clear();
 
 			if (Address.Type==IPAddress::TYPE_V4) {
-				// EDCB‚ÆŒİŠ·‚Ì–¼‘O‚ğg—p‚·‚é
+				// EDCBã¨äº’æ›ã®åå‰ã‚’ä½¿ç”¨ã™ã‚‹
 
 				switch (Protocol) {
 				case PROTOCOL_UDP:
@@ -162,11 +163,11 @@ namespace TSTask
 
 			if (pMutex->IsAlreadyExists()) {
 				pMutex->Close();
-				OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ÌMutex(%s)‚ªŠù‚É‘¶İ‚µ‚Ü‚·B",Name.c_str());
+				OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®Mutex(%s)ãŒæ—¢ã«å­˜åœ¨ã—ã¾ã™ã€‚",Name.c_str());
 				return false;
 			}
 
-			OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ÌMutex(%s)‚ğì¬‚µ‚Ü‚µ‚½B",Name.c_str());
+			OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®Mutex(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚",Name.c_str());
 
 			return true;
 		}
@@ -184,7 +185,7 @@ namespace TSTask
 
 				if (pMutex->Create(Name.c_str())) {
 					if (!pMutex->IsAlreadyExists()) {
-						OutLog(LOG_VERBOSE,L"ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ÌMutex‚ğì¬‚µ‚Ü‚µ‚½B(%s)",Name.c_str());
+						OutLog(LOG_VERBOSE,L"ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ã®Mutexã‚’ä½œæˆã—ã¾ã—ãŸã€‚(%s)",Name.c_str());
 						*pPort=Port;
 						break;
 					}

@@ -1,4 +1,4 @@
-#ifndef TSTASKCENTRE_TOOLS_SETTINGS_DIALOG_H
+Ôªø#ifndef TSTASKCENTRE_TOOLS_SETTINGS_DIALOG_H
 #define TSTASKCENTRE_TOOLS_SETTINGS_DIALOG_H
 
 
@@ -20,7 +20,7 @@ namespace TSTaskCentre
 		INT_PTR DlgProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) override;
 
 	// CSettingsDialog::CPage
-		LPCWSTR GetTitle() const override { return L"ÉcÅ[Éã"; }
+		LPCWSTR GetTitle() const override { return L"„ÉÑ„Éº„É´"; }
 		COLORREF GetTitleColor() const override { return RGB(128,0,192); }
 		int GetIcon() const override { return ICON_TOOLS; }
 

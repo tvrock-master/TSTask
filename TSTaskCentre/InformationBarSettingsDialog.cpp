@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "InformationBarSettingsDialog.h"
 #include "InformationBarItems.h"
@@ -27,7 +27,7 @@ namespace TSTaskCentre
 		WCHAR szText[16];
 		unsigned int Time=Min;
 		for (int i=0;Time<=Max;i++,Time++) {
-			TSTask::FormatString(szText,_countof(szText),L"%u •b",Time);
+			TSTask::FormatString(szText,_countof(szText),L"%u ç§’",Time);
 			::SendDlgItemMessage(hDlg,ID,CB_ADDSTRING,0,
 								 reinterpret_cast<LPARAM>(szText));
 			::SendDlgItemMessage(hDlg,ID,CB_SETITEMDATA,i,Time*1000);
@@ -36,7 +36,7 @@ namespace TSTaskCentre
 		}
 		if (Sel<0) {
 			if (Cur%1000==0)
-				TSTask::FormatString(szText,_countof(szText),L"(%u •b)",Cur/1000);
+				TSTask::FormatString(szText,_countof(szText),L"(%u ç§’)",Cur/1000);
 			else
 				TSTask::FormatString(szText,_countof(szText),L"(%u ms)",Cur);
 			::SendDlgItemMessage(hDlg,ID,CB_INSERTSTRING,0,
@@ -95,7 +95,7 @@ namespace TSTaskCentre
 				}
 
 				static const LPCTSTR TextAlignList[] = {
-					TEXT("¶Šñ‚¹"),TEXT("‰EŠñ‚¹"),TEXT("’†‰›"),
+					TEXT("å·¦å¯„ã›"),TEXT("å³å¯„ã›"),TEXT("ä¸­å¤®"),
 				};
 				for (int i=0;i<_countof(TextAlignList);i++) {
 					::SendDlgItemMessage(hDlg,IDC_SETTINGS_INFORMATION_BAR_TEXT_ALIGN,

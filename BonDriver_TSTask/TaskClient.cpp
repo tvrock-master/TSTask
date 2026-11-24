@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "../Common/TSTaskCommon.h"
 #include "TaskClient.h"
 #include "../Common/DebugDef.h"
@@ -19,7 +19,7 @@ bool CTaskClient::InitializeClient()
 	TSTask::CBlockLock Lock(m_Lock);
 
 	if (!m_TaskIdentity.Initialize(TSTask::TASK_TYPE_CLIENT)) {
-		TSTask::OutLog(TSTask::LOG_ERROR,L"ƒNƒ‰ƒCƒAƒ“ƒg‚Ìƒ^ƒXƒNID‚ğŠ„‚è“–‚Ä‚ç‚ê‚Ü‚¹‚ñB");
+		TSTask::OutLog(TSTask::LOG_ERROR,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã®ã‚¿ã‚¹ã‚¯IDã‚’å‰²ã‚Šå½“ã¦ã‚‰ã‚Œã¾ã›ã‚“ã€‚");
 		return false;
 	}
 
@@ -31,7 +31,7 @@ bool CTaskClient::InitializeClient()
 	TSTask::String ServerName;
 	TSTask::TaskUtility::GetClientTaskLocalMessageServerName(m_TaskIdentity.GetTaskID(),&ServerName);
 	if (!m_MessageServer.Open(ServerName.c_str())) {
-		TSTask::OutLog(TSTask::LOG_ERROR,L"ƒ[ƒJƒ‹ƒƒbƒZ[ƒWƒT[ƒo[‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+		TSTask::OutLog(TSTask::LOG_ERROR,L"ãƒ­ãƒ¼ã‚«ãƒ«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚µãƒ¼ãƒãƒ¼ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 		m_TaskIdentity.Finalize();
 		return false;
 	}
@@ -119,7 +119,7 @@ bool CTaskClient::OnTaskStarted(TSTask::CMessageServer *pServer,const TSTask::CM
 		return true;
 	}
 
-	TSTask::OutLog(TSTask::LOG_INFO,L"ƒ^ƒXƒN(%u)‚ÌŠJn’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+	TSTask::OutLog(TSTask::LOG_INFO,L"ã‚¿ã‚¹ã‚¯(%u)ã®é–‹å§‹é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 	m_Lock.Lock();
 	if (m_ServerTaskID==TaskID)
@@ -142,7 +142,7 @@ bool CTaskClient::OnTaskEnded(TSTask::CMessageServer *pServer,const TSTask::CMes
 		return true;
 	}
 
-	TSTask::OutLog(TSTask::LOG_INFO,L"ƒ^ƒXƒN(%u)‚ÌI—¹’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+	TSTask::OutLog(TSTask::LOG_INFO,L"ã‚¿ã‚¹ã‚¯(%u)ã®çµ‚äº†é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 	m_Lock.Lock();
 	if (m_ServerTaskID==TaskID)

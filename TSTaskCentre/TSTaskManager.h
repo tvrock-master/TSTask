@@ -1,3 +1,4 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASKCENTRE_TS_TASK_MANAGER_H
 #define TSTASKCENTRE_TS_TASK_MANAGER_H
 
@@ -52,6 +53,7 @@ namespace TSTaskCentre
 		int GetTaskCount() const;
 		bool GetTaskList(TSTask::TaskUtility::TaskIDList *pList) const;
 		bool AddTask(TSTask::TaskID ClientTaskID,TSTask::TaskID ID);
+		bool AdoptTask(TSTask::TaskID ID,CTSTaskManager &Source);
 		bool RemoveTask(TSTask::TaskID ID);
 		bool GetTaskInfo(TSTask::TaskID ID,TSTask::TaskInfo *pInfo);
 		bool GetTaskProcessInfo(TSTask::TaskID ID,TaskProcessInfo *pInfo);
@@ -104,9 +106,10 @@ namespace TSTaskCentre
 		public:
 			CTask(TSTask::TaskID ID);
 			~CTask();
-			bool Open(TSTask::TaskID ClientTaskID);
+			bool Open();
+			bool RegisterClient(TSTask::TaskID ClientTaskID);
 			bool UnregisterClient();
-			bool GetTaskInfo(TSTask::TaskInfo *pInfo) const;
+			bool GetTaskInfo(TSTask::TaskInfo *pInfo);
 			DWORD GetProcessID();
 			bool SendMessage(const TSTask::CMessage *pSendMessage,TSTask::CMessage *pReceiveMessage);
 			bool GetStreamStatistics(TSTask::StreamStatistics *pStatistics);

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "DebugDef.h"
 
@@ -185,7 +185,7 @@ namespace TSTask
 		if (IsStringEmpty(pszFileName))
 			return false;
 
-		TRACE(L"ƒƒO‚ğ \"%s\" ‚É•Û‘¶‚µ‚Ü‚·B\n",pszFileName);
+		TRACE(L"ãƒ­ã‚°ã‚’ \"%s\" ã«ä¿å­˜ã—ã¾ã™ã€‚\n",pszFileName);
 
 		HANDLE hFile=::CreateFile(pszFileName,GENERIC_WRITE,FILE_SHARE_READ,nullptr,
 								  fAppend?OPEN_ALWAYS:CREATE_ALWAYS,
@@ -237,7 +237,7 @@ namespace TSTask
 		if (m_hFile!=INVALID_HANDLE_VALUE)
 			return false;
 
-		OutLog(LOG_INFO,L"ƒƒO‚ğ \"%s\" ‚É‘‚«o‚µ‚Ü‚·B",pszFileName);
+		OutLog(LOG_INFO,L"ãƒ­ã‚°ã‚’ \"%s\" ã«æ›¸ãå‡ºã—ã¾ã™ã€‚",pszFileName);
 
 		bool fAppend=(Flags & OPEN_APPEND)!=0;
 
@@ -256,23 +256,23 @@ namespace TSTask
 				for (int i=1;i<=MAX_SERVER_TASKS;i++) {
 					StringUtility::Format(Path,L"%s.%d%s",
 										  FileName.c_str(),i,Extension.c_str());
-					OutLog(LOG_VERBOSE,L"ƒtƒ@ƒCƒ‹ \"%s\" ‚ğŠJ‚«‚Ü‚·B",Path.c_str());
+					OutLog(LOG_VERBOSE,L"ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã‚’é–‹ãã¾ã™ã€‚",Path.c_str());
 					hFile=::CreateFile(Path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,
 									   fAppend?OPEN_ALWAYS:CREATE_ALWAYS,
 									   FILE_ATTRIBUTE_NORMAL,nullptr);
 					if (hFile!=INVALID_HANDLE_VALUE) {
-						OutLog(LOG_INFO,L"ƒtƒ@ƒCƒ‹ \"%s\" ‚ÍŠù‚Ég—p‚³‚ê‚Ä‚¢‚é‚½‚ßA\"%s\" ‚É‘‚«o‚µ‚Ü‚·B",
+						OutLog(LOG_INFO,L"ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ã¯æ—¢ã«ä½¿ç”¨ã•ã‚Œã¦ã„ã‚‹ãŸã‚ã€\"%s\" ã«æ›¸ãå‡ºã—ã¾ã™ã€‚",
 							   pszFileName,Path.c_str());
 						m_FileName=Path;
 						break;
 					}
 				}
 				if (hFile==INVALID_HANDLE_VALUE) {
-					OutLog(LOG_ERROR,L"ƒƒOƒtƒ@ƒCƒ‹‚ğŠJ‚¯‚Ü‚¹‚ñB");
+					OutLog(LOG_ERROR,L"ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚");
 					return false;
 				}
 			} else {
-				OutSystemErrorLog(Error,L"ƒtƒ@ƒCƒ‹ \"%s\" ‚ªŠJ‚¯‚Ü‚¹‚ñB",pszFileName);
+				OutSystemErrorLog(Error,L"ãƒ•ã‚¡ã‚¤ãƒ« \"%s\" ãŒé–‹ã‘ã¾ã›ã‚“ã€‚",pszFileName);
 				return false;
 			}
 		}

@@ -1,7 +1,9 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASK_CORE_H
 #define TSTASK_CORE_H
 
 
+#include <atomic>
 #include <vector>
 #include "DtvEngine.h"
 #include "EventHandler.h"
@@ -17,8 +19,11 @@ namespace TSTask
 		CTSTaskCore();
 		~CTSTaskCore();
 
-		bool Initialize();
+		bool Initialize(const std::vector<TVTestPluginSettings> &Plugins={});
 		bool Finalize();
+		static constexpr UINT NotificationMessage=WM_APP+3;
+		void SetNotificationWindow(HWND hwnd) { m_NotificationWindow.store(hwnd); }
+		void ProcessEngineNotifications();
 
 		bool LoadBonDriver(LPCWSTR pszFileName);
 		bool UnloadBonDriver();
@@ -40,10 +45,11 @@ namespace TSTask
 		bool GetServiceInfo(ServiceInfo *pInfo);
 		bool GetServiceList(ServiceList *pList);
 
-		bool StartRecording(const RecordingSettings &Settings);
-		bool StopRecording();
+		bool StartRecording(const RecordingSettings &Settings,ULONGLONG *pRecordingID=nullptr);
+		bool StopRecording(ULONGLONG RecordingID=0);
 		bool SetNextRecordingDirectory();
-		bool ChangeRecordingFile(LPCWSTR pszFileName);
+		bool ChangeRecordingFile(LPCWSTR pszFileName, LPCWSTR pszExpectedFileName=nullptr,
+			ULONGLONG ExpectedStartTick=0);
 		bool GetRecordingInfo(RecordingInfo *pInfo) const;
 		bool IsRecording() const;
 		bool FormatRecordFileName(LPCWSTR pszFormat,String *pFileName,unsigned int UseNextEventInfoMargin=0);
@@ -51,6 +57,7 @@ namespace TSTask
 		bool SetMaxWritePendingSize(unsigned int Size);
 		bool SetWritePreAllocate(ULONGLONG PreAllocateSize);
 		bool SetMinDiskFreeSpace(ULONGLONG MinFreeSpace);
+		void CheckRecordingFreeSpace();
 
 		bool GetStreamIDs(ChannelStreamIDs *pStreamIDs);
 		bool GetStreamStatistics(StreamStatistics *pStatistics);
@@ -61,6 +68,8 @@ namespace TSTask
 		bool GetBonDriverChannelList(BonDriverTuningSpaceList *pSpaceList);
 		bool GetScannedChannelList(CTuningSpaceList *pSpaceList) const;
 		bool GetScannedChannelList(int Space,CChannelList *pChannelList) const;
+		bool GetScannedChannelInfo(int Space,int Channel,CChannelInfo *pInfo) const;
+		int GetScannedTuningSpaceCount() const;
 
 		bool StartStreaming(const StreamingInfo &Info);
 		bool StopStreaming();
@@ -84,6 +93,12 @@ namespace TSTask
 		bool RemoveTsGrabber(ITsGrabber *pGrabber);
 
 	private:
+		enum EngineNotification : unsigned int {
+			NOTIFY_SERVICE=1, NOTIFY_STREAM=2, NOTIFY_EVENT=4,
+			NOTIFY_TOT=8, NOTIFY_WRITE_ERROR=16
+		};
+		void QueueEngineNotification(EngineNotification Notification);
+		void UpdateCurrentEvent();
 		void OutTimeoutErrorLog() const;
 		void OutBonTsEngineErrorLog(const ::CBonErrorHandler &ErrorHandler) const;
 
@@ -123,7 +138,10 @@ namespace TSTask
 		CTuningSpaceList m_TuningSpaceList;
 		EventStatus m_CurrentEvent;
 
+		std::atomic<HWND> m_NotificationWindow{nullptr};
+		std::atomic<unsigned int> m_EngineNotifications{0};
 		RecordingInfo m_RecordingInfo;
+		ULONGLONG m_RecordingID=0;
 
 		CStreamingManager m_StreamingManager;
 		StreamingInfo m_StreamingInfo;
@@ -133,6 +151,8 @@ namespace TSTask
 		UINT m_StreamPoolCount;
 
 		ULONGLONG m_MinDiskFreeSpace;
+		ULONGLONG m_NextDiskFreeSpaceCheck=0;
+		bool m_fLowDiskSpaceLogged=false;
 	};
 
 }

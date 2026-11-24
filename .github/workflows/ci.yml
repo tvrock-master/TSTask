@@ -1,0 +1,130 @@
+name: Tests and release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: x64
+            output: x64
+          - platform: x86
+            output: Win32
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      OUTPUT_PLATFORM: ${{ matrix.output }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build and test Release binaries
+        shell: pwsh
+        run: |
+          $arguments = @{ Platform = $env:PLATFORM }
+          $testArguments = @{ Platform = $env:PLATFORM }
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+              $arguments.VersionTag = $env:GITHUB_REF_NAME
+              $testArguments.ExpectedVersion = $env:GITHUB_REF_NAME.Substring(1)
+          }
+          ./build.ps1 @arguments
+          ./test.ps1 @testArguments
+
+      - name: Checkout TvRockOnTVTest for integration tests
+        uses: actions/checkout@v6
+        with:
+          repository: tvrock-master/tvrockontvtest
+          ref: 242ea9239faf4b089ff6e55f3ed1b8a87e683c89
+          path: .ci-deps/tvrockontvtest
+          persist-credentials: false
+
+      - name: Checkout TVTest SDK for DiskRelay tests
+        uses: actions/checkout@v6
+        with:
+          repository: DBCTRADO/TVTest
+          ref: 83460684579bc027e39efc4d20dc5789b4e85736
+          path: .ci-deps/TVTest
+          sparse-checkout: sdk/Samples/DiskRelay
+          persist-credentials: false
+
+      - name: Test plugin integration
+        shell: pwsh
+        run: ./tests/Test-PluginIntegration.ps1 -Platform $env:PLATFORM -TvRockOnTVTestSource .ci-deps/tvrockontvtest -TvTestSource .ci-deps/TVTest
+
+      - name: Package binaries
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $package = Join-Path $env:RUNNER_TEMP 'package'
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          foreach ($file in 'TSTask.exe', 'TSTaskCentre.exe', 'BonDriver_TSTask.dll') {
+              Copy-Item -LiteralPath "$env:OUTPUT_PLATFORM/Release/$file" -Destination $package
+          }
+          Copy-Item -LiteralPath README.md, LICENSE.md, THIRD_PARTY_NOTICES.md, Data/TSTask.default.ini, Doc/License.txt, Doc/TSTask.txt -Destination $package
+          Copy-Item -LiteralPath Doc, licenses -Destination $package -Recurse
+          Copy-Item -LiteralPath Data/TSTaskThemes -Destination $package -Recurse
+          $sourceName = "TSTask-source-$env:GITHUB_REF_NAME"
+          $sourceArchive = Join-Path $package "$sourceName.zip"
+          git archive --format=zip "--prefix=$sourceName/" "--output=$sourceArchive" HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not archive the source used for this build.' }
+          $archive = Join-Path $env:RUNNER_TEMP "TSTask-$env:GITHUB_REF_NAME-$env:PLATFORM.zip"
+          Compress-Archive -Path "$package/*" -DestinationPath $archive -Force
+
+      - name: Upload Actions artifact
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          name: TSTask-${{ github.ref_name }}-${{ matrix.platform }}.zip
+          path: ${{ runner.temp }}/TSTask-${{ github.ref_name }}-${{ matrix.platform }}.zip
+          archive: false
+          if-no-files-found: error
+          overwrite: true
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: test
+    runs-on: windows-2022
+    concurrency:
+      group: release-${{ github.ref }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: TSTask-${{ github.ref_name }}-*.zip
+          path: release
+          merge-multiple: true
+          skip-decompress: true
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $archives = foreach ($platform in 'x64', 'x86') {
+              Get-Item -LiteralPath "release/TSTask-$tag-$platform.zip"
+          }
+          $existingAssets = gh release view $tag --json assets --jq '.assets[].name'
+          if ($LASTEXITCODE -ne 0) {
+              $paths = $archives.FullName
+              gh release create $tag @paths --verify-tag --title $tag --generate-notes
+              if ($LASTEXITCODE -ne 0) { throw "Could not create release $tag." }
+          } else {
+              foreach ($archive in $archives) {
+                  if ($archive.Name -notin $existingAssets) {
+                      gh release upload $tag $archive.FullName
+                      if ($LASTEXITCODE -ne 0) { throw "Could not upload $($archive.Name)." }
+                  }
+              }
+          }

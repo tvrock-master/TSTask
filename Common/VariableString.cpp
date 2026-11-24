@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskBase.h"
 #include "VariableString.h"
@@ -140,6 +141,33 @@ namespace TSTask
 			StringUtility::Format(*pString,L"%04X",m_EventInfo.Event.EventID);
 		} else if (::lstrcmpiW(pszKeyword,L"service-id")==0) {
 			StringUtility::Format(*pString,L"%04X",m_EventInfo.Channel.ServiceID);
+		} else if (::StrCmpNIW(pszKeyword,L"start-",6)==0
+				|| ::StrCmpNIW(pszKeyword,L"end-",4)==0) {
+			const bool fEnd=::StrCmpNIW(pszKeyword,L"end-",4)==0;
+			const auto &Event=m_EventInfo.Event;
+			FILETIME FileTime;
+			SYSTEMTIME Time;
+			const bool fValid=::SystemTimeToFileTime(&Event.StartTime,&FileTime)
+				&& ::FileTimeToSystemTime(&FileTime,&Time)
+				&& (!fEnd || (Event.Duration>0
+					&& OffsetSystemTime(&Time,static_cast<LONGLONG>(Event.Duration)*1000)));
+			if (!GetTimeString(pszKeyword+(fEnd?4:6),fValid?Time:m_CurrentTime,pString))
+				return false;
+			if (!fValid)
+				*pString=L"x";
+		} else if (::StrCmpNIW(pszKeyword,L"event-duration-",15)==0) {
+			const LPCWSTR pszUnit=pszKeyword+15;
+			const unsigned int Duration=m_EventInfo.Event.Duration;
+			unsigned int Value;
+			if (::lstrcmpiW(pszUnit,L"hour")==0 || ::lstrcmpiW(pszUnit,L"hour2")==0)
+				Value=Duration/3600;
+			else if (::lstrcmpiW(pszUnit,L"min")==0 || ::lstrcmpiW(pszUnit,L"min2")==0)
+				Value=Duration/60%60;
+			else if (::lstrcmpiW(pszUnit,L"sec")==0 || ::lstrcmpiW(pszUnit,L"sec2")==0)
+				Value=Duration%60;
+			else
+				return false;
+			StringUtility::Format(*pString,pszUnit[::lstrlenW(pszUnit)-1]==L'2'?L"%02u":L"%u",Value);
 		} else {
 			return GetTimeString(pszKeyword,m_CurrentTime,pString);
 		}
@@ -150,30 +178,40 @@ namespace TSTask
 	bool CEventVariableStringMap::GetParameterInfo(int Index,ParameterInfo *pInfo)
 	{
 		static const ParameterInfo ParameterList[] = {
-			{TEXT("%date%"),			TEXT("ŠJn”NŒ“ú")},
-			{TEXT("%year%"),			TEXT("ŠJn”N")},
-			{TEXT("%year2%"),			TEXT("ŠJn”N(‰º2Œ…)")},
-			{TEXT("%month%"),			TEXT("ŠJnŒ")},
-			{TEXT("%month2%"),			TEXT("ŠJnŒ(2Œ…)")},
-			{TEXT("%day%"),				TEXT("ŠJn“ú")},
-			{TEXT("%day2%"),			TEXT("ŠJn“ú(2Œ…)")},
-			{TEXT("%time%"),			TEXT("ŠJn(+•ª+•b)")},
-			{TEXT("%hour%"),			TEXT("ŠJn")},
-			{TEXT("%hour2%"),			TEXT("ŠJn(2Œ…)")},
-			{TEXT("%minute%"),			TEXT("ŠJn•ª")},
-			{TEXT("%minute2%"),			TEXT("ŠJn•ª(2Œ…)")},
-			{TEXT("%second%"),			TEXT("ŠJn•b")},
-			{TEXT("%second2%"),			TEXT("ŠJn•b(2Œ…)")},
-			{TEXT("%day-of-week%"),		TEXT("ŠJn—j“ú")},
-			{TEXT("%day-of-week-en%"),	TEXT("ŠJn—j“ú(‰pŒê)")},
-			{TEXT("%channel-name%"),	TEXT("ƒ`ƒƒƒ“ƒlƒ‹–¼")},
-			{TEXT("%channel-no%"),		TEXT("ƒ`ƒƒƒ“ƒlƒ‹”Ô†")},
-			{TEXT("%channel-no2%"),		TEXT("ƒ`ƒƒƒ“ƒlƒ‹”Ô†(2Œ…)")},
-			{TEXT("%channel-no3%"),		TEXT("ƒ`ƒƒƒ“ƒlƒ‹”Ô†(3Œ…)")},
-			{TEXT("%event-name%"),		TEXT("”Ô‘g–¼")},
-			{TEXT("%event-title%"),		TEXT("”Ô‘gƒ^ƒCƒgƒ‹")},
-			{TEXT("%event-id%"),		TEXT("ƒCƒxƒ“ƒgID")},
-			{TEXT("%service-id%"),		TEXT("ƒT[ƒrƒXID")},
+			{TEXT("%date%"),			TEXT("é–‹å§‹å¹´æœˆæ—¥")},
+			{TEXT("%year%"),			TEXT("é–‹å§‹å¹´")},
+			{TEXT("%year2%"),			TEXT("é–‹å§‹å¹´(ä¸‹2æ¡)")},
+			{TEXT("%month%"),			TEXT("é–‹å§‹æœˆ")},
+			{TEXT("%month2%"),			TEXT("é–‹å§‹æœˆ(2æ¡)")},
+			{TEXT("%day%"),				TEXT("é–‹å§‹æ—¥")},
+			{TEXT("%day2%"),			TEXT("é–‹å§‹æ—¥(2æ¡)")},
+			{TEXT("%time%"),			TEXT("é–‹å§‹æ™‚åˆ»(æ™‚+åˆ†+ç§’)")},
+			{TEXT("%hour%"),			TEXT("é–‹å§‹æ™‚")},
+			{TEXT("%hour2%"),			TEXT("é–‹å§‹æ™‚(2æ¡)")},
+			{TEXT("%minute%"),			TEXT("é–‹å§‹åˆ†")},
+			{TEXT("%minute2%"),			TEXT("é–‹å§‹åˆ†(2æ¡)")},
+			{TEXT("%second%"),			TEXT("é–‹å§‹ç§’")},
+			{TEXT("%second2%"),			TEXT("é–‹å§‹ç§’(2æ¡)")},
+			{TEXT("%day-of-week%"),		TEXT("é–‹å§‹æ›œæ—¥")},
+			{TEXT("%day-of-week-en%"),	TEXT("é–‹å§‹æ›œæ—¥(è‹±èª)")},
+			{TEXT("%channel-name%"),	TEXT("ãƒãƒ£ãƒ³ãƒãƒ«å")},
+			{TEXT("%channel-no%"),		TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ç•ªå·")},
+			{TEXT("%channel-no2%"),		TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ç•ªå·(2æ¡)")},
+			{TEXT("%channel-no3%"),		TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ç•ªå·(3æ¡)")},
+			{TEXT("%event-name%"),		TEXT("ç•ªçµ„å")},
+			{TEXT("%event-title%"),		TEXT("ç•ªçµ„ã‚¿ã‚¤ãƒˆãƒ«")},
+			{TEXT("%event-id%"),		TEXT("ã‚¤ãƒ™ãƒ³ãƒˆID")},
+			{L"%start-date%",			L"ç•ªçµ„é–‹å§‹æ—¥"},
+			{L"%start-time%",			L"ç•ªçµ„é–‹å§‹æ™‚åˆ»"},
+			{L"%end-date%",				L"ç•ªçµ„çµ‚äº†æ—¥"},
+			{L"%end-time%",				L"ç•ªçµ„çµ‚äº†æ™‚åˆ»"},
+			{L"%event-duration-hour%",	L"ç•ªçµ„ã®é•·ã• (æ™‚)"},
+			{L"%event-duration-hour2%",	L"ç•ªçµ„ã®é•·ã• (æ™‚ãƒ»2æ¡)"},
+			{L"%event-duration-min%",	L"ç•ªçµ„ã®é•·ã• (åˆ†)"},
+			{L"%event-duration-min2%",	L"ç•ªçµ„ã®é•·ã• (åˆ†ãƒ»2æ¡)"},
+			{L"%event-duration-sec%",	L"ç•ªçµ„ã®é•·ã• (ç§’)"},
+			{L"%event-duration-sec2%",	L"ç•ªçµ„ã®é•·ã• (ç§’ãƒ»2æ¡)"},
+			{TEXT("%service-id%"),		TEXT("ã‚µãƒ¼ãƒ“ã‚¹ID")},
 		};
 
 		if (Index<0 || Index>=_countof(ParameterList))
@@ -193,8 +231,8 @@ namespace TSTask
 		pInfo->Channel.Channel=8;
 		pInfo->Channel.ScannedChannel=3;
 		pInfo->Channel.RemoteControlKeyID=11;
-		pInfo->Channel.ChannelName=L"ƒAƒtƒŠƒJ’†‰›ƒeƒŒƒr";
-		pInfo->Channel.SpaceName=L"’nƒfƒW";
+		pInfo->Channel.ChannelName=L"ã‚¢ãƒ•ãƒªã‚«ä¸­å¤®ãƒ†ãƒ¬ãƒ“";
+		pInfo->Channel.SpaceName=L"åœ°ãƒ‡ã‚¸";
 		pInfo->Channel.ServiceID=112;
 		pInfo->Channel.NetworkID=2;
 		pInfo->Channel.TransportStreamID=556;
@@ -204,15 +242,15 @@ namespace TSTask
 		pInfo->Event.StartTime.wSecond=0;
 		pInfo->Event.StartTime.wMilliseconds=0;
 		pInfo->Event.Duration=30;
-		pInfo->Event.EventName=L"[“ñ][š]¡“ú‚Ìƒjƒ…[ƒX";
-		pInfo->Event.EventText=L"–{“ú‚Ìƒjƒ…[ƒX‚ğ‚¨“`‚¦‚µ‚Ü‚·B";
+		pInfo->Event.EventName=L"[äºŒ][å­—]ä»Šæ—¥ã®ãƒ‹ãƒ¥ãƒ¼ã‚¹";
+		pInfo->Event.EventText=L"æœ¬æ—¥ã®ãƒ‹ãƒ¥ãƒ¼ã‚¹ã‚’ãŠä¼ãˆã—ã¾ã™ã€‚";
 
 		return true;
 	}
 
 	void CEventVariableStringMap::GetEventTitle(const String &EventName,String *pTitle)
 	{
-		// ”Ô‘g–¼‚©‚ç [š] ‚Ì‚æ‚¤‚È‚à‚Ì‚ğœ‹‚·‚é
+		// ç•ªçµ„åã‹ã‚‰ [å­—] ã®ã‚ˆã†ãªã‚‚ã®ã‚’é™¤å»ã™ã‚‹
 
 		pTitle->clear();
 

@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TSTaskCentreCore.h"
@@ -67,20 +68,20 @@ namespace TSTaskCentre
 	int CTSTaskCentreApp::Main(LPCWSTR pszCmdLine,int ShowCmd)
 	{
 		TSTask::OutLog(TSTask::LOG_IMPORTANT,
-					   APP_NAME_W L" ver." APP_VERSION_TEXT_W L" (" APP_PLATFORM_W L") ‹N“®");
+					   APP_NAME_W L" ver." APP_VERSION_TEXT_W L" (" APP_PLATFORM_W L") èµ·å‹•");
 
 		TSTask::CMutex AppMutex;
 		if (!AppMutex.Create(APP_NAME_W L"_Mutex",false)) {
-			TSTask::OutLog(TSTask::LOG_ERROR,L"ƒvƒƒOƒ‰ƒ€‚ÌMutex‚ğì¬‚Å‚«‚Ü‚¹‚ñB");
+			TSTask::OutLog(TSTask::LOG_ERROR,L"ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®Mutexã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚");
 		} else if (AppMutex.IsAlreadyExists()) {
 			AppMutex.Close();
-			TSTask::OutLog(TSTask::LOG_INFO,L"Šù‚É‹N“®‚µ‚Ä‚¢‚é‚½‚ßI—¹‚µ‚Ü‚·B");
+			TSTask::OutLog(TSTask::LOG_INFO,L"æ—¢ã«èµ·å‹•ã—ã¦ã„ã‚‹ãŸã‚çµ‚äº†ã—ã¾ã™ã€‚");
 			return 1;
 		}
 
 		CTSTaskCentreCommandLine CommandLine;
 		if (!TSTask::IsStringEmpty(pszCmdLine)) {
-			TSTask::OutLog(TSTask::LOG_INFO,L"ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ƒIƒvƒVƒ‡ƒ“ : %s",pszCmdLine);
+			TSTask::OutLog(TSTask::LOG_INFO,L"ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚ªãƒ—ã‚·ãƒ§ãƒ³ : %s",pszCmdLine);
 			CommandLine.Parse(pszCmdLine);
 
 			if (CommandLine.m_LoggingLevel>=0)
@@ -92,19 +93,19 @@ namespace TSTaskCentre
 		::CoInitialize(nullptr);
 
 		if (!CMainBoard::Initialize(m_hInstance)) {
-			TSTask::OutLog(TSTask::LOG_ERROR,L"ƒEƒBƒ“ƒhƒE‚Ì‰Šú‰»‚ª‚Å‚«‚Ü‚¹‚ñB");
+			TSTask::OutLog(TSTask::LOG_ERROR,L"ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆæœŸåŒ–ãŒã§ãã¾ã›ã‚“ã€‚");
 			return 1;
 		}
 
 		m_Core.GetSettings().General.GetIniFilePath(&m_IniFileName);
 		if (TSTask::PathUtility::IsFileExists(m_IniFileName)) {
-			TSTask::OutLog(TSTask::LOG_VERBOSE,L"İ’è‚ğ \"%s\" ‚©‚ç“Ç‚İ‚İ‚Ü‚·B",m_IniFileName.c_str());
+			TSTask::OutLog(TSTask::LOG_VERBOSE,L"è¨­å®šã‚’ \"%s\" ã‹ã‚‰èª­ã¿è¾¼ã¿ã¾ã™ã€‚",m_IniFileName.c_str());
 			TSTask::CSettings Settings;
 			if (Settings.Open(m_IniFileName.c_str(),TSTask::CSettings::OPEN_READ)) {
 				m_Core.GetSettings().Load(Settings);
 				m_Core.GetCurSettings().Set(m_Core.GetSettings());
 				Settings.Close();
-				TSTask::OutLog(TSTask::LOG_INFO,L"İ’è‚ğ \"%s\" ‚©‚ç“Ç‚İ‚İ‚Ü‚µ‚½B",m_IniFileName.c_str());
+				TSTask::OutLog(TSTask::LOG_INFO,L"è¨­å®šã‚’ \"%s\" ã‹ã‚‰èª­ã¿è¾¼ã¿ã¾ã—ãŸã€‚",m_IniFileName.c_str());
 			}
 		}
 
@@ -112,7 +113,7 @@ namespace TSTaskCentre
 
 		if (m_Core.GetCurSettings().General.GetProcessPriority()!=PROCESS_PRIORITY_INVALID) {
 			DWORD Priority=m_Core.GetCurSettings().General.GetProcessPriorityClass();
-			TSTask::OutLog(TSTask::LOG_INFO,L"ƒvƒƒZƒX‚Ì—Dæ“x‚ğİ’è‚µ‚Ü‚·B(%u)",Priority);
+			TSTask::OutLog(TSTask::LOG_INFO,L"ãƒ—ãƒ­ã‚»ã‚¹ã®å„ªå…ˆåº¦ã‚’è¨­å®šã—ã¾ã™ã€‚(%u)",Priority);
 			::SetPriorityClass(::GetCurrentProcess(),Priority);
 		}
 
@@ -156,7 +157,7 @@ namespace TSTaskCentre
 		TSTask::String ServerName;
 		TSTask::TaskUtility::GetClientTaskLocalMessageServerName(m_Core.GetTaskID(),&ServerName);
 		if (!m_MessageServer.Open(ServerName.c_str())) {
-			TSTask::OutLog(TSTask::LOG_ERROR,L"ƒ[ƒJƒ‹ƒƒbƒZ[ƒWƒT[ƒo[‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			TSTask::OutLog(TSTask::LOG_ERROR,L"ãƒ­ãƒ¼ã‚«ãƒ«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚µãƒ¼ãƒãƒ¼ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			return 1;
 		}
 
@@ -166,10 +167,8 @@ namespace TSTaskCentre
 
 		TSTask::TaskUtility::TaskIDList TaskList;
 		TSTask::TaskUtility::GetServerTaskList(&TaskList);
-		for (auto e:TaskList) {
-			if (m_Core.AddTask(e))
-				m_MainBoard.CreateTSTaskBar(e);
-		}
+		for (auto ID:TaskList)
+			m_MainBoard.NotifyTaskStarted(ID);
 
 		if (m_Core.GetCurSettings().MainBoard.GetMinimize()) {
 			if (m_Core.GetCurSettings().MainBoard.GetMinimizeToTray())
@@ -186,7 +185,7 @@ namespace TSTaskCentre
 		BOOL Result;
 		while ((Result=::GetMessage(&msg,nullptr,0,0))!=0) {
 			if (Result==-1) {
-				TSTask::OutSystemErrorLog(::GetLastError(),L"GetMessage() ‚ªƒGƒ‰[‚ğ•Ô‚µ‚Ü‚µ‚½B");
+				TSTask::OutSystemErrorLog(::GetLastError(),L"GetMessage() ãŒã‚¨ãƒ©ãƒ¼ã‚’è¿”ã—ã¾ã—ãŸã€‚");
 				break;
 			}
 
@@ -196,9 +195,11 @@ namespace TSTaskCentre
 			}
 		}
 
-		Graphics::CSystem::Finalize();
-
+		m_Core.GetLogger().SetHandler(nullptr);
 		m_MessageServer.Close();
+		m_MainBoard.StopTaskStartup();
+
+		Graphics::CSystem::Finalize();
 
 		m_MainBoard.GetSettings(&m_Core.GetSettings().MainBoard);
 		SaveSettings();
@@ -209,7 +210,7 @@ namespace TSTaskCentre
 
 		::CoUninitialize();
 
-		TSTask::OutLog(TSTask::LOG_IMPORTANT,APP_NAME_W L" I—¹");
+		TSTask::OutLog(TSTask::LOG_IMPORTANT,APP_NAME_W L" çµ‚äº†");
 
 		return 0;
 	}
@@ -219,6 +220,8 @@ namespace TSTaskCentre
 	{
 		if (CommandLine.m_Minimize!=TSTask::BOOL_DEFAULT)
 			Settings.MainBoard.SetMinimize(CommandLine.m_Minimize==TSTask::BOOL_TRUE);
+		if (CommandLine.m_DockBottom!=TSTask::BOOL_DEFAULT)
+			Settings.MainBoard.SetDockBottom(CommandLine.m_DockBottom==TSTask::BOOL_TRUE);
 
 		if (CommandLine.m_LoggingLevel>=0)
 			Settings.General.SetLoggingLevel(CGeneralSettings::LoggingLevelToType(CommandLine.m_LoggingLevel));
@@ -234,7 +237,7 @@ namespace TSTaskCentre
 
 	bool CTSTaskCentreApp::SaveSettings() const
 	{
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"İ’è‚ğ \"%s\" ‚É•Û‘¶‚µ‚Ü‚·B",m_IniFileName.c_str());
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"è¨­å®šã‚’ \"%s\" ã«ä¿å­˜ã—ã¾ã™ã€‚",m_IniFileName.c_str());
 
 #if 0
 		if (!TSTask::PathUtility::IsFileExists(m_IniFileName)) {
@@ -243,7 +246,7 @@ namespace TSTaskCentre
 			if (hFile==INVALID_HANDLE_VALUE) {
 				DWORD Error=::GetLastError();
 				if (Error!=ERROR_ALREADY_EXISTS) {
-					TSTask::OutSystemErrorLog(Error,L"INIƒtƒ@ƒCƒ‹(%s)‚ğì¬‚Å‚«‚Ü‚¹‚ñB",
+					TSTask::OutSystemErrorLog(Error,L"INIãƒ•ã‚¡ã‚¤ãƒ«(%s)ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",
 											   m_IniFileName.c_str());
 				}
 			} else {
@@ -259,7 +262,7 @@ namespace TSTaskCentre
 		if (Settings.Open(m_IniFileName.c_str(),TSTask::CSettings::OPEN_WRITE)) {
 			m_Core.GetSettings().Save(Settings);
 			Settings.Close();
-			TSTask::OutLog(TSTask::LOG_INFO,L"İ’è‚ğ \"%s\" ‚É•Û‘¶‚µ‚Ü‚µ‚½B",m_IniFileName.c_str());
+			TSTask::OutLog(TSTask::LOG_INFO,L"è¨­å®šã‚’ \"%s\" ã«ä¿å­˜ã—ã¾ã—ãŸã€‚",m_IniFileName.c_str());
 		}
 
 		return true;
@@ -267,7 +270,7 @@ namespace TSTaskCentre
 
 	bool CTSTaskCentreApp::OnHello(TSTask::CMessageServer *pServer,const TSTask::CMessage *pMessage,TSTask::CMessage *pResponse)
 	{
-		TSTask::OutLog(TSTask::LOG_INFO,L"ˆ¥AƒƒbƒZ[ƒW‚ğóM‚µ‚Ü‚µ‚½B");
+		TSTask::OutLog(TSTask::LOG_INFO,L"æŒ¨æ‹¶ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚");
 
 		pResponse->SetProperty(TSTask::MESSAGE_PROPERTY_Message,L"Hello! I'm " APP_NAME_W L" (ver." APP_VERSION_TEXT_W L" " APP_PLATFORM_W L").");
 		pResponse->SetPropertyInt(TSTask::MESSAGE_PROPERTY_TaskID,m_Core.GetTaskID());
@@ -285,10 +288,9 @@ namespace TSTaskCentre
 			return true;
 		}
 
-		TSTask::OutLog(TSTask::LOG_INFO,L"ƒ^ƒXƒN(%u)‚ÌŠJn’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_INFO,L"ã‚¿ã‚¹ã‚¯(%u)ã®é–‹å§‹é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
-		if (m_Core.AddTask(TaskID))
-			m_MainBoard.SendCreateTSTaskBar(TaskID);
+		m_MainBoard.NotifyTaskStarted(TaskID);
 
 		pResponse->SetProperty(TSTask::MESSAGE_PROPERTY_Result,TSTask::MESSAGE_RESULT_OK);
 
@@ -304,10 +306,9 @@ namespace TSTaskCentre
 			return true;
 		}
 
-		TSTask::OutLog(TSTask::LOG_INFO,L"ƒ^ƒXƒN(%u)‚ÌI—¹’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_INFO,L"ã‚¿ã‚¹ã‚¯(%u)ã®çµ‚äº†é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
-		m_MainBoard.SendRemoveTSTaskBar(TaskID);
-		m_Core.RemoveTask(TaskID);
+		m_MainBoard.NotifyTaskEnded(TaskID);
 
 		pResponse->SetProperty(TSTask::MESSAGE_PROPERTY_Result,TSTask::MESSAGE_RESULT_OK);
 
@@ -325,7 +326,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚ÌBonDriverƒ[ƒh’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®BonDriverãƒ­ãƒ¼ãƒ‰é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyBonDriverLoaded(TaskID);
 
@@ -345,7 +346,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚ÌBonDriverƒAƒ“ƒ[ƒh’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®BonDriverã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyBonDriverUnloaded(TaskID);
 
@@ -365,7 +366,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ìƒ`ƒ…[ƒi[ƒI[ƒvƒ“’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚ªãƒ¼ãƒ—ãƒ³é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyTunerOpened(TaskID);
 
@@ -385,7 +386,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ìƒ`ƒ…[ƒi[ƒNƒ[ƒY’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ã‚¯ãƒ­ãƒ¼ã‚ºé€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyTunerClosed(TaskID);
 
@@ -405,7 +406,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ìƒ`ƒƒƒ“ƒlƒ‹•ÏX’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyChannelChanged(TaskID);
 
@@ -425,7 +426,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚ÌƒT[ƒrƒX•ÏX’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ã‚µãƒ¼ãƒ“ã‚¹å¤‰æ›´é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyServiceChanged(TaskID);
 
@@ -445,7 +446,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ì˜^‰æŠJn’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®éŒ²ç”»é–‹å§‹é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyRecordingStarted(TaskID);
 
@@ -465,7 +466,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ì˜^‰æ’â~’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®éŒ²ç”»åœæ­¢é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyRecordingStopped(TaskID);
 
@@ -485,7 +486,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ì˜^‰æƒtƒ@ƒCƒ‹Ø‚è‘Ö‚¦’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«åˆ‡ã‚Šæ›¿ãˆé€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyRecordingFileChanged(TaskID);
 
@@ -505,7 +506,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚Ì”Ô‘g•Ï‰»’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ç•ªçµ„å¤‰åŒ–é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyEventChanged(TaskID);
 
@@ -525,7 +526,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚ÌƒXƒgƒŠ[ƒ~ƒ“ƒOŠJn’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°é–‹å§‹é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyStreamingStarted(TaskID);
 
@@ -545,7 +546,7 @@ namespace TSTaskCentre
 
 		TSTask::TaskID TaskID=(TSTask::TaskID)Value;
 
-		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ƒ^ƒXƒN(%u)‚ÌƒXƒgƒŠ[ƒ~ƒ“ƒO’â~’Ê’m‚ğóM‚µ‚Ü‚µ‚½B",TaskID);
+		TSTask::OutLog(TSTask::LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯(%u)ã®ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°åœæ­¢é€šçŸ¥ã‚’å—ä¿¡ã—ã¾ã—ãŸã€‚",TaskID);
 
 		m_MainBoard.NotifyStreamingStopped(TaskID);
 
@@ -559,6 +560,7 @@ namespace TSTaskCentre
 		m_Core.ChangeSettings(Settings);
 
 		m_MainBoard.ChangeSettings(Settings.MainBoard);
+		m_MainBoard.GetSettings(&m_Core.GetSettings().MainBoard);
 
 		SaveSettings();
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include <gdiplus.h>
 #include <wincrypt.h>
 #include "TSTaskCentre.h"
@@ -47,7 +47,7 @@ namespace TSTaskCentre
 			}
 
 			if (fPreferUIFont) {
-				if (::lstrcmp(pFont->lfFaceName,TEXT("ƒƒCƒŠƒI"))==0
+				if (::lstrcmp(pFont->lfFaceName,TEXT("ãƒ¡ã‚¤ãƒªã‚ª"))==0
 						|| ::lstrcmpi(pFont->lfFaceName,TEXT("Meiryo"))==0)
 					::lstrcpy(pFont->lfFaceName,TEXT("Meiryo UI"));
 			}
@@ -946,7 +946,7 @@ namespace TSTaskCentre
 			if (!pImage->LoadFromFile(pszFileName)) {
 				delete pImage;
 				pImage=nullptr;
-				// •`‰æ‚Ì“x‚É“Ç‚İ‚İ‚ğs‚µ‚È‚¢‚æ‚¤‚ÉAnullptr ‚ğ map ‚É“ü‚ê‚Ä‚¨‚­
+				// æç”»ã®åº¦ã«èª­ã¿è¾¼ã¿ã‚’è©¦è¡Œã—ãªã„ã‚ˆã†ã«ã€nullptr ã‚’ map ã«å…¥ã‚Œã¦ãŠã
 			}
 
 			m_ImagePool.insert(std::pair<TSTask::String,CImage*>(FileName,pImage));
@@ -982,7 +982,7 @@ namespace TSTaskCentre
 			if (!pImage->LoadFromMemory(pData,Size)) {
 				delete pImage;
 				pImage=nullptr;
-				// •`‰æ‚Ì“x‚É“Ç‚İ‚İ‚ğs‚µ‚È‚¢‚æ‚¤‚ÉAnullptr ‚ğ map ‚É“ü‚ê‚Ä‚¨‚­
+				// æç”»ã®åº¦ã«èª­ã¿è¾¼ã¿ã‚’è©¦è¡Œã—ãªã„ã‚ˆã†ã«ã€nullptr ã‚’ map ã«å…¥ã‚Œã¦ãŠã
 			}
 
 			m_ImagePool.insert(std::pair<TSTask::String,CImage*>(Key,pImage));

@@ -1,3 +1,4 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASK_SETTINGS_H
 #define TSTASK_SETTINGS_H
 
@@ -46,6 +47,7 @@ namespace TSTask
 		bool DeleteKey(LPCWSTR pszValueName);
 		bool DeleteKeys(LPCWSTR pszValueMask);
 		bool GetEntries(EntryList *pEntries);
+		bool GetSectionEntries(LPCWSTR pszSection,EntryList *pEntries);
 
 	private:
 		CIniFile m_IniFile;

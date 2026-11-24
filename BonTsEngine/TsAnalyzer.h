@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <vector>
 #include <map>
@@ -7,13 +7,13 @@
 #include "TsDescriptor.h"
 #include "EventInfo.h"
 
-// EIT ‚Ì‰ğÍ‚ğs‚¤
+// EIT ã®è§£æã‚’è¡Œã†
 #define TS_ANALYZER_EIT_SUPPORT
-// L-EIT[p/f] ‚Ì‰ğÍ‚ğs‚¤
+// L-EIT[p/f] ã®è§£æã‚’è¡Œã†
 #define TS_ANALYZER_L_EIT_SUPPORT
 
 
-// TS ‰ğÍƒNƒ‰ƒX
+// TS è§£æã‚¯ãƒ©ã‚¹
 class CTsAnalyzer : public CMediaDecoder
 {
 public:

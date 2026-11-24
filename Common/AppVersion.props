@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup Condition="'$(TSTaskVersionMajor)' != ''">
+    <ClCompile>
+      <PreprocessorDefinitions>APP_VERSION_MAJOR=$(TSTaskVersionMajor);APP_VERSION_MINOR=$(TSTaskVersionMinor);APP_VERSION_REVISION=$(TSTaskVersionRevision);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>APP_VERSION_MAJOR=$(TSTaskVersionMajor);APP_VERSION_MINOR=$(TSTaskVersionMinor);APP_VERSION_REVISION=$(TSTaskVersionRevision);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+</Project>

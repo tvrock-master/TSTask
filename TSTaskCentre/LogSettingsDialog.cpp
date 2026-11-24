@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "LogSettingsDialog.h"
@@ -43,8 +44,8 @@ namespace TSTaskCentre
 				m_ListView.SetImageList(himlIcons,LVSIL_SMALL);
 
 				m_ListView.InsertColumn(0,TEXT(""));
-				m_ListView.InsertColumn(1,TEXT("“ú"));
-				m_ListView.InsertColumn(2,TEXT("“à—e"));
+				m_ListView.InsertColumn(1,TEXT("æ—¥æ™‚"));
+				m_ListView.InsertColumn(2,TEXT("å†…å®¹"));
 
 				if (m_Core.GetLogger().GetLog(&m_LogList) && !m_LogList.empty()) {
 					m_ListView.ReserveItemCount((int)m_LogList.size());
@@ -72,15 +73,15 @@ namespace TSTaskCentre
 					m_ListView.AdjustColumnWidth(i);
 
 				static const LPCTSTR LoggingLevelList[] = {
-					TEXT("0: ‹L˜^‚ğs‚í‚È‚¢"),
-					TEXT("1: ƒGƒ‰[‚ğ‹L˜^‚·‚é"),
-					TEXT("2: ƒGƒ‰[‚Æ’ˆÓ‚ğ‹L˜^‚·‚é"),
-					TEXT("3: d—v‚È‚à‚Ì‚ğ‹L˜^‚·‚é"),
-					TEXT("4: ’Êí‚Ì“®ì‚ğ‹L˜^‚·‚é"),
-					TEXT("5: ‘S‚Ä‹L˜^‚·‚é"),
+					TEXT("0: è¨˜éŒ²ã‚’è¡Œã‚ãªã„"),
+					TEXT("1: ã‚¨ãƒ©ãƒ¼ã‚’è¨˜éŒ²ã™ã‚‹"),
+					TEXT("2: ã‚¨ãƒ©ãƒ¼ã¨æ³¨æ„ã‚’è¨˜éŒ²ã™ã‚‹"),
+					TEXT("3: é‡è¦ãªã‚‚ã®ã‚’è¨˜éŒ²ã™ã‚‹"),
+					TEXT("4: é€šå¸¸ã®å‹•ä½œã‚’è¨˜éŒ²ã™ã‚‹"),
+					TEXT("5: å…¨ã¦è¨˜éŒ²ã™ã‚‹"),
 				};
 				static_assert(_countof(LoggingLevelList)==TSTask::LOG_TRAILER,
-							  "ƒƒO‹L˜^ƒŒƒxƒ‹‚Ì”‚ªˆê’v‚µ‚Ü‚¹‚ñB");
+							  "Logging level count does not match LOG_TRAILER.");
 				for (size_t i=0;i<_countof(LoggingLevelList);i++) {
 					::SendDlgItemMessage(hDlg,IDC_SETTINGS_LOG_LEVEL,CB_ADDSTRING,0,
 										 reinterpret_cast<LPARAM>(LoggingLevelList[i]));
@@ -98,8 +99,8 @@ namespace TSTaskCentre
 				case NM_RCLICK:
 					if (pnmh->idFrom==IDC_SETTINGS_LOG_LIST) {
 						HMENU hmenu=::CreatePopupMenu();
-						::AppendMenu(hmenu,MF_STRING | (m_ListView.GetSelectedItem()>=0?MF_ENABLED:MF_GRAYED),1,TEXT("ƒRƒs[(&C)"));
-						::AppendMenu(hmenu,MF_STRING | MF_ENABLED,2,TEXT("‚·‚×‚ÄƒRƒs[(&C)"));
+						::AppendMenu(hmenu,MF_STRING | (m_ListView.GetSelectedItem()>=0?MF_ENABLED:MF_GRAYED),1,TEXT("ã‚³ãƒ”ãƒ¼(&C)"));
+						::AppendMenu(hmenu,MF_STRING | MF_ENABLED,2,TEXT("ã™ã¹ã¦ã‚³ãƒ”ãƒ¼(&C)"));
 						POINT pt;
 						::GetCursorPos(&pt);
 						int Result=::TrackPopupMenu(hmenu,TPM_RIGHTBUTTON | TPM_RETURNCMD,pt.x,pt.y,0,hDlg,nullptr);
@@ -159,7 +160,7 @@ namespace TSTaskCentre
 					::ZeroMemory(&ofn,sizeof(ofn));
 					ofn.lStructSize=sizeof(ofn);
 					ofn.hwndOwner=hDlg;
-					ofn.lpstrFilter=TEXT("ƒƒOƒtƒ@ƒCƒ‹(*.log)\0*.log\0‘S‚Ä‚Ìƒtƒ@ƒCƒ‹(*.*)\0*.*\0");
+					ofn.lpstrFilter=TEXT("ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«(*.log)\0*.log\0å…¨ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«(*.*)\0*.*\0");
 					ofn.nFilterIndex=1;
 					ofn.lpstrFile=szFileName;
 					ofn.nMaxFile=_countof(szFileName);
@@ -168,7 +169,7 @@ namespace TSTaskCentre
 					ofn.lpstrDefExt=TEXT("log");
 					if (::GetSaveFileName(&ofn)) {
 						if (!m_Core.GetLogger().SaveToFile(szFileName))
-							::MessageBox(hDlg,L"ƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚Å‚«‚Ü‚¹‚ñB",nullptr,MB_OK | MB_ICONEXCLAMATION);
+							::MessageBox(hDlg,L"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¿å­˜ã§ãã¾ã›ã‚“ã€‚",nullptr,MB_OK | MB_ICONEXCLAMATION);
 					}
 				}
 				return TRUE;

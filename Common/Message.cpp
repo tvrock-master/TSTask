@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "Message.h"
 #include "DebugDef.h"
@@ -397,7 +397,7 @@ namespace TSTask
 		while (p<pEnd && !IsLineSeparator(*p))
 			p++;
 		if (p==pStart) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW–¼‚ª‚ ‚è‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸åãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -453,7 +453,7 @@ namespace TSTask
 					else if (StringUtility::CompareNoCase(Value,L"false")==0)
 						pMessage->SetProperty(Keyword.c_str(),false);
 					else
-						OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚ÌƒtƒH[ƒ}ƒbƒg‚ª•s³‚Å‚·B(%s:%s)",
+						OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆãŒä¸æ­£ã§ã™ã€‚(%s:%s)",
 							   Keyword.c_str(),Value.c_str());
 
 					p=q;
@@ -558,7 +558,7 @@ namespace TSTask
 			return false;
 
 		if (!pData->SetData(MessageString.data(),MessageString.length()*sizeof(String::value_type))) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‚Ìƒf[ƒ^‚ğİ’è‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®šã§ãã¾ã›ã‚“ã€‚");
 			return false;
 		}
 

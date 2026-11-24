@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Modified in this TSTask fork (recorded 2026-11-19). -->
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -70,6 +71,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <Import Project="..\Common\AppVersion.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -200,6 +202,10 @@
     <ClInclude Include="ClientManager.h" />
     <ClInclude Include="CoreMessageHandler.h" />
     <ClInclude Include="DtvEngine.h" />
+    <ClInclude Include="TSTaskTSProcessor.h" />
+    <ClInclude Include="TVTestControlPlugin.h" />
+    <ClInclude Include="TVTestSDK\TVTestPlugin.h" />
+    <ClInclude Include="TVTestSDK\TVTestInterface.h" />
     <ClInclude Include="EventHandler.h" />
     <ClInclude Include="TSTask.h" />
     <ClInclude Include="TSTaskAppCore.h" />
@@ -211,8 +217,6 @@
     <ClInclude Include="ReserveManager.h" />
     <ClInclude Include="StatisticsUpdater.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="TvRock.h" />
-    <ClInclude Include="TvRockDTV.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientManager.cpp">
@@ -223,6 +227,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TSTaskTSProcessor.cpp" />
+    <ClCompile Include="TVTestControlPlugin.cpp" />
     <ClCompile Include="DtvEngine.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -266,10 +272,6 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="TvRock.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

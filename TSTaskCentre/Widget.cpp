@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "Widget.h"
 #include "../Common/DebugDef.h"
@@ -125,7 +125,7 @@ namespace TSTaskCentre
 		return Pos.Height;
 	}
 
-	// Å¬‰»‚³‚ê‚Ä‚¢‚éƒEƒBƒ“ƒhƒE(‚Ü‚½‚Í‚»‚ÌqƒEƒBƒ“ƒhƒE)‚ÅŒÄ‚ñ‚¶‚áƒ_Eƒ
+	// æœ€å°åŒ–ã•ã‚Œã¦ã„ã‚‹ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦(ã¾ãŸã¯ãã®å­ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦)ã§å‘¼ã‚“ã˜ã‚ƒãƒ€ãƒ»ãƒ¡
 	bool CWidget::GetScreenPosition(RECT *pPosition) const
 	{
 		if (m_hwnd==nullptr) {

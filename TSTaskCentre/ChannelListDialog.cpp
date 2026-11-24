@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "ChannelListDialog.h"
 #include "resource.h"
@@ -54,13 +54,13 @@ namespace TSTaskCentre
 										  CLR_NONE,IMAGE_BITMAP,LR_CREATEDIBSECTION);
 				m_ListView.SetImageList(himlIcons,LVSIL_SMALL);
 
-				m_ListView.InsertColumn(COLUMN_NAME,TEXT("ñºèÃ"));
-				m_ListView.InsertColumn(COLUMN_INDEX,TEXT("ÉCÉìÉfÉbÉNÉX"));
-				m_ListView.InsertColumn(COLUMN_TVROCK_CHANNEL,TEXT("TvRockÉ`ÉÉÉìÉlÉã"),LVCFMT_RIGHT);
-				m_ListView.InsertColumn(COLUMN_SERVICE_ID,TEXT("ÉTÅ[ÉrÉX"),LVCFMT_RIGHT);
+				m_ListView.InsertColumn(COLUMN_NAME,TEXT("ÂêçÁß∞"));
+				m_ListView.InsertColumn(COLUMN_INDEX,TEXT("„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ"));
+				m_ListView.InsertColumn(COLUMN_TVROCK_CHANNEL,TEXT("TvRock„ÉÅ„É£„É≥„Éç„É´"),LVCFMT_RIGHT);
+				m_ListView.InsertColumn(COLUMN_SERVICE_ID,TEXT("„Çµ„Éº„Éì„Çπ"),LVCFMT_RIGHT);
 				m_ListView.InsertColumn(COLUMN_TS_ID,TEXT("TSID"),LVCFMT_RIGHT);
-				m_ListView.InsertColumn(COLUMN_FREQUENCY,TEXT("é¸îgêî"),LVCFMT_RIGHT);
-				m_ListView.InsertColumn(COLUMN_NETWORK_ID,TEXT("ÉlÉbÉgÉèÅ[ÉN"),LVCFMT_RIGHT);
+				m_ListView.InsertColumn(COLUMN_FREQUENCY,TEXT("Âë®Ê≥¢Êï∞"),LVCFMT_RIGHT);
+				m_ListView.InsertColumn(COLUMN_NETWORK_ID,TEXT("„Éç„ÉÉ„Éà„ÉØ„Éº„ÇØ"),LVCFMT_RIGHT);
 
 				TSTask::CTuningSpaceList SpaceList;
 				if (m_TSTaskManager.GetScannedChannelList(m_TaskID,&SpaceList)
@@ -152,7 +152,7 @@ namespace TSTaskCentre
 								if (CopyColumns[j]==COLUMN_NAME) {
 									for (LPWSTR p=szText;*p!=L'\0';p++) {
 										if (*p==L' ')
-											*p=L'Å@';
+											*p=L'„ÄÄ';
 									}
 								}
 								List+=szText;

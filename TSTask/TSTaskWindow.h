@@ -1,3 +1,4 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASK_WINDOW_H
 #define TSTASK_WINDOW_H
 
@@ -7,6 +8,8 @@
 
 namespace TSTask
 {
+
+	class CTVTestControlPlugin;
 
 	class CTSTaskWindow
 	{
@@ -19,6 +22,7 @@ namespace TSTask
 		void Destroy();
 		HWND GetHandle() const { return m_hwnd; }
 
+		void SetControlPlugin(CTVTestControlPlugin *pPlugin) { m_pControlPlugin=pPlugin; }
 		void OnRecordingStarted();
 		void OnRecordingStopped();
 
@@ -31,6 +35,7 @@ namespace TSTask
 
 		CTSTaskAppCore &m_Core;
 		HWND m_hwnd;
+		CTVTestControlPlugin *m_pControlPlugin=nullptr;
 	};
 
 }

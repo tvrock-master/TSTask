@@ -1,3 +1,4 @@
+// Modified in this TSTask fork (recorded 2026-11-19).
 #ifndef TSTASK_APP_CORE_H
 #define TSTASK_APP_CORE_H
 
@@ -27,6 +28,7 @@ namespace TSTask
 		virtual bool ReloadSettings() = 0;
 
 		bool ExecuteClient();
+		bool StartTvRockRecording(LPCWSTR pszFileName);
 
 		bool FormatRecordFileName(LPCWSTR pszFormat,String *pFileName);
 

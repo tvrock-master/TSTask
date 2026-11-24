@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "TaskUtility.h"
 #include "DebugDef.h"
@@ -35,7 +35,7 @@ namespace TSTask
 			return ID==INVALID_TASK_ID || m_TaskID==ID;
 		}
 
-		OutLog(LOG_VERBOSE,L"%sƒ^ƒXƒN‚ÌID‚ğŠ„‚è“–‚Ä‚Ü‚·B",Type==TASK_TYPE_SERVER?L"ƒT[ƒo[":L"ƒNƒ‰ƒCƒAƒ“ƒg");
+		OutLog(LOG_VERBOSE,L"%sã‚¿ã‚¹ã‚¯ã®IDã‚’å‰²ã‚Šå½“ã¦ã¾ã™ã€‚",Type==TASK_TYPE_SERVER?L"ã‚µãƒ¼ãƒãƒ¼":L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ");
 
 		if (ID==INVALID_TASK_ID) {
 			while (true) {
@@ -44,7 +44,7 @@ namespace TSTask
 				else
 					ID=TaskUtility::GetNextClientTaskID(ID);
 				if (ID==INVALID_TASK_ID) {
-					OutLog(LOG_ERROR,L"—˜—p‰Â”\‚Èƒ^ƒXƒNID‚ªŒ©•t‚©‚è‚Ü‚¹‚ñB");
+					OutLog(LOG_ERROR,L"åˆ©ç”¨å¯èƒ½ãªã‚¿ã‚¹ã‚¯IDãŒè¦‹ä»˜ã‹ã‚Šã¾ã›ã‚“ã€‚");
 					return false;
 				}
 
@@ -55,7 +55,7 @@ namespace TSTask
 					TaskUtility::GetClientTaskMutexName(ID,&Name);
 				if (m_Mutex.Create(Name.c_str())) {
 					if (!m_Mutex.IsAlreadyExists()) {
-						OutLog(LOG_VERBOSE,L"ƒ^ƒXƒN‚ÌMutex‚ğì¬‚µ‚Ü‚µ‚½B(\"%s\")",Name.c_str());
+						OutLog(LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯ã®Mutexã‚’ä½œæˆã—ã¾ã—ãŸã€‚(\"%s\")",Name.c_str());
 						break;
 					}
 					m_Mutex.Close();
@@ -69,22 +69,22 @@ namespace TSTask
 			else
 				fResult=TaskUtility::GetClientTaskMutexName(ID,&Name);
 			if (!fResult) {
-				OutLog(LOG_ERROR,L"—v‹‚³‚ê‚½ƒ^ƒXƒNID(%u)‚ª•s³‚Å‚·B",ID);
+				OutLog(LOG_ERROR,L"è¦æ±‚ã•ã‚ŒãŸã‚¿ã‚¹ã‚¯ID(%u)ãŒä¸æ­£ã§ã™ã€‚",ID);
 				return false;
 			}
 			if (!m_Mutex.Create(Name.c_str())) {
-				OutLog(LOG_ERROR,L"ƒ^ƒXƒN‚ÌMutex‚ğì¬‚Å‚«‚Ü‚¹‚ñB(\"%s\")",Name.c_str());
+				OutLog(LOG_ERROR,L"ã‚¿ã‚¹ã‚¯ã®Mutexã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚(\"%s\")",Name.c_str());
 				return false;
 			}
 			if (m_Mutex.IsAlreadyExists()) {
-				OutLog(LOG_ERROR,L"ƒ^ƒXƒN‚ÌMutex‚ªŠù‚É‘¶İ‚µ‚Ü‚·B(\"%s\")",Name.c_str());
+				OutLog(LOG_ERROR,L"ã‚¿ã‚¹ã‚¯ã®MutexãŒæ—¢ã«å­˜åœ¨ã—ã¾ã™ã€‚(\"%s\")",Name.c_str());
 				m_Mutex.Close();
 				return false;
 			}
-			OutLog(LOG_VERBOSE,L"ƒ^ƒXƒN‚ÌMutex‚ğì¬‚µ‚Ü‚µ‚½B(\"%s\")",Name.c_str());
+			OutLog(LOG_VERBOSE,L"ã‚¿ã‚¹ã‚¯ã®Mutexã‚’ä½œæˆã—ã¾ã—ãŸã€‚(\"%s\")",Name.c_str());
 		}
 
-		OutLog(LOG_INFO,L"ƒ^ƒXƒN‚ÌID‚ğŠ„‚è“–‚Ä‚Ü‚µ‚½B(%u)",ID);
+		OutLog(LOG_INFO,L"ã‚¿ã‚¹ã‚¯ã®IDã‚’å‰²ã‚Šå½“ã¦ã¾ã—ãŸã€‚(%u)",ID);
 
 		m_TaskID=ID;
 
@@ -111,7 +111,7 @@ namespace TSTask
 
 	bool CServerTaskSharedInfo::Create(TaskID ID,DWORD Version)
 	{
-		OutLog(LOG_VERBOSE,L"ƒT[ƒo[ƒ^ƒXƒN‚Ì‹¤—Lî•ñ‚ğì¬‚µ‚Ü‚·B(%u : %d.%d.%d)",
+		OutLog(LOG_VERBOSE,L"ã‚µãƒ¼ãƒãƒ¼ã‚¿ã‚¹ã‚¯ã®å…±æœ‰æƒ…å ±ã‚’ä½œæˆã—ã¾ã™ã€‚(%u : %d.%d.%d)",
 			   ID,GetVersionMajor(Version),GetVersionMinor(Version),GetVersionRevision(Version));
 
 		String Name;
@@ -122,26 +122,26 @@ namespace TSTask
 		bool fExists;
 		if (!m_SharedMemory.Create(Name.c_str(),sizeof(ServerTaskSharedInfo),
 								   PAGE_READWRITE,&fExists)) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğì¬‚Å‚«‚Ü‚¹‚ñB",Name.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ä½œæˆã§ãã¾ã›ã‚“ã€‚",Name.c_str());
 			return false;
 		}
 
 		if (fExists) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ÍŠù‚Éì¬‚³‚ê‚Ä‚¢‚Ü‚·B",Name.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã¯æ—¢ã«ä½œæˆã•ã‚Œã¦ã„ã¾ã™ã€‚",Name.c_str());
 			m_SharedMemory.Close();
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğì¬‚µ‚Ü‚µ‚½B",Name.c_str());
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚",Name.c_str());
 
 		m_pInfo=static_cast<ServerTaskSharedInfo*>(m_SharedMemory.Map());
 		if (m_pInfo==nullptr) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğƒ}ƒbƒv‚Å‚«‚Ü‚¹‚ñB",Name.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ãƒãƒƒãƒ—ã§ãã¾ã›ã‚“ã€‚",Name.c_str());
 			m_SharedMemory.Close();
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğƒ}ƒbƒv‚µ‚Ü‚µ‚½B(%p)",Name.c_str(),m_pInfo);
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ãƒãƒƒãƒ—ã—ã¾ã—ãŸã€‚(%p)",Name.c_str(),m_pInfo);
 
 		::ZeroMemory(m_pInfo,sizeof(ServerTaskSharedInfo));
 		m_pInfo->Header.Size=sizeof(ServerTaskSharedInfo);
@@ -229,7 +229,7 @@ namespace TSTask
 
 	bool CServerTaskSharedInfoReader::Open(TaskID ID)
 	{
-		OutLog(LOG_VERBOSE,L"ƒT[ƒo[ƒ^ƒXƒN‚Ì‹¤—Lî•ñ‚ğŠJ‚«‚Ü‚·B(%u)",ID);
+		OutLog(LOG_VERBOSE,L"ã‚µãƒ¼ãƒãƒ¼ã‚¿ã‚¹ã‚¯ã®å…±æœ‰æƒ…å ±ã‚’é–‹ãã¾ã™ã€‚(%u)",ID);
 
 		String Name;
 
@@ -237,33 +237,33 @@ namespace TSTask
 			return false;
 
 		if (!m_SharedMemory.Open(Name.c_str(),FILE_MAP_READ)) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğŠJ‚¯‚Ü‚¹‚ñB",Name.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’é–‹ã‘ã¾ã›ã‚“ã€‚",Name.c_str());
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğŠJ‚«‚Ü‚µ‚½B",Name.c_str());
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’é–‹ãã¾ã—ãŸã€‚",Name.c_str());
 
 		m_pInfo=static_cast<const ServerTaskSharedInfo*>(m_SharedMemory.Map(FILE_MAP_READ));
 		if (m_pInfo==nullptr) {
-			OutLog(LOG_ERROR,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğƒ}ƒbƒv‚Å‚«‚Ü‚¹‚ñB",Name.c_str());
+			OutLog(LOG_ERROR,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ãƒãƒƒãƒ—ã§ãã¾ã›ã‚“ã€‚",Name.c_str());
 			m_SharedMemory.Close();
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"‹¤—Lƒƒ‚ƒŠ(%s)‚ğƒ}ƒbƒv‚µ‚Ü‚µ‚½B(%p)",Name.c_str(),m_pInfo);
+		OutLog(LOG_VERBOSE,L"å…±æœ‰ãƒ¡ãƒ¢ãƒª(%s)ã‚’ãƒãƒƒãƒ—ã—ã¾ã—ãŸã€‚(%p)",Name.c_str(),m_pInfo);
 
 		if (m_pInfo->Header.Size!=sizeof(ServerTaskSharedInfo)
 				|| m_pInfo->Header.Version!=SERVER_TASK_SHARED_INFO_VERSION
 				|| m_pInfo->Task.TaskID!=ID
 				|| m_pInfo->Task.ProcessID==0) {
-			OutLog(LOG_ERROR,L"‹¤—Lî•ñ‚ª•s³‚Å‚·B(Version %u / ID %u / PID %u)",
+			OutLog(LOG_ERROR,L"å…±æœ‰æƒ…å ±ãŒä¸æ­£ã§ã™ã€‚(Version %u / ID %u / PID %u)",
 				   m_pInfo->Header.Version,m_pInfo->Task.TaskID,m_pInfo->Task.ProcessID);
 			Close();
 			return false;
 		}
 
 		if (m_pInfo->Task.State==TASK_STATE_ENDING) {
-			OutLog(LOG_WARNING,L"ƒ^ƒXƒN‚ªI—¹ˆ—’†‚Å‚·B");
+			OutLog(LOG_WARNING,L"ã‚¿ã‚¹ã‚¯ãŒçµ‚äº†å‡¦ç†ä¸­ã§ã™ã€‚");
 			Close();
 			return false;
 		}
@@ -445,14 +445,14 @@ namespace TSTask
 			if (pList==nullptr)
 				return false;
 
-			OutLog(LOG_VERBOSE,L"ƒT[ƒo[ƒ^ƒXƒN‚ğ—ñ‹“‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚µãƒ¼ãƒãƒ¼ã‚¿ã‚¹ã‚¯ã‚’åˆ—æŒ™ã—ã¾ã™ã€‚");
 
 			pList->clear();
 
 			TaskID ID=INVALID_TASK_ID;
 			while ((ID=GetNextServerTaskID(ID))!=INVALID_TASK_ID) {
 				if (IsServerTaskExists(ID)) {
-					OutLog(LOG_VERBOSE,L"¨ƒT[ƒo[%u‚ªŒ©•t‚©‚è‚Ü‚µ‚½B",ID);
+					OutLog(LOG_VERBOSE,L"â†’ã‚µãƒ¼ãƒãƒ¼%uãŒè¦‹ä»˜ã‹ã‚Šã¾ã—ãŸã€‚",ID);
 					pList->push_back(ID);
 				}
 			}
@@ -465,14 +465,14 @@ namespace TSTask
 			if (pList==nullptr)
 				return false;
 
-			OutLog(LOG_VERBOSE,L"ƒNƒ‰ƒCƒAƒ“ƒgƒ^ƒXƒN‚ğ—ñ‹“‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‚¿ã‚¹ã‚¯ã‚’åˆ—æŒ™ã—ã¾ã™ã€‚");
 
 			pList->clear();
 
 			TaskID ID=INVALID_TASK_ID;
 			while ((ID=GetNextClientTaskID(ID))!=INVALID_TASK_ID) {
 				if (IsClientTaskExists(ID)) {
-					OutLog(LOG_VERBOSE,L"¨ƒNƒ‰ƒCƒAƒ“ƒg%u‚ªŒ©•t‚©‚è‚Ü‚µ‚½B",ID);
+					OutLog(LOG_VERBOSE,L"â†’ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ%uãŒè¦‹ä»˜ã‹ã‚Šã¾ã—ãŸã€‚",ID);
 					pList->push_back(ID);
 				}
 			}

@@ -1,4 +1,5 @@
-// BasicFile.h: CBasicFile ÉNÉâÉXÇÃÉCÉìÉ^Å[ÉtÉFÉCÉX
+Ôªø// Modified in this TSTask fork (recorded 2026-11-19).
+// BasicFile.h: CBasicFile „ÇØ„É©„Çπ„ÅÆ„Ç§„É≥„Çø„Éº„Éï„Çß„Ç§„Çπ
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -17,7 +18,8 @@ public:
 		OPEN_SEQUENTIALREAD	= 0x0020U,
 		OPEN_RANDOMACCESS	= 0x0040U,
 		OPEN_PRIORITY_LOW	= 0x0100U,
-		OPEN_PRIORITY_IDLE	= 0x0200U
+		OPEN_PRIORITY_IDLE	= 0x0200U,
+		OPEN_OVERWRITE		= 0x0400U
 	};
 
 	CBasicFile();

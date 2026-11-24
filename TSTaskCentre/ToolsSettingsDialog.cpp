@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "ToolsSettingsDialog.h"
 #include "resource.h"
@@ -36,8 +36,8 @@ namespace TSTaskCentre
 				m_ListView.SetExtendedStyle(
 					LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_DOUBLEBUFFER);
 
-				m_ListView.InsertColumn(0,TEXT("–¼‘O"));
-				m_ListView.InsertColumn(1,TEXT("ƒRƒ}ƒ“ƒh"));
+				m_ListView.InsertColumn(0,TEXT("åå‰"));
+				m_ListView.InsertColumn(1,TEXT("ã‚³ãƒãƒ³ãƒ‰"));
 
 				const size_t ToolCount=Settings.Tools.GetToolCount();
 				m_ListView.ReserveItemCount((int)ToolCount);
@@ -138,17 +138,17 @@ namespace TSTaskCentre
 						LPCTSTR pszParameter;
 						LPCTSTR pszText;
 					} ParameterList[] = {
-						{TEXT("%file%"),			TEXT("˜^‰æƒtƒ@ƒCƒ‹(Å‰)")},
-						{TEXT("%file-cur%"),		TEXT("˜^‰æ’†‚Ìƒtƒ@ƒCƒ‹")},
-						{TEXT("%rec-dir%"),			TEXT("˜^‰æƒtƒHƒ‹ƒ_(Å‰)")},
-						{TEXT("%rec-dir-cur%"),		TEXT("˜^‰æ’†‚ÌƒtƒHƒ‹ƒ_")},
-						{TEXT("%port%"),			TEXT("‘—Mæƒ|[ƒg”Ô†")},
-						{TEXT("%protocol%"),		TEXT("‘—MƒvƒƒgƒRƒ‹")},
-						{TEXT("%task-id%"),			TEXT("ƒ^ƒXƒN”Ô†")},
-						{TEXT("%task-id-0%"),		TEXT("ƒ^ƒXƒN”Ô†(0‚©‚ç)")},
-						{TEXT("%task-id-13%"),		TEXT("ƒ^ƒXƒN”Ô†(13‚©‚ç)")},
-						{TEXT("%service-name%"),	TEXT("ƒT[ƒrƒX–¼")},
-						{TEXT("%service-id%"),		TEXT("ƒT[ƒrƒXID")},
+						{TEXT("%file%"),			TEXT("éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«(æœ€åˆ)")},
+						{TEXT("%file-cur%"),		TEXT("éŒ²ç”»ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«")},
+						{TEXT("%rec-dir%"),			TEXT("éŒ²ç”»ãƒ•ã‚©ãƒ«ãƒ€(æœ€åˆ)")},
+						{TEXT("%rec-dir-cur%"),		TEXT("éŒ²ç”»ä¸­ã®ãƒ•ã‚©ãƒ«ãƒ€")},
+						{TEXT("%port%"),			TEXT("é€ä¿¡å…ˆãƒãƒ¼ãƒˆç•ªå·")},
+						{TEXT("%protocol%"),		TEXT("é€ä¿¡ãƒ—ãƒ­ãƒˆã‚³ãƒ«")},
+						{TEXT("%task-id%"),			TEXT("ã‚¿ã‚¹ã‚¯ç•ªå·")},
+						{TEXT("%task-id-0%"),		TEXT("ã‚¿ã‚¹ã‚¯ç•ªå·(0ã‹ã‚‰)")},
+						{TEXT("%task-id-13%"),		TEXT("ã‚¿ã‚¹ã‚¯ç•ªå·(13ã‹ã‚‰)")},
+						{TEXT("%service-name%"),	TEXT("ã‚µãƒ¼ãƒ“ã‚¹å")},
+						{TEXT("%service-id%"),		TEXT("ã‚µãƒ¼ãƒ“ã‚¹ID")},
 					};
 
 					HMENU hmenu=::CreatePopupMenu();
@@ -190,17 +190,17 @@ namespace TSTaskCentre
 						LPCTSTR pszTrigger;
 						LPCTSTR pszText;
 					} TriggerList[] = {
-						{TEXT("BonDriverLoaded"),	TEXT("BonDriver‚ª“Ç‚İ‚Ü‚ê‚½")},
-						{TEXT("BonDriverUnloaded"),	TEXT("BonDriver‚ª‰ğ•ú‚³‚ê‚½")},
-						{TEXT("TunerOpened"),		TEXT("ƒ`ƒ…[ƒi[‚ªŠJ‚©‚ê‚½")},
-						{TEXT("TunerClosed"),		TEXT("ƒ`ƒ…[ƒi[‚ª•Â‚¶‚ç‚ê‚½")},
-						{TEXT("ChannelChanged"),	TEXT("ƒ`ƒƒƒ“ƒlƒ‹‚ª•Ï‚í‚Á‚½")},
-						{TEXT("ServiceChanged"),	TEXT("ƒT[ƒrƒX‚ª•Ï‚í‚Á‚½")},
-						{TEXT("RecordingStarted"),	TEXT("˜^‰æ‚ªŠJn‚³‚ê‚½")},
-						{TEXT("RecordingStopped"),	TEXT("˜^‰æ‚ª’â~‚³‚ê‚½")},
-						{TEXT("StreamingStarted"),	TEXT("ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ªŠJn‚³‚ê‚½")},
-						{TEXT("StreamingStopped"),	TEXT("ƒXƒgƒŠ[ƒ~ƒ“ƒO‚ª’â~‚³‚ê‚½")},
-						{TEXT("EventChanged"),		TEXT("”Ô‘g‚ª•Ï‚í‚Á‚½")},
+						{TEXT("BonDriverLoaded"),	TEXT("BonDriverãŒèª­ã¿è¾¼ã¾ã‚ŒãŸ")},
+						{TEXT("BonDriverUnloaded"),	TEXT("BonDriverãŒè§£æ”¾ã•ã‚ŒãŸ")},
+						{TEXT("TunerOpened"),		TEXT("ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ãŒé–‹ã‹ã‚ŒãŸ")},
+						{TEXT("TunerClosed"),		TEXT("ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ãŒé–‰ã˜ã‚‰ã‚ŒãŸ")},
+						{TEXT("ChannelChanged"),	TEXT("ãƒãƒ£ãƒ³ãƒãƒ«ãŒå¤‰ã‚ã£ãŸ")},
+						{TEXT("ServiceChanged"),	TEXT("ã‚µãƒ¼ãƒ“ã‚¹ãŒå¤‰ã‚ã£ãŸ")},
+						{TEXT("RecordingStarted"),	TEXT("éŒ²ç”»ãŒé–‹å§‹ã•ã‚ŒãŸ")},
+						{TEXT("RecordingStopped"),	TEXT("éŒ²ç”»ãŒåœæ­¢ã•ã‚ŒãŸ")},
+						{TEXT("StreamingStarted"),	TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãŒé–‹å§‹ã•ã‚ŒãŸ")},
+						{TEXT("StreamingStopped"),	TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒŸãƒ³ã‚°ãŒåœæ­¢ã•ã‚ŒãŸ")},
+						{TEXT("EventChanged"),		TEXT("ç•ªçµ„ãŒå¤‰ã‚ã£ãŸ")},
 					};
 
 					HMENU hmenu=::CreatePopupMenu();

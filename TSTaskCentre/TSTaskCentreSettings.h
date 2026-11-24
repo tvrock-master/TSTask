@@ -169,6 +169,8 @@ namespace TSTaskCentre
 		bool SetPosition(int Left,int Top,int Width,int Height);
 		bool GetMinimize() const;
 		void SetMinimize(bool fMinimize);
+		bool GetDockBottom() const { return m_fDockBottom; }
+		void SetDockBottom(bool fDockBottom) { m_fDockBottom=fDockBottom; }
 
 		bool GetShowTrayIcon() const;
 		void SetShowTrayIcon(bool fShow);
@@ -227,6 +229,7 @@ namespace TSTaskCentre
 		int m_Width;
 		int m_Height;
 		bool m_fMinimize;
+		bool m_fDockBottom;
 
 		bool m_fShowTrayIcon;
 		bool m_fMinimizeToTray;

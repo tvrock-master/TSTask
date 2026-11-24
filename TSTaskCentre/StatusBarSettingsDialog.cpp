@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "StatusBarSettingsDialog.h"
 #include "MiscDialog.h"
@@ -74,7 +74,7 @@ namespace TSTaskCentre
 				CheckItem(IDC_SETTINGS_STATUS_BAR_MULTI_ROW,Settings.MainBoard.GetStatusMultiRow());
 				for (int i=1;i<=8;i++) {
 					TCHAR szText[16];
-					TSTask::FormatString(szText,_countof(szText),L"%d �s",i);
+					TSTask::FormatString(szText,_countof(szText),L"%d 行",i);
 					::SendDlgItemMessage(hDlg,IDC_SETTINGS_STATUS_BAR_MAX_ROWS,CB_ADDSTRING,0,
 										 reinterpret_cast<LPARAM>(szText));
 				}

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "PATGenerator.h"
 #include "TsTable.h"
 #include "TsUtilClass.h"
@@ -27,10 +27,10 @@ void CPATGenerator::Reset()
 	m_ContinuityCounter = 0;
 	::ZeroMemory(m_PmtCount, sizeof(m_PmtCount));
 
-	// NITƒe[ƒuƒ‹PIDƒ}ƒbƒv’Ç‰Á
+	// NITãƒ†ãƒ¼ãƒ–ãƒ«PIDãƒãƒƒãƒ—è¿½åŠ 
 	m_PidMapManager.MapTarget(PID_NIT, new CNitMultiTable, OnNitUpdated, this);
 
-	// PMTƒe[ƒuƒ‹PIDƒ}ƒbƒv’Ç‰Á
+	// PMTãƒ†ãƒ¼ãƒ–ãƒ«PIDãƒãƒƒãƒ—è¿½åŠ 
 	for (WORD PID = ONESEG_PMT_PID_FIRST; PID <= ONESEG_PMT_PID_LAST; PID++)
 		m_PidMapManager.MapTarget(PID, new CPmtTable);
 }
@@ -46,7 +46,7 @@ bool CPATGenerator::StorePacket(const CTsPacket *pPacket)
 		if (m_PidMapManager.StorePacket(pPacket)) {
 			if (PID != PID_NIT && !m_bHasPAT) {
 				if (!m_bGeneratePAT) {
-					// PMT‚ªPAT_GEN_PMT_COUNT‰ñ—ˆ‚éŠÔ‚ÉPAT‚ª—ˆ‚È‚¯‚ê‚ÎPAT‚ª–³‚¢‚Æ‚İ‚È‚·
+					// PMTãŒPAT_GEN_PMT_COUNTå›æ¥ã‚‹é–“ã«PATãŒæ¥ãªã‘ã‚Œã°PATãŒç„¡ã„ã¨ã¿ãªã™
 					static const DWORD PAT_GEN_PMT_COUNT = 5;
 					int Index = PID - ONESEG_PMT_PID_FIRST;
 					if (m_PmtCount[Index] < PAT_GEN_PMT_COUNT) {
@@ -79,7 +79,7 @@ bool CPATGenerator::GetPAT(CTsPacket *pPacket)
 			PmtCount++;
 		} else {
 			if (i == 0)
-				return false;	// æ“ª PMT ‚ª–³‚¢
+				return false;	// å…ˆé ­ PMT ãŒç„¡ã„
 			PmtList[i] = NULL;
 		}
 	}

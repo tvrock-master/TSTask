@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "BasicMessage.h"
 #include "MessageClient.h"
@@ -10,7 +10,7 @@ namespace TSTask
 
 	bool BroadcastServerMessage(const CMessage &Message)
 	{
-		OutLog(LOG_VERBOSE,L"‘S‚Ä‚ÌƒNƒ‰ƒCƒAƒ“ƒg‚ÉƒƒbƒZ[ƒW(%s)‚ğ‘—M‚µ‚Ü‚·B",Message.GetName());
+		OutLog(LOG_VERBOSE,L"å…¨ã¦ã®ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸(%s)ã‚’é€ä¿¡ã—ã¾ã™ã€‚",Message.GetName());
 
 		TaskUtility::TaskIDList TaskList;
 

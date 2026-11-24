@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskCentre.h"
 #include "TaskInfoDialog.h"
 #include "resource.h"
@@ -32,26 +32,26 @@ namespace TSTaskCentre
 	};
 
 	static const LPCTSTR TaskPropertyTextList[] = {
-		TEXT("ƒ^ƒXƒNID"),
-		TEXT("ƒo[ƒWƒ‡ƒ“"),
-		TEXT("ƒvƒƒZƒXID"),
-		TEXT("ƒA[ƒLƒeƒNƒ`ƒƒ"),
-		TEXT("ƒpƒX"),
-		TEXT("ƒ[ƒLƒ“ƒOƒZƒbƒg"),
-		TEXT("Å‘åƒ[ƒLƒ“ƒOƒZƒbƒg"),
-		TEXT("ƒy[ƒWƒtƒ@ƒCƒ‹"),
-		TEXT("Å‘åƒy[ƒWƒtƒ@ƒCƒ‹"),
-		TEXT("ƒy[ƒWƒtƒH[ƒ‹ƒg"),
-		TEXT("ŠJn“ú"),
-		TEXT("UserÀsŠÔ"),
-		TEXT("KernelÀsŠÔ"),
-		TEXT("ƒTƒCƒNƒ‹ŠÔ"),
-		TEXT("I/O“Ç‚İ‚İ"),
-		TEXT("I/O‘‚«o‚µ"),
-		TEXT("I/O‚»‚Ì‘¼"),
-		TEXT("ƒnƒ“ƒhƒ‹”"),
-		TEXT("GDIƒIƒuƒWƒFƒNƒg"),
-		TEXT("UserƒIƒuƒWƒFƒNƒg"),
+		TEXT("ã‚¿ã‚¹ã‚¯ID"),
+		TEXT("ãƒãƒ¼ã‚¸ãƒ§ãƒ³"),
+		TEXT("ãƒ—ãƒ­ã‚»ã‚¹ID"),
+		TEXT("ã‚¢ãƒ¼ã‚­ãƒ†ã‚¯ãƒãƒ£"),
+		TEXT("ãƒ‘ã‚¹"),
+		TEXT("ãƒ¯ãƒ¼ã‚­ãƒ³ã‚°ã‚»ãƒƒãƒˆ"),
+		TEXT("æœ€å¤§ãƒ¯ãƒ¼ã‚­ãƒ³ã‚°ã‚»ãƒƒãƒˆ"),
+		TEXT("ãƒšãƒ¼ã‚¸ãƒ•ã‚¡ã‚¤ãƒ«"),
+		TEXT("æœ€å¤§ãƒšãƒ¼ã‚¸ãƒ•ã‚¡ã‚¤ãƒ«"),
+		TEXT("ãƒšãƒ¼ã‚¸ãƒ•ã‚©ãƒ¼ãƒ«ãƒˆ"),
+		TEXT("é–‹å§‹æ—¥æ™‚"),
+		TEXT("Userå®Ÿè¡Œæ™‚é–“"),
+		TEXT("Kernelå®Ÿè¡Œæ™‚é–“"),
+		TEXT("ã‚µã‚¤ã‚¯ãƒ«æ™‚é–“"),
+		TEXT("I/Oèª­ã¿è¾¼ã¿"),
+		TEXT("I/Oæ›¸ãå‡ºã—"),
+		TEXT("I/Oãã®ä»–"),
+		TEXT("ãƒãƒ³ãƒ‰ãƒ«æ•°"),
+		TEXT("GDIã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ"),
+		TEXT("Userã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ"),
 	};
 
 
@@ -112,8 +112,8 @@ namespace TSTaskCentre
 				m_ListView.SetExtendedStyle(
 					LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_DOUBLEBUFFER);
 
-				m_ListView.InsertColumn(0,TEXT("€–Ú"));
-				m_ListView.InsertColumn(1,TEXT("’l"));
+				m_ListView.InsertColumn(0,TEXT("é …ç›®"));
+				m_ListView.InsertColumn(1,TEXT("å€¤"));
 
 				for (int i=0;i<_countof(TaskPropertyTextList);i++)
 					m_ListView.InsertItem(i,TaskPropertyTextList[i],i);

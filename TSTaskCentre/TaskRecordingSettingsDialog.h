@@ -1,4 +1,4 @@
-#ifndef TSTASKCENTRE_TASK_RECORDING_SETTINGS_DIALOG_H
+ï»¿#ifndef TSTASKCENTRE_TASK_RECORDING_SETTINGS_DIALOG_H
 #define TSTASKCENTRE_TASK_RECORDING_SETTINGS_DIALOG_H
 
 
@@ -20,7 +20,7 @@ namespace TSTaskCentre
 		INT_PTR DlgProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) override;
 
 	// CSettingsDialog::CPage
-		LPCWSTR GetTitle() const override { return L"˜^‰æ"; }
+		LPCWSTR GetTitle() const override { return L"éŒ²ç”»"; }
 		COLORREF GetTitleColor() const override { return RGB(192,128,0); }
 		int GetIcon() const override { return ICON_RECORDING; }
 		bool QueryOK() override;

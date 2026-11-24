@@ -1,4 +1,4 @@
-// Common.h: BonTsEngine‹¤’Êƒwƒbƒ_
+ï»¿// Common.h: BonTsEngineå…±é€šãƒ˜ãƒƒãƒ€
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -6,7 +6,7 @@
 #define BONTSENGINE_COMMON_H
 
 
-// ’ŠÛƒNƒ‰ƒX—p
+// æŠ½è±¡ã‚¯ãƒ©ã‚¹ç”¨
 #define ABSTRACT_CLASS_DECL __declspec(novtable)
 
 // PID
@@ -57,50 +57,50 @@
 #define STREAM_TYPE_TRUEHD							0x83	// Dolby TrueHD
 #define STREAM_TYPE_DOLBY_DIGITAL_PLUS				0x87	// Dolby Digital Plus
 
-#define STREAM_TYPE_UNINITIALIZED					0x00	// –¢‰Šú‰»
-#define STREAM_TYPE_INVALID							0xFF	// –³Œø
+#define STREAM_TYPE_UNINITIALIZED					0x00	// æœªåˆæœŸåŒ–
+#define STREAM_TYPE_INVALID							0xFF	// ç„¡åŠ¹
 
-#define STREAM_TYPE_CAPTION							STREAM_TYPE_PRIVATE_DATA			// Žš–‹
-#define STREAM_TYPE_DATACARROUSEL					STREAM_TYPE_ISO_IEC_13818_6_TYPE_D	// ƒf[ƒ^•ú‘—
+#define STREAM_TYPE_CAPTION							STREAM_TYPE_PRIVATE_DATA			// å­—å¹•
+#define STREAM_TYPE_DATACARROUSEL					STREAM_TYPE_ISO_IEC_13818_6_TYPE_D	// ãƒ‡ãƒ¼ã‚¿æ”¾é€
 
 // service_type
-#define SERVICE_TYPE_DIGITALTV				0x01	// ƒfƒWƒ^ƒ‹TVƒT[ƒrƒX
-#define SERVICE_TYPE_DIGITALAUDIO			0x02	// ƒfƒWƒ^ƒ‹‰¹ºƒT[ƒrƒX
-// 0x03 - 0x7F –¢’è‹`
-// 0x80 - 0xA0 Ž–‹ÆŽÒ’è‹`
-#define SERVICE_TYPE_TEMPORARYVIDEO			0xA1	// —ÕŽž‰f‘œƒT[ƒrƒX
-#define SERVICE_TYPE_TEMPORARYAUDIO			0xA2	// —ÕŽž‰¹ºƒT[ƒrƒX
-#define SERVICE_TYPE_TEMPORARYDATA			0xA3	// —ÕŽžƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_ENGINEERING			0xA4	// ƒGƒ“ƒWƒjƒAƒŠƒ“ƒOƒT[ƒrƒX
-#define SERVICE_TYPE_PROMOTIONVIDEO			0xA5	// ƒvƒƒ‚[ƒVƒ‡ƒ“‰f‘œƒT[ƒrƒX
-#define SERVICE_TYPE_PROMOTIONAUDIO			0xA6	// ƒvƒƒ‚[ƒVƒ‡ƒ“‰¹ºƒT[ƒrƒX
-#define SERVICE_TYPE_PROMOTIONDATA			0xA7	// ƒvƒƒ‚[ƒVƒ‡ƒ“ƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_ACCUMULATIONDATA		0xA8	// Ž–‘O’~Ï—pƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_ACCUMULATIONONLYDATA	0xA9	// ’~Ïê—pƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_BOOKMARKLISTDATA		0xAA	// ƒuƒbƒNƒ}[ƒNˆê——ƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_SERVERTYPESIMULTANEOUS	0xAB	// ƒT[ƒo[Œ^ƒTƒCƒ}ƒ‹ƒT[ƒrƒX
-#define SERVICE_TYPE_INDEPENDENTFILE		0xAC	// “Æ—§ƒtƒ@ƒCƒ‹ƒT[ƒrƒX
-#define SERVICE_TYPE_4KTV					0xAD	// ’´‚¸×“x4Kê—pTVƒT[ƒrƒX
-// 0xAD - 0xBF –¢’è‹`(•W€‰»‹@ŠÖ’è‹`—Ìˆæ)
-#define SERVICE_TYPE_DATA					0xC0	// ƒf[ƒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_TLVACCUMULATION		0xC1	// TLV‚ð—p‚¢‚½’~ÏŒ^ƒT[ƒrƒX
-#define SERVICE_TYPE_MULTIMEDIA				0xC2	// ƒ}ƒ‹ƒ`ƒƒfƒBƒAƒT[ƒrƒX
-// 0xC3 - 0xFF –¢’è‹`
-#define SERVICE_TYPE_INVALID				0xFF	// –³Œø
+#define SERVICE_TYPE_DIGITALTV				0x01	// ãƒ‡ã‚¸ã‚¿ãƒ«TVã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_DIGITALAUDIO			0x02	// ãƒ‡ã‚¸ã‚¿ãƒ«éŸ³å£°ã‚µãƒ¼ãƒ“ã‚¹
+// 0x03 - 0x7F æœªå®šç¾©
+// 0x80 - 0xA0 äº‹æ¥­è€…å®šç¾©
+#define SERVICE_TYPE_TEMPORARYVIDEO			0xA1	// è‡¨æ™‚æ˜ åƒã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_TEMPORARYAUDIO			0xA2	// è‡¨æ™‚éŸ³å£°ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_TEMPORARYDATA			0xA3	// è‡¨æ™‚ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_ENGINEERING			0xA4	// ã‚¨ãƒ³ã‚¸ãƒ‹ã‚¢ãƒªãƒ³ã‚°ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_PROMOTIONVIDEO			0xA5	// ãƒ—ãƒ­ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³æ˜ åƒã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_PROMOTIONAUDIO			0xA6	// ãƒ—ãƒ­ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³éŸ³å£°ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_PROMOTIONDATA			0xA7	// ãƒ—ãƒ­ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_ACCUMULATIONDATA		0xA8	// äº‹å‰è“„ç©ç”¨ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_ACCUMULATIONONLYDATA	0xA9	// è“„ç©å°‚ç”¨ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_BOOKMARKLISTDATA		0xAA	// ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ä¸€è¦§ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_SERVERTYPESIMULTANEOUS	0xAB	// ã‚µãƒ¼ãƒãƒ¼åž‹ã‚µã‚¤ãƒžãƒ«ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_INDEPENDENTFILE		0xAC	// ç‹¬ç«‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_4KTV					0xAD	// è¶…é«˜ç²¾ç´°åº¦4Kå°‚ç”¨TVã‚µãƒ¼ãƒ“ã‚¹
+// 0xAD - 0xBF æœªå®šç¾©(æ¨™æº–åŒ–æ©Ÿé–¢å®šç¾©é ˜åŸŸ)
+#define SERVICE_TYPE_DATA					0xC0	// ãƒ‡ãƒ¼ã‚¿ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_TLVACCUMULATION		0xC1	// TLVã‚’ç”¨ã„ãŸè“„ç©åž‹ã‚µãƒ¼ãƒ“ã‚¹
+#define SERVICE_TYPE_MULTIMEDIA				0xC2	// ãƒžãƒ«ãƒãƒ¡ãƒ‡ã‚£ã‚¢ã‚µãƒ¼ãƒ“ã‚¹
+// 0xC3 - 0xFF æœªå®šç¾©
+#define SERVICE_TYPE_INVALID				0xFF	// ç„¡åŠ¹
 
 // ISO 639 language code
-#define LANGUAGE_CODE_JPN	0x6A706EUL	// “ú–{Œê
-#define LANGUAGE_CODE_ENG	0x656E67UL	// ‰pŒê
-#define LANGUAGE_CODE_DEU	0x646575UL	// ƒhƒCƒcŒê
-#define LANGUAGE_CODE_FRA	0x667261UL	// ƒtƒ‰ƒ“ƒXŒê
-#define LANGUAGE_CODE_ITA	0x697461UL	// ƒCƒ^ƒŠƒAŒê
-#define LANGUAGE_CODE_RUS	0x727573UL	// ƒƒVƒAŒê
-#define LANGUAGE_CODE_ZHO	0x7A686FUL	// ’†‘Œê
-#define LANGUAGE_CODE_KOR	0x6B6F72UL	// ŠØ‘Œê
-#define LANGUAGE_CODE_SPA	0x737061UL	// ƒXƒyƒCƒ“Œê
-#define LANGUAGE_CODE_ETC	0x657463UL	// ‚»‚Ì‘¼
+#define LANGUAGE_CODE_JPN	0x6A706EUL	// æ—¥æœ¬èªž
+#define LANGUAGE_CODE_ENG	0x656E67UL	// è‹±èªž
+#define LANGUAGE_CODE_DEU	0x646575UL	// ãƒ‰ã‚¤ãƒ„èªž
+#define LANGUAGE_CODE_FRA	0x667261UL	// ãƒ•ãƒ©ãƒ³ã‚¹èªž
+#define LANGUAGE_CODE_ITA	0x697461UL	// ã‚¤ã‚¿ãƒªã‚¢èªž
+#define LANGUAGE_CODE_RUS	0x727573UL	// ãƒ­ã‚·ã‚¢èªž
+#define LANGUAGE_CODE_ZHO	0x7A686FUL	// ä¸­å›½èªž
+#define LANGUAGE_CODE_KOR	0x6B6F72UL	// éŸ“å›½èªž
+#define LANGUAGE_CODE_SPA	0x737061UL	// ã‚¹ãƒšã‚¤ãƒ³èªž
+#define LANGUAGE_CODE_ETC	0x657463UL	// ãã®ä»–
 
-// ƒƒ“ƒZƒOPMT PID
+// ãƒ¯ãƒ³ã‚»ã‚°PMT PID
 #define ONESEG_PMT_PID_FIRST	0x1FC8
 #define ONESEG_PMT_PID_LAST		0x1FCF
 #define ONESEG_PMT_PID_NUM		(ONESEG_PMT_PID_LAST - ONESEG_PMT_PID_FIRST + 1)

@@ -1,3 +1,4 @@
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
 #include "stdafx.h"
 #include "TSTask.h"
 #include "TSTaskAppCore.h"
@@ -20,7 +21,7 @@ namespace TSTask
 		if (!m_CurSettings.General.GetClientCommand(&Command))
 			return false;
 
-		OutLog(LOG_INFO,L"ƒNƒ‰ƒCƒAƒ“ƒg(%s)‚ğ‹N“®‚µ‚Ü‚·B",Command.c_str());
+		OutLog(LOG_INFO,L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ(%s)ã‚’èµ·å‹•ã—ã¾ã™ã€‚",Command.c_str());
 
 		STARTUPINFO si;
 		::ZeroMemory(&si,sizeof(si));
@@ -34,18 +35,56 @@ namespace TSTask
 		::ZeroMemory(&pi,sizeof(pi));
 		if (!::CreateProcess(nullptr,const_cast<LPWSTR>(Command.c_str()),
 							 nullptr,nullptr,FALSE,0,nullptr,nullptr,&si,&pi)) {
-			OutSystemErrorLog(::GetLastError(),L"ƒNƒ‰ƒCƒAƒ“ƒg(%s)‚ğ‹N“®‚Å‚«‚Ü‚¹‚ñB",
+			OutSystemErrorLog(::GetLastError(),L"ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ(%s)ã‚’èµ·å‹•ã§ãã¾ã›ã‚“ã€‚",
 							  Command.c_str());
 			return false;
 		}
 
-		OutLog(LOG_VERBOSE,L"ƒvƒƒZƒX(%s)‚ğì¬‚µ‚Ü‚µ‚½B(PID %u)",
+		OutLog(LOG_VERBOSE,L"ãƒ—ãƒ­ã‚»ã‚¹(%s)ã‚’ä½œæˆã—ã¾ã—ãŸã€‚(PID %u)",
 			   Command.c_str(),pi.dwProcessId);
 
 		::CloseHandle(pi.hProcess);
 		::CloseHandle(pi.hThread);
 
 		return true;
+	}
+
+	bool CTSTaskAppCore::StartTvRockRecording(LPCWSTR pszFileName)
+	{
+		if (IsStringEmpty(pszFileName)) {
+			OutLog(LOG_ERROR,L"TvRock ã®éŒ²ç”»é–‹å§‹è¦æ±‚ã«ãƒ•ã‚¡ã‚¤ãƒ«åãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
+			return false;
+		}
+		OutLog(LOG_INFO,L"TvRockã‹ã‚‰éŒ²ç”»é–‹å§‹è¦æ±‚ã‚’å—ã‘ã¾ã—ãŸã€‚(%s)",pszFileName);
+
+		RecordingSettings Settings;
+		GetCurSettings().Recording.GetRecordingSettings(&Settings);
+
+		String DefaultDir;
+		PathUtility::Split(String(pszFileName),&DefaultDir,&Settings.FileName);
+		if (Settings.FileName.empty()) {
+			OutLog(LOG_ERROR,L"TvRock ã®éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«åãŒç„¡åŠ¹ã§ã™ã€‚(%s)",pszFileName);
+			return false;
+		}
+		if (DefaultDir.empty())
+			return m_Core.StartRecording(Settings);
+
+		Settings.Directories.clear();
+		Settings.Directories.push_back(DefaultDir);
+
+		std::vector<String> Directories;
+		if (GetCurSettings().Recording.GetDirectories(&Directories)) {
+			String Dir;
+			PathUtility::AppendDelimiter(&DefaultDir);
+			for (const auto &e:Directories) {
+				Dir=e;
+				PathUtility::AppendDelimiter(&Dir);
+				if (StringUtility::CompareNoCase(Dir,DefaultDir)!=0)
+					Settings.Directories.push_back(e);
+			}
+		}
+
+		return m_Core.StartRecording(Settings);
 	}
 
 	bool CTSTaskAppCore::FormatRecordFileName(LPCWSTR pszFormat,String *pFileName)

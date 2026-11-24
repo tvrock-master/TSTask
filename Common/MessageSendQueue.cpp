@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TSTaskBase.h"
 #include "MessageSendQueue.h"
 #include "DebugDef.h"
@@ -22,7 +22,7 @@ namespace TSTask
 		if (m_Thread.IsOpened())
 			return true;
 
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚ğŠJn‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’é–‹å§‹ã—ã¾ã™ã€‚");
 
 		m_EndEvent.Create();
 		m_SendEvent.Create();
@@ -30,7 +30,7 @@ namespace TSTask
 		CThread::CFunctorBase *pFunctor=
 			new CThread::CFunctor<CMessageSendQueue>(this,&CMessageSendQueue::SendThread);
 		if (!m_Thread.Begin(pFunctor)) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚ğŠJn‚Å‚«‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã€‚");
 			delete pFunctor;
 			End();
 			return false;
@@ -44,10 +44,10 @@ namespace TSTask
 		ClearQueue();
 
 		if (m_Thread.IsOpened()) {
-			OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚ğI—¹‚µ‚Ü‚·B");
+			OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
 			m_EndEvent.Set();
 			if (m_Thread.Wait(10000)==WAIT_TIMEOUT) {
-				OutLog(LOG_WARNING,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚Ì‰“š‚ª–³‚¢‚½‚ß‹­§I—¹‚µ‚Ü‚·B");
+				OutLog(LOG_WARNING,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã®å¿œç­”ãŒç„¡ã„ãŸã‚å¼·åˆ¶çµ‚äº†ã—ã¾ã™ã€‚");
 				m_Thread.Terminate();
 			}
 			m_Thread.Close();
@@ -66,17 +66,17 @@ namespace TSTask
 		if (pSender==nullptr)
 			return false;
 
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒWƒLƒ…[‚ÉƒƒbƒZ[ƒW‚ğ’Ç‰Á‚µ‚Ü‚·B(%s)",
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚­ãƒ¥ãƒ¼ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¿½åŠ ã—ã¾ã™ã€‚(%s)",
 			   Message.GetName());
 
 		CTryBlockLock Lock(m_QueueLock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
 		if (!m_Thread.IsOpened()) {
-			OutLog(LOG_ERROR,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚ªÀs‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+			OutLog(LOG_ERROR,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå®Ÿè¡Œã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
 			return false;
 		}
 
@@ -90,11 +90,11 @@ namespace TSTask
 
 	bool CMessageSendQueue::ClearQueue()
 	{
-		OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒWƒLƒ…[‚ğƒNƒŠƒA‚µ‚Ü‚·B");
+		OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚­ãƒ¥ãƒ¼ã‚’ã‚¯ãƒªã‚¢ã—ã¾ã™ã€‚");
 
 		CTryBlockLock Lock(m_QueueLock);
 		if (!Lock.TryLock(m_LockTimeout)) {
-			OutLog(LOG_ERROR,L"ƒ^ƒCƒ€ƒAƒEƒg‚µ‚Ü‚µ‚½B");
+			OutLog(LOG_ERROR,L"ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ã¾ã—ãŸã€‚");
 			return false;
 		}
 
@@ -115,14 +115,14 @@ namespace TSTask
 		while (true) {
 			DWORD Result=::WaitForMultipleObjects(2,EventList,FALSE,INFINITE);
 			if (Result==WAIT_OBJECT_0) {
-				OutLog(LOG_VERBOSE,L"I—¹ƒVƒOƒiƒ‹‚É‚æ‚èƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚ğI—¹‚µ‚Ü‚·B");
+				OutLog(LOG_VERBOSE,L"çµ‚äº†ã‚·ã‚°ãƒŠãƒ«ã«ã‚ˆã‚Šãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’çµ‚äº†ã—ã¾ã™ã€‚");
 				break;
 			} else if (Result==WAIT_OBJECT_0+1) {
-				OutLog(LOG_VERBOSE,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚©‚çƒƒbƒZ[ƒW‚ğ‘—M‚µ‚Ü‚·B");
+				OutLog(LOG_VERBOSE,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é€ä¿¡ã—ã¾ã™ã€‚");
 				while (true) {
 					m_QueueLock.Lock();
 					if (m_MessageQueue.empty()) {
-						OutLog(LOG_VERBOSE,L"ƒLƒ…[‚É‚ ‚é‘S‚Ä‚ÌƒƒbƒZ[ƒW‚ª‘—M‚³‚ê‚Ü‚µ‚½B");
+						OutLog(LOG_VERBOSE,L"ã‚­ãƒ¥ãƒ¼ã«ã‚ã‚‹å…¨ã¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒé€ä¿¡ã•ã‚Œã¾ã—ãŸã€‚");
 						m_QueueLock.Unlock();
 						break;
 					}
@@ -130,13 +130,13 @@ namespace TSTask
 					m_MessageQueue.pop_front();
 					m_QueueLock.Unlock();
 
-					OutLog(LOG_VERBOSE,L"ƒLƒ…[‚©‚çƒƒbƒZ[ƒW‚ğ‘—M‚µ‚Ü‚·B(%s)",
+					OutLog(LOG_VERBOSE,L"ã‚­ãƒ¥ãƒ¼ã‹ã‚‰ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é€ä¿¡ã—ã¾ã™ã€‚(%s)",
 						   Info.Message.GetName());
 					Info.pSender->SendQueueMessage(Info.Message);
 					Info.pSender->Release();
 				}
 			} else {
-				OutLog(LOG_WARNING,L"ƒƒbƒZ[ƒW‘—MƒXƒŒƒbƒh‚Ì‘Ò‹@‚Å—\Šú‚µ‚È‚¢Œ‹‰Ê‚ª•Ô‚³‚ê‚Ü‚µ‚½B(0x%x)",Result);
+				OutLog(LOG_WARNING,L"ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰ã®å¾…æ©Ÿã§äºˆæœŸã—ãªã„çµæœãŒè¿”ã•ã‚Œã¾ã—ãŸã€‚(0x%x)",Result);
 			}
 		}
 

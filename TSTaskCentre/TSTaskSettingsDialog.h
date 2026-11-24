@@ -1,4 +1,4 @@
-#ifndef TSTASKCENTRE_TSTASK_SETTINGS_DIALOG_H
+﻿#ifndef TSTASKCENTRE_TSTASK_SETTINGS_DIALOG_H
 #define TSTASKCENTRE_TSTASK_SETTINGS_DIALOG_H
 
 
@@ -37,7 +37,7 @@ namespace TSTaskCentre
 	private:
 		LPCWSTR GetTitle() const override
 		{
-			return L"TSTask �̐ݒ�";
+			return L"TSTask の設定";
 		}
 		CPage *CreatePage(int Page) override;
 		bool OnOK() override;

@@ -1,4 +1,5 @@
-// DtvEngine.cpp: CDtvEngine ƒNƒ‰ƒX‚ÌƒCƒ“ƒvƒŠƒƒ“ƒe[ƒVƒ‡ƒ“
+ï»¿// Modified in this TSTask fork (recorded 2026-11-19).
+// DtvEngine.cpp: CDtvEngine ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ãƒ—ãƒªãƒ¡ãƒ³ãƒ†ãƒ¼ã‚·ãƒ§ãƒ³
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,7 +13,7 @@
 
 
 //////////////////////////////////////////////////////////////////////
-// CDtvEngine \’z/Á–Å
+// CDtvEngine æ§‹ç¯‰/æ¶ˆæ»…
 //////////////////////////////////////////////////////////////////////
 
 CDtvEngine::CDtvEngine(void)
@@ -69,31 +70,35 @@ bool CDtvEngine::BuildEngine(CEventHandler *pEventHandler)
 		return true;
 
 	/*
-	ƒOƒ‰ƒt\¬}
+	ã‚°ãƒ©ãƒ•æ§‹æˆå›³
 
 	m_BonSrcDecoder
-	    «
+	    â†“
 	m_TsPacketParser
-	    «
+	    â†“
 	m_TsAnalyzer
-	    «
+	    â†“
+	m_TSProcessor
+	    â†“
 	m_TsPacketCounter
-	    «
+	    â†“
 	m_TsGrabber
-	    «
-	m_MediaTee„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„¢
-	    «                «
+	    â†“
+	m_MediaTeeâ”€â”€â”€â”€â”€â”€â”
+	    â†“                â†“
 	m_FileTsSelector  m_NetworkTsSelector
-	    «                «
+	    â†“                â†“
 	m_TsRecorder      m_TsNetworkSender
 	*/
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("ƒfƒR[ƒ_ƒOƒ‰ƒt‚ğ\’z‚µ‚Ä‚¢‚Ü‚·..."));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("ãƒ‡ã‚³ãƒ¼ãƒ€ã‚°ãƒ©ãƒ•ã‚’æ§‹ç¯‰ã—ã¦ã„ã¾ã™..."));
 
-	// ƒfƒR[ƒ_ƒOƒ‰ƒt\’z
+	// ãƒ‡ã‚³ãƒ¼ãƒ€ã‚°ãƒ©ãƒ•æ§‹ç¯‰
 	m_BonSrcDecoder.SetOutputDecoder(&m_TsPacketParser);
 	m_TsPacketParser.SetOutputDecoder(&m_TsAnalyzer);
-	m_TsAnalyzer.SetOutputDecoder(&m_TsPacketCounter);
+	m_TSProcessor.SetTracer(m_pTracer);
+	m_TsAnalyzer.SetOutputDecoder(&m_TSProcessor);
+	m_TSProcessor.SetOutputDecoder(&m_TsPacketCounter);
 	m_TsPacketCounter.SetOutputDecoder(&m_TsGrabber);
 #ifdef DTVENGINE_NETWORK_SUPPORT
 	m_TsGrabber.SetOutputDecoder(&m_MediaTee);
@@ -106,7 +111,7 @@ bool CDtvEngine::BuildEngine(CEventHandler *pEventHandler)
 	m_FileTsSelector.SetOutputDecoder(&m_TsRecorder);
 #endif
 
-	// ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰İ’è
+	// ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©è¨­å®š
 	m_pEventHandler = pEventHandler;
 	m_pEventHandler->m_pDtvEngine = this;
 
@@ -121,16 +126,17 @@ bool CDtvEngine::CloseEngine(void)
 	//if (!m_bBuiled)
 	//	return true;
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("DtvEngine ‚ğ•Â‚¶‚Ä‚¢‚Ü‚·..."));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("DtvEngine ã‚’é–‰ã˜ã¦ã„ã¾ã™..."));
 
 	ReleaseSrcFilter();
+	m_TSProcessor.Finalize();
 
-	// ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰‰ğœ
+	// ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©è§£é™¤
 	m_pEventHandler = NULL;
 
 	m_bBuiled = false;
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("DtvEngine ‚ğ•Â‚¶‚Ü‚µ‚½B"));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("DtvEngine ã‚’é–‰ã˜ã¾ã—ãŸã€‚"));
 
 	return true;
 }
@@ -141,7 +147,7 @@ bool CDtvEngine::ResetEngine(void)
 	if (!m_bBuiled)
 		return false;
 
-	// ƒfƒR[ƒ_ƒOƒ‰ƒtƒŠƒZƒbƒg
+	// ãƒ‡ã‚³ãƒ¼ãƒ€ã‚°ãƒ©ãƒ•ãƒªã‚»ãƒƒãƒˆ
 	m_BonSrcDecoder.ResetGraph();
 
 	return true;
@@ -152,7 +158,7 @@ bool CDtvEngine::LoadBonDriver(LPCTSTR pszFileName)
 {
 	ReleaseSrcFilter();
 
-	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ‚ğ“Ç‚İ‚ñ‚Å‚¢‚Ü‚·..."));
+	Trace(CTracer::TYPE_INFORMATION, TEXT("BonDriver ã‚’èª­ã¿è¾¼ã‚“ã§ã„ã¾ã™..."));
 	if (!m_BonSrcDecoder.LoadBonDriver(pszFileName)) {
 		SetError(m_BonSrcDecoder.GetLastErrorException());
 		return false;
@@ -164,6 +170,7 @@ bool CDtvEngine::LoadBonDriver(LPCTSTR pszFileName)
 
 bool CDtvEngine::UnloadBonDriver()
 {
+	CloseTuner();
 	if (m_BonSrcDecoder.IsBonDriverLoaded()) {
 		m_BonSrcDecoder.UnloadBonDriver();
 	}
@@ -179,15 +186,17 @@ bool CDtvEngine::OpenTuner()
 		return false;
 	}
 
+	ResetStatus();
+	m_TSProcessor.Start();
+
 	if (m_bStartStreamingOnDriverOpen) {
-		Trace(CTracer::TYPE_INFORMATION, TEXT("ƒXƒgƒŠ[ƒ€‚ÌÄ¶‚ğŠJn‚µ‚Ä‚¢‚Ü‚·..."));
+		Trace(CTracer::TYPE_INFORMATION, TEXT("ã‚¹ãƒˆãƒªãƒ¼ãƒ ã®å†ç”Ÿã‚’é–‹å§‹ã—ã¦ã„ã¾ã™..."));
 		if (!m_BonSrcDecoder.Play()) {
 			SetError(m_BonSrcDecoder.GetLastErrorException());
+			CloseTuner();
 			return false;
 		}
 	}
-	//ResetEngine();
-	ResetStatus();
 
 	return true;
 }
@@ -198,6 +207,7 @@ bool CDtvEngine::CloseTuner()
 	if (m_BonSrcDecoder.IsOpen()) {
 		m_BonSrcDecoder.CloseTuner();
 	}
+	m_TSProcessor.Stop();
 
 	return true;
 }
@@ -229,13 +239,14 @@ bool CDtvEngine::SetChannel(const DWORD TuningSpace, const DWORD Channel, const 
 
 	const WORD OldServiceID = m_SetChannelServiceID;
 
-	// ƒT[ƒrƒX‚ÍPAT‚ª—ˆ‚é‚Ü‚Å•Û—¯
+	// ã‚µãƒ¼ãƒ“ã‚¹ã¯PATãŒæ¥ã‚‹ã¾ã§ä¿ç•™
 	m_SetChannelServiceID = ServiceID;
 
 	m_EngineLock.Unlock();
 
-	// ƒ`ƒƒƒ“ƒlƒ‹•ÏX
+	// ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´
 	if (!m_BonSrcDecoder.SetChannelAndPlay(TuningSpace, Channel)) {
+		CBlockLock Lock(&m_EngineLock);
 		m_SetChannelServiceID = OldServiceID;
 		SetError(m_BonSrcDecoder.GetLastErrorException());
 		return false;
@@ -249,19 +260,20 @@ bool CDtvEngine::SetService(const WORD wService)
 {
 	CBlockLock Lock(&m_EngineLock);
 
-	// ƒT[ƒrƒX•ÏX(wService==0xFFFF‚È‚çPATæ“ªƒT[ƒrƒX)
+	// ã‚µãƒ¼ãƒ“ã‚¹å¤‰æ›´(wService==0xFFFFãªã‚‰PATå…ˆé ­ã‚µãƒ¼ãƒ“ã‚¹)
 
 	if (wService == 0xFFFF || wService < m_TsAnalyzer.GetServiceNum()) {
 		WORD wServiceID;
 
 		if (wService == 0xFFFF) {
-			// æ“ªPMT‚ª“’…‚·‚é‚Ü‚Å¸”s‚É‚·‚é
+			// å…ˆé ­PMTãŒåˆ°ç€ã™ã‚‹ã¾ã§å¤±æ•—ã«ã™ã‚‹
 			if (!m_TsAnalyzer.GetFirstViewableServiceID(&wServiceID))
 				return false;
 		} else {
 			if (!m_TsAnalyzer.GetServiceID(wService, &wServiceID))
 				return false;
 		}
+		const bool bServiceChanged = m_CurServiceID != wServiceID;
 		m_CurServiceIndex = m_TsAnalyzer.GetServiceIndexByID(wServiceID);
 
 		m_CurServiceID = wServiceID;
@@ -285,7 +297,7 @@ bool CDtvEngine::SetService(const WORD wService)
 			SetSendStream(wServiceID, m_SendStream);
 #endif
 
-		if (m_pEventHandler)
+		if (m_pEventHandler && bServiceChanged)
 			m_pEventHandler->OnServiceChanged(wServiceID);
 
 		return true;
@@ -297,7 +309,8 @@ bool CDtvEngine::SetService(const WORD wService)
 
 bool CDtvEngine::GetServiceID(WORD *pServiceID)
 {
-	// ƒT[ƒrƒXIDæ“¾
+	CBlockLock Lock(&m_EngineLock);
+	// ã‚µãƒ¼ãƒ“ã‚¹IDå–å¾—
 	return m_TsAnalyzer.GetServiceID(m_CurServiceIndex, pServiceID);
 }
 
@@ -306,7 +319,7 @@ bool CDtvEngine::SetServiceByID(const WORD ServiceID, const bool bReserve)
 {
 	CBlockLock Lock(&m_EngineLock);
 
-	// bReserve == true ‚Ìê‡A‚Ü‚¾PAT‚ª—ˆ‚Ä‚¢‚È‚­‚Ä‚àƒGƒ‰[‚É‚µ‚È‚¢
+	// bReserve == true ã®å ´åˆã€ã¾ã PATãŒæ¥ã¦ã„ãªãã¦ã‚‚ã‚¨ãƒ©ãƒ¼ã«ã—ãªã„
 
 	int Index;
 #ifdef BONTSENGINE_1SEG_SUPPORT
@@ -466,7 +479,7 @@ bool CDtvEngine::GetEventAudioInfo(CTsAnalyzer::EventAudioInfo *pInfo, const int
 
 unsigned __int64 CDtvEngine::GetPcrTimeStamp()
 {
-	// PCRƒ^ƒCƒ€ƒXƒ^ƒ“ƒvæ“¾
+	// PCRã‚¿ã‚¤ãƒ ã‚¹ã‚¿ãƒ³ãƒ—å–å¾—
 	unsigned __int64 TimeStamp;
 	if (m_TsAnalyzer.GetPcrTimeStamp(m_CurServiceIndex, &TimeStamp))
 		return TimeStamp;
@@ -476,16 +489,16 @@ unsigned __int64 CDtvEngine::GetPcrTimeStamp()
 
 const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEventID, PVOID pParam)
 {
-	// ƒfƒR[ƒ_‚©‚ç‚ÌƒCƒxƒ“ƒg‚ğó‚¯æ‚é(b’è)
+	// ãƒ‡ã‚³ãƒ¼ãƒ€ã‹ã‚‰ã®ã‚¤ãƒ™ãƒ³ãƒˆã‚’å—ã‘å–ã‚‹(æš«å®š)
 	if (pDecoder == &m_BonSrcDecoder) {
 		switch (dwEventID) {
 		case CBonSrcDecoder::EVENT_GRAPH_RESET:
-			// ƒfƒR[ƒ_ƒOƒ‰ƒt‚ªƒŠƒZƒbƒg‚³‚ê‚½
+			// ãƒ‡ã‚³ãƒ¼ãƒ€ã‚°ãƒ©ãƒ•ãŒãƒªã‚»ãƒƒãƒˆã•ã‚ŒãŸ
 			ResetStatus();
 			return 0;
 
 		case CBonSrcDecoder::EVENT_CHANNEL_CHANGED:
-			// ƒ`ƒƒƒ“ƒlƒ‹‚ª•ÏX‚³‚ê‚½
+			// ãƒãƒ£ãƒ³ãƒãƒ«ãŒå¤‰æ›´ã•ã‚ŒãŸ
 			{
 				CBlockLock Lock(&m_EngineLock);
 
@@ -498,15 +511,15 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 		switch (dwEventID) {
 		case CTsAnalyzer::EVENT_PAT_UPDATED:
 		case CTsAnalyzer::EVENT_PMT_UPDATED:
-			// ƒT[ƒrƒX‚Ì\¬‚ª•Ï‰»‚µ‚½
+			// ã‚µãƒ¼ãƒ“ã‚¹ã®æ§‹æˆãŒå¤‰åŒ–ã—ãŸ
 			{
 				CBlockLock Lock(&m_EngineLock);
 				const WORD TransportStreamID = m_TsAnalyzer.GetTransportStreamID();
 				const bool bStreamChanged = m_CurTransportStreamID != TransportStreamID;
 
 				if (bStreamChanged) {
-					// ƒXƒgƒŠ[ƒ€ID‚ª•Ï‚í‚Á‚Ä‚¢‚é‚È‚ç‰Šú‰»
-					TRACE(TEXT("CDtvEngine ¡Stream Change!! %04X\n"), TransportStreamID);
+					// ã‚¹ãƒˆãƒªãƒ¼ãƒ IDãŒå¤‰ã‚ã£ã¦ã„ã‚‹ãªã‚‰åˆæœŸåŒ–
+					TRACE(TEXT("CDtvEngine â– Stream Change!! %04X\n"), TransportStreamID);
 
 					m_CurServiceIndex = SERVICE_INVALID;
 					m_CurServiceID = SID_INVALID;
@@ -525,22 +538,22 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 					} else
 #endif
 					if (m_SpecServiceID != SID_INVALID) {
-						// ƒT[ƒrƒX‚ªw’è‚³‚ê‚Ä‚¢‚é
+						// ã‚µãƒ¼ãƒ“ã‚¹ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹
 						const int ServiceIndex = m_TsAnalyzer.GetServiceIndexByID(m_SpecServiceID);
 						if (ServiceIndex < 0) {
-							// ƒT[ƒrƒX‚ªPAT‚É‚È‚¢
+							// ã‚µãƒ¼ãƒ“ã‚¹ãŒPATã«ãªã„
 							if (m_TsAnalyzer.GetViewableServiceNum() > 0) {
 								TRACE(TEXT("Service not found %04x\n"), m_SpecServiceID);
 								m_SpecServiceID = SID_INVALID;
 							} else {
-								// ‚Ü‚¾‹’®‰Â”\‚ÈƒT[ƒrƒX‚ÌPMT‚ªˆê‚Â‚à—ˆ‚Ä‚¢‚È‚¢ê‡‚Í•Û—¯
+								// ã¾ã è¦–è´å¯èƒ½ãªã‚µãƒ¼ãƒ“ã‚¹ã®PMTãŒä¸€ã¤ã‚‚æ¥ã¦ã„ãªã„å ´åˆã¯ä¿ç•™
 								bSetService = false;
 							}
 						} else {
 							if (m_TsAnalyzer.IsServiceUpdated(ServiceIndex)) {
 								Service = (WORD)ServiceIndex;
 							} else {
-								// ƒT[ƒrƒX‚ÍPAT‚É‚ ‚é‚ªA‚Ü‚¾PMT‚ª—ˆ‚Ä‚¢‚È‚¢
+								// ã‚µãƒ¼ãƒ“ã‚¹ã¯PATã«ã‚ã‚‹ãŒã€ã¾ã PMTãŒæ¥ã¦ã„ãªã„
 								bSetService = false;
 							}
 						}
@@ -548,8 +561,8 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 					if (bSetService)
 						SetService(Service);
 				} else {
-					// ƒXƒgƒŠ[ƒ€ID‚Í“¯‚¶‚¾‚ªA\¬ES‚ÌPID‚ª•Ï‚í‚Á‚½‰Â”\«‚ª‚ ‚é
-					TRACE(TEXT("CDtvEngine ¡Stream Updated!! %04X\n"), TransportStreamID);
+					// ã‚¹ãƒˆãƒªãƒ¼ãƒ IDã¯åŒã˜ã ãŒã€æ§‹æˆESã®PIDãŒå¤‰ã‚ã£ãŸå¯èƒ½æ€§ãŒã‚ã‚‹
+					TRACE(TEXT("CDtvEngine â– Stream Updated!! %04X\n"), TransportStreamID);
 
 					bool bSetService = true;
 					WORD Service = SERVICE_INVALID;
@@ -606,19 +619,19 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 			return 0UL;
 
 		case CTsAnalyzer::EVENT_SDT_UPDATED:
-			// ƒT[ƒrƒX‚Ìî•ñ‚ªXV‚³‚ê‚½
+			// ã‚µãƒ¼ãƒ“ã‚¹ã®æƒ…å ±ãŒæ›´æ–°ã•ã‚ŒãŸ
 			if (m_pEventHandler)
 				m_pEventHandler->OnServiceInfoUpdated(&m_TsAnalyzer);
 			return 0UL;
 
 		case CTsAnalyzer::EVENT_EIT_UPDATED:
-			//  EIT‚ªXV‚³‚ê‚½
+			//  EITãŒæ›´æ–°ã•ã‚ŒãŸ
 			if (m_pEventHandler)
 				m_pEventHandler->OnEventUpdated(&m_TsAnalyzer);
 			return 0UL;
 
 		case CTsAnalyzer::EVENT_TOT_UPDATED:
-			//  TOT‚ªXV‚³‚ê‚½
+			//  TOTãŒæ›´æ–°ã•ã‚ŒãŸ
 			if (m_pEventHandler)
 				m_pEventHandler->OnTotUpdated(&m_TsAnalyzer);
 			return 0UL;
@@ -626,7 +639,7 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 	} else if (pDecoder == &m_TsRecorder) {
 		switch (dwEventID) {
 		case CTsRecorder::EVENT_WRITE_ERROR:
-			// ‘‚«‚İƒGƒ‰[‚ª”­¶‚µ‚½
+			// æ›¸ãè¾¼ã¿ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ãŸ
 			if (m_pEventHandler)
 				m_pEventHandler->OnFileWriteError(&m_TsRecorder, *static_cast<const DWORD*>(pParam));
 			return 0UL;
@@ -639,6 +652,7 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 
 void CDtvEngine::ResetStatus()
 {
+	CBlockLock Lock(&m_EngineLock);
 	m_CurTransportStreamID = TSID_INVALID;
 	m_CurServiceIndex = SERVICE_INVALID;
 	m_CurServiceID = SID_INVALID;
