@@ -4,7 +4,7 @@
 
 - 本プロジェクトは [DBCTRADO/TSTask](https://github.com/DBCTRADO/TSTask) の改変版です。上流の README に記載されている GNU General Public License, version 2 (GPL v2) に従います。本文は [LICENSE.md](LICENSE.md) に収録しています。
 - TSTask の原著作者・貢献者に感謝します。BonTsEngine の原作者は「拡張ツール中の人」氏、改造版の作者は Meru-co 氏です。上流の表記は [TSTask.txt](Doc/TSTask.txt) と TSTaskCentre のバージョン情報画面にあります。
-- 2026-11-19 に記録されたフォークの初回コミットには、録画・選局、プラグイン対応、文字コードの整備などの変更が含まれます。上流から内容を変更したファイルには、フォークでの改変と日付を記載しています。
+- フォークの公開履歴で最初の改編コミット（2026-11-24）には、録画・選局、プラグイン対応、文字コードの整備などの変更が含まれます。上流から内容を変更したファイルには、フォークでの改変と日付を記載しています。
 
 ## TVTest SDK
 

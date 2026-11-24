@@ -154,6 +154,6 @@ LowFreeSpace=1024
 
 ライセンス
 ----------
-本プロジェクトは [DBCTRADO/TSTask](https://github.com/DBCTRADO/TSTask) の改変版です。フォークの初回コミットは 2026-11-19 に記録されました。TSTask 本体は上流と同じ [GNU General Public License, version 2](LICENSE.md) に従います。原著作者と同梱素材の表記は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
+本プロジェクトは [DBCTRADO/TSTask](https://github.com/DBCTRADO/TSTask) の改変版です。フォークの公開履歴で最初の改編コミットは 2026-11-24 に記録されました。TSTask 本体は上流と同じ [GNU General Public License, version 2](LICENSE.md) に従います。原著作者と同梱素材の表記は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
 
 GitHub Actions の各配布 ZIP には、ライセンス文書と、バイナリのビルドに使用したコミットのソース一式 `TSTask-source-<タグ>.zip` を同梱します。
