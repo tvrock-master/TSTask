@@ -22,6 +22,8 @@ TVTestと同じフォルダにTSTaskの実行ファイル群を置くことで�
 | 録画ファイル名 | ファイル名のテンプレートで、番組の開始・終了日時や放送時間を指定できるようになりました。 [VariableString.cpp](Common/VariableString.cpp#L204) |
 | 予約録画 | 停止タイマーを録画ごとのIDに紐付け、前の録画の停止通知が遅れて届いたときに、次の録画まで停止するのを防ぎます。 [ReserveManager.cpp](TSTask/ReserveManager.cpp#L279) |
 | 起動・選局・終了 | 初期化後に TSTaskCentre などからのパイプ経由の操作を受け付け、終了時は先にその受付を止めるようになりました。選局や番組情報の更新通知はメインスレッドで処理し、受信処理とのロック競合を抑えています。 [TSTask.cpp](TSTask/TSTask.cpp#L353) · [TSTaskCore.cpp](TSTask/TSTaskCore.cpp#L1669) |
+| TvRockGOへの選局通知 | フォークで同じサービスID（SID）の再通知を省くようにしたため、映像・音声などの構成情報（PMT）が遅れて届くと、TvRockGO 側の SID が `0` のままになり、録画を開始できない場合がありました。PMT が届いてサービス情報を取得できるようになった時点で、SID が同じでも TvRockOnTVTest を通じて選局結果を通知するように修正しました。 [DtvEngine.cpp](TSTask/DtvEngine.cpp#L278) |
+| TSTaskCentreへの起動通知 | TSTask からの起動通知を別スレッドで送るようにしました。TSTaskCentre との通信が混雑していても、TvRockGO からの選局・録画開始命令を処理できます。 [TSTask.cpp](TSTask/TSTask.cpp#L367) |
 | TSTaskCentreの表示・通信 | 開始通知を受けると一覧にタスクの行を先に表示し、通知登録とデバイスID・ドライバー・チャンネル・番組情報の初回取得は別スレッドで進めます。起動直後に通知登録が失敗した場合は再試行します。終了処理中と判明しているプロセスについては、パイプが消えた際の `Code 0x2` の誤表示も抑えています。 [MainBoard.cpp](TSTaskCentre/MainBoard.cpp#L359) · [TSTaskManager.cpp](TSTaskCentre/TSTaskManager.cpp#L986) · [MessageClient.cpp](Common/MessageClient.cpp#L100) |
 | TSTaskCentreの画面下端表示 | 「設定」→「一般」の「画面下端に横幅いっぱいで表示する」を有効にすると、ウィンドウのあるモニターの作業領域の横幅いっぱいに広がり、下端に固定されます。`TSTaskCentre.ini` の `[Settings]` では `MainBoard.DockBottom=true`、起動オプションでは `/dockbottom` で指定できます。`/dockbottom-` は起動時に無効にします。 [MainBoard.cpp](TSTaskCentre/MainBoard.cpp#L467) |
 | TSTaskCentreの常駐 | 既定ではすべての TSTask が終了しても TSTaskCentre は起動したままになります。自動終了するには「設定」→「一般」で「全ての TSTask が終了したら TSTaskCentre を終了する」を有効にします。 |

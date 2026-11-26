@@ -9,6 +9,8 @@
 #include "TSTaskCommandLine.h"
 #include "TVTestControlPlugin.h"
 #include "../Common/DebugDef.h"
+#include <atomic>
+#include <future>
 
 
 namespace TSTask
@@ -59,6 +61,8 @@ namespace TSTask
 		String m_ChannelHistoryPath;
 		TuningChannelInfo m_LastService;
 		bool m_fTaskRunning=false;
+		std::atomic<bool> m_fCancelTaskStarted{false};
+		std::future<void> m_TaskStartedNotification;
 	};
 
 	CTSTaskApp::CTSTaskApp(HINSTANCE hInstance)
@@ -360,9 +364,16 @@ namespace TSTask
 		m_fTaskRunning=true;
 		m_SharedInfo.SetTaskState(TASK_STATE_RUNNING);
 
-		CMessage StartedMessage;
-		BasicMessage::TaskStarted::InitializeMessage(&StartedMessage,m_TaskIdentity.GetTaskID());
-		BroadcastServerMessage(StartedMessage);
+		const TaskID ID=m_TaskIdentity.GetTaskID();
+		try {
+			m_TaskStartedNotification=std::async(std::launch::async,[this,ID]() {
+				CMessage StartedMessage;
+				BasicMessage::TaskStarted::InitializeMessage(&StartedMessage,ID);
+				BroadcastServerMessage(StartedMessage,[this]() { return m_fCancelTaskStarted.load(); });
+			});
+		} catch (const std::exception &) {
+			OutLog(LOG_ERROR,L"クライアントへのタスク開始通知を開始できません。");
+		}
 
 		if (m_CurSettings.General.GetClientExecuteOnStart()) {
 			ExecuteClient();
@@ -505,6 +516,7 @@ namespace TSTask
 
 	bool CTSTaskApp::Finalize()
 	{
+		m_fCancelTaskStarted=true;
 		if (m_fTaskRunning)
 			m_SharedInfo.SetTaskState(TASK_STATE_ENDING);
 
@@ -516,6 +528,15 @@ namespace TSTask
 		const bool fFinalized=m_Core.Finalize();
 		m_TSTaskWindow.Destroy();
 		m_ClientManager.Finalize();
+
+		// Finish any in-flight start notification before sending TaskEnded.
+		if (m_TaskStartedNotification.valid()) {
+			try {
+				m_TaskStartedNotification.get();
+			} catch (const std::exception &) {
+				OutLog(LOG_ERROR,L"クライアントへのタスク開始通知を送信できません。");
+			}
+		}
 
 		if (m_fTaskRunning) {
 			CMessage EndedMessage;

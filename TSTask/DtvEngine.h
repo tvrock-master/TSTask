@@ -132,6 +132,8 @@ protected:
 	bool m_bBuiled;
 	bool m_bStartStreamingOnDriverOpen;
 
+	bool m_fCurrentServiceViewable;
+
 	bool m_bWriteCurServiceOnly;
 	DWORD m_WriteStream;
 

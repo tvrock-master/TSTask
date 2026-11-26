@@ -2,6 +2,7 @@
 #define TSTASK_BASIC_MESSAGE_H
 
 
+#include <functional>
 #include <vector>
 #include "Message.h"
 #include "TaskUtility.h"
@@ -131,7 +132,7 @@ namespace TSTask
 	};
 	typedef std::vector<BonDriverTuningSpaceInfo> BonDriverTuningSpaceList;
 
-	bool BroadcastServerMessage(const CMessage &Message);
+	bool BroadcastServerMessage(const CMessage &Message,const std::function<bool()> &IsCancelled={});
 
 	namespace BasicMessage
 	{
