@@ -8,7 +8,9 @@
 # The legacy manual is edited as CP932.
 Doc/TSTask.txt text working-tree-encoding=CP932 eol=crlf
 
-# These configuration files use UTF-16LE with a BOM.
+# This configuration file uses UTF-16LE with a BOM in the working tree.
 Data/TSTask.default.ini text working-tree-encoding=UTF-16LE-BOM eol=crlf
-Data/TSTaskThemes/Aero.tttheme text working-tree-encoding=UTF-16LE-BOM eol=crlf
-Data/TSTaskThemes/Metro.tttheme text working-tree-encoding=UTF-16LE-BOM eol=crlf
+
+# These themes are stored as UTF-16LE with a BOM. Preserve their bytes.
+Data/TSTaskThemes/Aero.tttheme -text
+Data/TSTaskThemes/Metro.tttheme -text
