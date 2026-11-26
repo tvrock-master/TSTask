@@ -34,7 +34,7 @@ namespace
 			*end++ = BYTE(crc >> shift);
 	}
 
-	Stream MakeStream(WORD tsid, BYTE sid)
+	Stream MakeStream(WORD tsid, BYTE sid, bool includePmt = true)
 	{
 		Stream stream;
 		stream.fill(0xff);
@@ -42,8 +42,13 @@ namespace
 			BYTE *packet = stream.data() + counter * 3 * PacketSize;
 			WriteSection(packet, 0, counter,
 				{0, 0xb0, 13, BYTE(tsid >> 8), BYTE(tsid), 0xc1, 0, 0, 0, sid, 0xe1, 0});
-			WriteSection(packet + PacketSize, 0x100, counter,
-				{2, 0xb0, 18, 0, sid, 0xc1, 0, 0, 0xe1, 1, 0xf0, 0, 2, 0xe1, 1, 0xf0, 0});
+			if (includePmt) {
+				WriteSection(packet + PacketSize, 0x100, counter,
+					{2, 0xb0, 18, 0, sid, 0xc1, 0, 0, 0xe1, 1, 0xf0, 0, 2, 0xe1, 1, 0xf0, 0});
+			} else {
+				const BYTE nullHeader[] = {0x47, 0x1f, 0xff, BYTE(0x10 | counter)};
+				std::copy(std::begin(nullHeader), std::end(nullHeader), packet + PacketSize);
+			}
 
 			// The video PID carries a channel marker so the test can identify the recorded TS.
 			const BYTE video[] = {0x47, BYTE(VideoPID >> 8), BYTE(VideoPID), BYTE(0x10 | counter), sid};
@@ -74,7 +79,9 @@ namespace
 			const DWORD channel = m_Channel;
 			if (channel >= m_Streams.size())
 				return FALSE;
-			*data = m_Streams[channel].data();
+			if (m_WaitForFirstPmt && HasData(L"release-pmt.txt"))
+				m_WaitForFirstPmt = false;
+			*data = channel == 0 && m_WaitForFirstPmt ? m_FirstPatOnly.data() : m_Streams[channel].data();
 			*size = DWORD(m_Streams[channel].size());
 			*remain = 0;
 			return TRUE;
@@ -101,6 +108,8 @@ namespace
 
 	private:
 		std::atomic<DWORD> m_Channel{MAXDWORD};
+		bool m_WaitForFirstPmt = GetEnvironmentVariableW(L"TSTASK_TEST_DELAY_PMT", nullptr, 0) != 0;
+		Stream m_FirstPatOnly = MakeStream(FirstTransportStream, BYTE(FirstService), false);
 		std::array<Stream, 2> m_Streams{
 			MakeStream(FirstTransportStream, BYTE(FirstService)),
 			MakeStream(SecondTransportStream, BYTE(SecondService))

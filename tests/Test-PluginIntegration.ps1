@@ -76,8 +76,7 @@ function Test-Recording([string]$Path, [int]$Service) {
     if (!$foundVideo) { throw "No test service data in $Path." }
 }
 
-function Invoke-PluginCase([string]$Case) {
-    $directory = Join-Path $testRoot $Case
+function Start-PluginCase([string]$Case, [string]$directory) {
     $plugins = Join-Path $directory 'Plugins'
     New-Item -ItemType Directory -Path $plugins, (Join-Path $directory 'backup') -Force | Out-Null
     Copy-Item -LiteralPath $app.FullName, (Join-Path $testRoot 'BonDriver_CI.dll') -Destination $directory
@@ -104,26 +103,37 @@ function Invoke-PluginCase([string]$Case) {
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
     $start.Arguments = '/d BonDriver_CI.dll /did A /ch 0 /sid 41 /xclient false /log true /loglevel 5'
-    if ($Case -ne 'integration') {
+    $isPluginRecording = $Case -in 'integration', 'delayed-pmt'
+    if (!$isPluginRecording) {
         $start.Arguments += ' /rec true /recfile recovery.ts /recduration 2 /recexit true'
     }
     if ($Case -eq 'init-failure') { $start.EnvironmentVariables['TSTASK_TEST_FAIL_INIT'] = '1' }
-    $process = [Diagnostics.Process]::Start($start)
+    if ($Case -eq 'delayed-pmt') { $start.EnvironmentVariables['TSTASK_TEST_DELAY_PMT'] = '1' }
+    return [Diagnostics.Process]::Start($start)
+}
+
+function Confirm-PluginCase([string]$Case, [string]$directory, [Diagnostics.Process]$process) {
     $log = Join-Path $directory 'TSTask.log'
     try {
         if (!$process.WaitForExit(45000)) { throw "$Case timed out." }
         if ($process.ExitCode -ne 0) { throw "$Case exited with code $($process.ExitCode)." }
         $logText = Get-Content -LiteralPath $log -Raw -Encoding Unicode
-        if ($Case -eq 'integration') {
+        if ($Case -in 'integration', 'delayed-pmt') {
             $result = Get-Content -LiteralPath (Join-Path $directory 'tvrock-result.txt') -Raw
             if ($result -ne 'OK') { throw $result }
             if ((Get-Content -LiteralPath (Join-Path $directory 'tvrock-disposed.txt') -Raw) -ne 'OK' -or
-                !$logText.Contains('TvRockOnTVTest.tvtp is handling TvRockDTV commands.') -or
-                !$logText.Contains('DiskRelay.tvtp is monitoring recording free space.')) {
-                throw 'Missing confirmation of plugin load, relay or shutdown.'
+                !$logText.Contains('TvRockOnTVTest.tvtp is handling TvRockDTV commands.')) {
+                throw 'Missing confirmation of plugin load or shutdown.'
             }
-            Test-Recording (Join-Path $directory 'primary.ts') 42
-            Test-Recording (Join-Path $directory 'backup/primary.part2.ts') 42
+            if ($Case -eq 'integration') {
+                if (!$logText.Contains('DiskRelay.tvtp is monitoring recording free space.')) {
+                    throw 'Missing confirmation of DiskRelay load.'
+                }
+                Test-Recording (Join-Path $directory 'primary.ts') 42
+                Test-Recording (Join-Path $directory 'backup/primary.part2.ts') 42
+            } else {
+                Test-Recording (Join-Path $directory 'primary.ts') 41
+            }
         } else {
             $expected = if ($Case -eq 'missing') { 'Could not load the control plugin' } else { 'TvRockOnTVTest.tvtp could not initialize.' }
             if (!$logText.Contains($expected)) { throw "Expected the plugin error in the log ($Case)." }
@@ -137,20 +147,84 @@ function Invoke-PluginCase([string]$Case) {
     } catch {
         if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log -Encoding Unicode -Tail 100 }
         throw
-    } finally {
-        if (!$process.HasExited) {
-            $process.Kill()
-            $process.WaitForExit()
-        }
-        $process.Dispose()
     }
+}
+
+function Stop-PluginCase([Diagnostics.Process]$process) {
+    if (!$process.HasExited) {
+        $process.Kill()
+        $process.WaitForExit()
+    }
+    $process.Dispose()
+}
+
+function Test-BusyCentre {
+    $created = $false
+    foreach ($id in 50..1) {
+        $identity = [Threading.Mutex]::new($false, "Global\TSTask_Client_Mutex_$id", [ref]$created)
+        if ($created) { break }
+        $identity.Dispose()
+    }
+    if (!$created) { throw 'No free Centre task ID for the startup test.' }
+
+    $tasks = @{}
+    try {
+        $server = $client = $null
+        try {
+            $pipe = "TSTask_Client_Pipe_$id"
+            $direction = [IO.Pipes.PipeDirection]::InOut
+            $server = [IO.Pipes.NamedPipeServerStream]::new($pipe, $direction, 1)
+            $client = [IO.Pipes.NamedPipeClientStream]::new('.', $pipe, $direction)
+            $client.Connect(1000)
+            $server.WaitForConnection()
+
+            foreach ($number in 1..2) {
+                $directory = Join-Path $testRoot "busy-centre-$number"
+                $tasks[$directory] = Start-PluginCase 'integration' $directory
+            }
+
+            # Keep the only pipe instance occupied until both plugin-driven recordings succeed.
+            $timer = [Diagnostics.Stopwatch]::StartNew()
+            foreach ($directory in $tasks.Keys) {
+                $result = Join-Path $directory 'tvrock-result.txt'
+                do {
+                    $status = if (Test-Path -LiteralPath $result) { Get-Content -LiteralPath $result -Raw }
+                    if (!$status) { Start-Sleep -Milliseconds 25 }
+                } while (!$status -and $timer.ElapsedMilliseconds -lt 8000)
+                if ($status -ne 'OK') {
+                    throw "Recording did not finish while the Centre pipe was busy ($directory): $status"
+                }
+                $log = Get-Content -LiteralPath (Join-Path $directory 'TSTask.log') -Raw -Encoding Unicode
+                if (!$log.Contains("pipe\$pipe")) {
+                    throw "TSTask did not attempt to contact the occupied Centre pipe ($directory)."
+                }
+            }
+        } finally {
+            $identity.Dispose()
+            if ($server) { $server.Dispose() }
+            if ($client) { $client.Dispose() }
+        }
+        foreach ($directory in $tasks.Keys) {
+            Confirm-PluginCase 'integration' $directory $tasks[$directory]
+        }
+    } finally {
+        foreach ($process in $tasks.Values) { Stop-PluginCase $process }
+    }
+    Write-Host "Verified both recordings while the Centre pipe was busy ($Platform)."
 }
 
 try {
     Build-TestPlugins
-    foreach ($case in 'missing', 'init-failure', 'integration') {
-        Invoke-PluginCase $case
+    foreach ($case in 'missing', 'init-failure', 'integration', 'delayed-pmt') {
+        $directory = Join-Path $testRoot $case
+        $process = Start-PluginCase $case $directory
+        try {
+            Confirm-PluginCase $case $directory $process
+        } finally {
+            Stop-PluginCase $process
+        }
     }
+    Test-BusyCentre
 } finally {
     $directory = Get-Item -LiteralPath $testRoot
     if ($directory.Parent.FullName.TrimEnd('\') -eq $tempRoot) {

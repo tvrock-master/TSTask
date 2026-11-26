@@ -8,8 +8,11 @@
 namespace TSTask
 {
 
-	bool BroadcastServerMessage(const CMessage &Message)
+	bool BroadcastServerMessage(const CMessage &Message,const std::function<bool()> &IsCancelled)
 	{
+		if (IsCancelled && IsCancelled())
+			return false;
+
 		OutLog(LOG_VERBOSE,L"全てのクライアントにメッセージ(%s)を送信します。",Message.GetName());
 
 		TaskUtility::TaskIDList TaskList;
@@ -17,6 +20,8 @@ namespace TSTask
 		TaskUtility::GetClientTaskList(&TaskList);
 
 		for (auto e:TaskList) {
+			if (IsCancelled && IsCancelled())
+				return false;
 			CLocalMessageClient MessageClient;
 			String ServerName;
 

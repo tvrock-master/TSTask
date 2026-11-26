@@ -81,18 +81,30 @@ namespace
 
 		const char *Exercise(RockRequest &request)
 		{
-			if (!WaitFor([this] { return m_ReceivedFirst && m_Service == FirstService; }))
-				return "First service was not delivered to TvRockDTV";
-			// TvRock's terrestrial channel command selects the service from the driver's .ch2.
-			if (!request.ChannelChange(1, SecondService))
-				return "ChannelChange failed";
-			if (!WaitFor([this] { return m_ReceivedSecond && m_Service == SecondService; }))
-				return "Second service was not delivered to TvRockDTV";
+			const bool delayedPmt = GetEnvironmentVariableW(L"TSTASK_TEST_DELAY_PMT", nullptr, 0) != 0;
+			if (delayedPmt) {
+				if (!WaitFor([this] { return m_ReceivedFirst.load(); }))
+					return "Initial TS packets did not arrive";
+				if (!request.ChannelChange(1, FirstService) || m_Service != 0)
+					return "Expected same-channel selection before PMT, with no reported service";
+				WriteResult(L"release-pmt.txt", "OK");
+				if (!WaitFor([this] { return m_Service == FirstService; }))
+					return "Service was not reported after the delayed PMT arrived";
+			} else {
+				if (!WaitFor([this] { return m_ReceivedFirst && m_Service == FirstService; }))
+					return "First service was not delivered to TvRockDTV";
+				// TvRock's terrestrial channel command selects the service from the driver's .ch2.
+				if (!request.ChannelChange(1, SecondService))
+					return "ChannelChange failed";
+				if (!WaitFor([this] { return m_ReceivedSecond && m_Service == SecondService; }))
+					return "Second service was not delivered to TvRockDTV";
+			}
 			WCHAR recording[] = L"primary.ts";
 			if (!request.RecordStart(recording))
 				return "RecordStart failed";
-			if (!WaitFor([] { return HasData(L"backup\\primary.part2.ts"); }))
-				return "Relay file did not receive TS data";
+			const LPCWSTR output = delayedPmt ? L"primary.ts" : L"backup\\primary.part2.ts";
+			if (!WaitFor([output] { return HasData(output); }))
+				return "Recording did not receive TS data";
 			if (!request.RecordStop())
 				return "RecordStop failed";
 			return "OK";

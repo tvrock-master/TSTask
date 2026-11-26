@@ -41,6 +41,8 @@ CDtvEngine::CDtvEngine(void)
 	, m_bBuiled(false)
 	, m_bStartStreamingOnDriverOpen(false)
 
+	, m_fCurrentServiceViewable(false)
+
 	, m_bWriteCurServiceOnly(false)
 	, m_WriteStream(CTsSelector::STREAM_ALL)
 
@@ -275,6 +277,10 @@ bool CDtvEngine::SetService(const WORD wService)
 		}
 		const bool bServiceChanged = m_CurServiceID != wServiceID;
 		m_CurServiceIndex = m_TsAnalyzer.GetServiceIndexByID(wServiceID);
+		const bool bViewable = m_TsAnalyzer.IsViewableService(m_CurServiceIndex);
+		// The PAT can select a SID before its PMT makes it visible to plugins.
+		const bool bServiceBecameViewable = bViewable && !m_fCurrentServiceViewable;
+		m_fCurrentServiceViewable = bViewable;
 
 		m_CurServiceID = wServiceID;
 		m_SpecServiceID = wServiceID;
@@ -297,7 +303,7 @@ bool CDtvEngine::SetService(const WORD wService)
 			SetSendStream(wServiceID, m_SendStream);
 #endif
 
-		if (m_pEventHandler && bServiceChanged)
+		if (m_pEventHandler && (bServiceChanged || bServiceBecameViewable))
 			m_pEventHandler->OnServiceChanged(wServiceID);
 
 		return true;
@@ -523,6 +529,7 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 
 					m_CurServiceIndex = SERVICE_INVALID;
 					m_CurServiceID = SID_INVALID;
+					m_fCurrentServiceViewable = false;
 					m_CurTransportStreamID = TransportStreamID;
 
 					bool bSetService = true;
@@ -599,6 +606,7 @@ const DWORD CDtvEngine::OnDecoderEvent(CMediaDecoder *pDecoder, const DWORD dwEv
 							if (m_TsAnalyzer.GetViewableServiceNum() > 0) {
 								TRACE(TEXT("Service not found %04x\n"), m_SpecServiceID);
 								m_CurServiceID = SID_INVALID;
+								m_fCurrentServiceViewable = false;
 							} else {
 								bSetService = false;
 							}
@@ -656,6 +664,7 @@ void CDtvEngine::ResetStatus()
 	m_CurTransportStreamID = TSID_INVALID;
 	m_CurServiceIndex = SERVICE_INVALID;
 	m_CurServiceID = SID_INVALID;
+	m_fCurrentServiceViewable = false;
 }
 
 
